@@ -1,5 +1,6 @@
 package org.example.entity
 
+import kotlinx.datetime.LocalDateTime
 import java.util.UUID
 
 data class TaskEntity(
@@ -8,5 +9,6 @@ data class TaskEntity(
     val description: String,
     val stateId: UUID,
     val projectId: UUID,
-    val createdByUserId: UUID
+    val createdByUserId: UUID,
+    val createdAt: LocalDateTime
 )
