@@ -4,9 +4,6 @@ import fakeData.createAuditLogEntity
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.example.data.DataProvider
 import org.example.data.repository.AuditLogRepositoryImpl
 import org.example.entity.AuditAction
@@ -43,7 +40,6 @@ class AuditLogRepositoryImplTest {
         verify(exactly = 1) { dataProvider.add(auditLogEntity) }
     }
 
-
     @Test
     fun `should retrieve audit logs filtered by project ID`() {
         // Given
@@ -78,7 +74,6 @@ class AuditLogRepositoryImplTest {
 
         // Then
         assertEquals(listOf(auditLog1, auditLog2), projectHistory)
-
     }
 
     @Test
@@ -159,5 +154,4 @@ class AuditLogRepositoryImplTest {
             auditLogRepository.getTaskHistory(nonExistentTaskId)
         }
     }
-
 }
