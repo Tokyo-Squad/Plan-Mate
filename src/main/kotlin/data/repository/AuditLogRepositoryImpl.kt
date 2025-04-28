@@ -19,7 +19,4 @@ class AuditLogRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override fun ensureAuditCsvExists(filePath: String): Boolean {
-        TODO("Not yet implemented")
-    }
 }
