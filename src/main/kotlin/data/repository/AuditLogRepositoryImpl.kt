@@ -1,9 +1,12 @@
 package org.example.data.repository
 
+import org.example.data.DataProvider
 import org.example.entity.AuditLogEntity
 import org.example.logic.repository.AuditLogRepository
 
-class AuditLogRepositoryImpl : AuditLogRepository {
+class AuditLogRepositoryImpl(
+    private val dataProvider: DataProvider<AuditLogEntity>
+) : AuditLogRepository {
     override fun addAudit(auditLogEntity: AuditLogEntity) {
         TODO("Not yet implemented")
     }
