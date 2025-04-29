@@ -6,6 +6,7 @@ import java.util.UUID
 data class ProjectEntity(
     val id: UUID = UUID.randomUUID(),
     val name: String,
+    val description: String,
     val createdByAdminId: UUID,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
 )
