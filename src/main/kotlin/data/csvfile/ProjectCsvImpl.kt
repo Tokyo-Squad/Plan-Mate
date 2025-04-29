@@ -1,7 +1,7 @@
 package data.csvfile
 
 import kotlinx.datetime.LocalDateTime
-import org.example.data.CsvFileProvider
+import org.example.data.DataProvider
 import org.example.entity.ProjectEntity
 import org.example.utils.PlanMatException
 import java.io.File
@@ -10,7 +10,7 @@ import java.util.*
 
 class ProjectCsvImpl(
     fileName: String
-) : CsvFileProvider<ProjectEntity> {
+) : DataProvider<ProjectEntity> {
 
     private val file: File = File(fileName)
 

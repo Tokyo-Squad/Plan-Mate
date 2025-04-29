@@ -1,6 +1,6 @@
 package data.csvfile
 
-import org.example.data.CsvFileProvider
+import org.example.data.DataProvider
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.utils.PlanMatException
@@ -11,7 +11,7 @@ import java.util.*
 
 class UserCsvImpl(
     fileName: String
-) : CsvFileProvider<UserEntity> {
+) : DataProvider<UserEntity> {
     private val file: File = File(fileName)
 
     override fun add(item: UserEntity) {

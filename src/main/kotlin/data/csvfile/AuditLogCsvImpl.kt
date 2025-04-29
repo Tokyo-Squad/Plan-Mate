@@ -1,7 +1,7 @@
 package data.csvfile
 
 import kotlinx.datetime.LocalDateTime
-import org.example.data.CsvFileProvider
+import org.example.data.DataProvider
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
@@ -12,7 +12,7 @@ import java.util.*
 
 class AuditLogCsvImpl(
     fileName: String
-) : CsvFileProvider<AuditLogEntity> {
+) : DataProvider<AuditLogEntity> {
 
     private val file: File = File(fileName)
 

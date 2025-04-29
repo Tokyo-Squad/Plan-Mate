@@ -1,6 +1,6 @@
 package data.csvfile
 
-import org.example.data.CsvFileProvider
+import org.example.data.DataProvider
 import org.example.entity.StateEntity
 import org.example.utils.PlanMatException
 import java.io.File
@@ -9,7 +9,7 @@ import java.util.*
 
 class StateCsvImpl(
     fileName: String
-) : CsvFileProvider<StateEntity> {
+) : DataProvider<StateEntity> {
 
     private val file: File = File(fileName)
 
