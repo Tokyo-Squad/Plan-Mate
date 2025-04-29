@@ -3,10 +3,10 @@ package org.example.data.repository
 import kotlinx.datetime.toLocalDateTime
 import org.example.data.utils.ProjectDetailsIndex
 import org.example.entity.ProjectEntity
-import org.example.logic.repository.ProjectRepository
+import org.example.logic.repository.ProjectsRepository
 import java.util.UUID
 
-class ProjectRepositoryImpl : ProjectRepository {
+class ProjectsRepositoryImpl : ProjectsRepository {
 
     override fun createProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
         TODO("Not yet implemented")
