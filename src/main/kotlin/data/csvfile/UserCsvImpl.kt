@@ -69,12 +69,14 @@ class UserCsvImpl(
         if (file.exists()) return
 
         try {
-            file.createNewFile()
+            val success = file.createNewFile()
+            if (!success) {
+                throw PlanMatException.FileWriteException("Failed to create the file '${file.name}'.")
+            }
         } catch (e: IOException) {
             throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
-
     private fun readAndParseFile(): List<UserEntity> {
         return try {
             file.readLines()
