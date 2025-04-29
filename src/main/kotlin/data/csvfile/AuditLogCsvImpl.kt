@@ -63,15 +63,21 @@ class AuditLogCsvImpl(
     }
 
     private fun loadFromCsv(): List<AuditLogEntity> {
-        if (!file.exists()) {
-            try {
-                file.createNewFile()
-            } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
-            }
-            return emptyList()
-        }
+        ensureFileExists()
+        return readAndParseFile()
+    }
 
+    private fun ensureFileExists() {
+        if (file.exists()) return
+
+        try {
+            file.createNewFile()
+        } catch (e: IOException) {
+            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+        }
+    }
+
+    private fun readAndParseFile(): List<AuditLogEntity> {
         return try {
             file.readLines()
                 .filter { it.isNotBlank() }

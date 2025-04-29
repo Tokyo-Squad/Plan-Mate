@@ -61,15 +61,21 @@ class ProjectCsvImpl(
     }
 
     private fun loadFromCsv(): List<ProjectEntity> {
-        if (!file.exists()) {
-            try {
-                file.createNewFile()
-            } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
-            }
-            return emptyList()
-        }
+        ensureFileExists()
+        return readAndParseFile()
+    }
 
+    private fun ensureFileExists() {
+        if (file.exists()) return
+
+        try {
+            file.createNewFile()
+        } catch (e: IOException) {
+            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+        }
+    }
+
+    private fun readAndParseFile(): List<ProjectEntity> {
         return try {
             file.readLines()
                 .filter { it.isNotBlank() }

@@ -8,7 +8,6 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-
 class TaskCsvImpl(
     fileName: String
 ) : DataProvider<TaskEntity> {
@@ -60,17 +59,22 @@ class TaskCsvImpl(
             throw PlanMatException.FileWriteException("Error deleting task: ${e.message}")
         }
     }
-
     private fun loadFromCsv(): List<TaskEntity> {
-        if (!file.exists()) {
-            try {
-                file.createNewFile()
-            } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
-            }
-            return emptyList()
-        }
+        ensureFileExists()
+        return readAndParseFile()
+    }
 
+    private fun ensureFileExists() {
+        if (file.exists()) return
+
+        try {
+            file.createNewFile()
+        } catch (e: IOException) {
+            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+        }
+    }
+
+    private fun readAndParseFile(): List<TaskEntity> {
         return try {
             file.readLines()
                 .filter { it.isNotBlank() }
@@ -79,7 +83,6 @@ class TaskCsvImpl(
             throw PlanMatException.FileReadException("Error reading file '${file.name}': ${e.message}")
         }
     }
-
     private fun saveToCsv(data: List<TaskEntity>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }

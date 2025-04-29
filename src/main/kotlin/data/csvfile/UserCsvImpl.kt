@@ -60,17 +60,22 @@ class UserCsvImpl(
             throw PlanMatException.FileWriteException("Error deleting user: ${e.message}")
         }
     }
-
     private fun loadFromCsv(): List<UserEntity> {
-        if (!file.exists()) {
-            try {
-                file.createNewFile()
-            } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
-            }
-            return emptyList()
-        }
+        ensureFileExists()
+        return readAndParseFile()
+    }
 
+    private fun ensureFileExists() {
+        if (file.exists()) return
+
+        try {
+            file.createNewFile()
+        } catch (e: IOException) {
+            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+        }
+    }
+
+    private fun readAndParseFile(): List<UserEntity> {
         return try {
             file.readLines()
                 .filter { it.isNotBlank() }

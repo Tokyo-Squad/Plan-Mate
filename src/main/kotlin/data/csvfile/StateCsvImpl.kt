@@ -60,15 +60,21 @@ class StateCsvImpl(
     }
 
     private fun loadFromCsv(): List<StateEntity> {
-        if (!file.exists()) {
-            try {
-                file.createNewFile()
-            } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
-            }
-            return emptyList()
-        }
+        ensureFileExists()
+        return readAndParseFile()
+    }
 
+    private fun ensureFileExists() {
+        if (file.exists()) return
+
+        try {
+            file.createNewFile()
+        } catch (e: IOException) {
+            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+        }
+    }
+
+    private fun readAndParseFile(): List<StateEntity> {
         return try {
             file.readLines()
                 .filter { it.isNotBlank() }
