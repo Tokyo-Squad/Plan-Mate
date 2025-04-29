@@ -13,17 +13,20 @@ class AuditLogRepositoryImpl(
         dataProvider.add(auditLogEntity)
     }
 
-    override fun getProjectHistory(projectId: Int): List<AuditLogEntity> {
-        val projectUUID = UUID.nameUUIDFromBytes(projectId.toString().toByteArray())
-        val history = dataProvider.get().filter { it.entityType == AuditedEntityType.PROJECT && it.entityId == projectUUID }
+    override fun getProjectHistory(projectId: Int): List<AuditLogEntity> =
+        getEntityHistory(projectId, AuditedEntityType.PROJECT)
+
+
+    override fun getTaskHistory(taskId: Int): List<AuditLogEntity> =
+        getEntityHistory(taskId, AuditedEntityType.TASK)
+
+
+    private fun getEntityHistory(entityId: Int, entityType: AuditedEntityType): List<AuditLogEntity> {
+        val uuid = UUID.nameUUIDFromBytes(entityId.toString().toByteArray())
+        val history = dataProvider.get().filter { it.entityType == entityType && it.entityId == uuid }
         if (history.isEmpty()) {
-            throw NoSuchElementException("No audit logs found for project ID: $projectId")
+            throw NoSuchElementException("No audit logs found for $entityType ID: $entityId")
         }
         return history
     }
-
-    override fun getTaskHistory(taskId: Int): List<AuditLogEntity> {
-        TODO("Not yet implemented")
-    }
-
 }
