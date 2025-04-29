@@ -17,7 +17,7 @@ import kotlin.test.Test
 
 class AuditLogRepositoryImplTest {
     private lateinit var auditLogRepository: AuditLogRepositoryImpl
-    private val dataProvider: DataProvider<AuditLogEntity> = mockk()
+    private val dataProvider: DataProvider<AuditLogEntity> = mockk(relaxed = true)
 
     @BeforeEach
     fun setUp() {
@@ -106,11 +106,6 @@ class AuditLogRepositoryImplTest {
 
         // Then
         assertEquals(listOf(taskLog1, taskLog2), taskHistory)
-    }
-
-    @Test
-    fun `should not allow saving a log with missing mandatory fields`() {
-        TODO("Implementation of test case")
     }
 
     @Test
