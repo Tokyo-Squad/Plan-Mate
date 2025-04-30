@@ -4,5 +4,6 @@ import org.example.logic.usecase.*
 import org.koin.dsl.module
 
 val useCaseModule = module {
-    single { AuditLogUseCase(get()) }
+    single { AddAuditLogUseCase(get()) }
+    single { GetAuditLogUseCase(get()) }
 }
