@@ -18,8 +18,4 @@ class StateRepositoryImpl(
     override fun deleteState(stateId: StateEntity): Boolean {
         TODO("Not yet implemented")
     }
-
-    override fun ensureStateCsvExists(filePath: String): Boolean {
-        TODO("Not yet implemented")
-    }
 }

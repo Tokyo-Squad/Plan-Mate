@@ -1,7 +1,7 @@
 package data.repository
 
 import fakeData.StateFakeData
-import io.mockk.mockk
+import io.mockk.*
 import org.example.data.DataProvider
 import org.example.data.repository.StateRepositoryImpl
 import org.example.entity.StateEntity
@@ -20,43 +20,71 @@ class StateRepositoryImplTest {
     }
 
     @Test
-    fun `should create a new state when given valid state entity`() {
-        TODO("Implementation of test case")
+    fun `should create a new state when state is valid`() {
+        // Given
+        val state = StateFakeData().createState()
+
+        // When
+        val returnedId = stateRepositoryImpl.createState(state)
+
+        // Then
+        verify(exactly = 1) { dataProvider.add(state) }
+        assertEquals(state.id.toString(), returnedId)
     }
 
     @Test
-    fun `should update an existing state when given valid state ID and new state data`() {
-        TODO("Implementation of test case")
+    fun `should update state when state exists`() {
+        // Given
+        val existingState = StateFakeData().createState()
+        val updatedState = existingState.copy(name = "New Name")
+
+        every { dataProvider.getById(existingState.id) } returns existingState
+
+        // When
+        stateRepositoryImpl.updateState(existingState, updatedState)
+
+        // Then
+        verify(exactly = 1) { dataProvider.update(updatedState) }
     }
 
     @Test
-    fun `should delete a state when given a valid state ID`() {
-        TODO("Implementation of test case")
+    fun `should throw when updating state that does not exist`() {
+        // Given
+        val oldState = StateFakeData().createState()
+        val newState = oldState.copy(name = "Newer")
+
+        every { dataProvider.getById(oldState.id) } returns null
+
+        // When & Then
+        assertThrows(NoSuchElementException::class.java) {
+            stateRepositoryImpl.updateState(oldState, newState)
+        }
     }
 
     @Test
-    fun `should return false when trying to delete a non-existent state`() {
-        TODO("Implementation of test case")
+    fun `should delete state when state exists`() {
+        // Given
+        val state = StateFakeData().createState()
+        every { dataProvider.getById(state.id) } returns state
+
+        // When
+        val result = stateRepositoryImpl.deleteState(state)
+
+        // Then
+        verify(exactly = 1) { dataProvider.delete(state.id) }
+        assertTrue(result)
     }
 
     @Test
-    fun `should create state CSV file when it does not exist`() {
-        TODO("Implementation of test case")
-    }
+    fun `should return false when deleting state that does not exist`() {
+        // Given
+        val state = StateFakeData().createState()
+        every { dataProvider.getById(state.id) } returns null
 
-    @Test
-    fun `should not create new state CSV file when it already exists`() {
-        TODO("Implementation of test case")
-    }
+        // When
+        val result = stateRepositoryImpl.deleteState(state)
 
-    @Test
-    fun `should throw error when trying to update a non-existent state`() {
-        TODO("Implementation of test case")
+        // Then
+        assertFalse(result)
     }
-
-    @Test
-    fun `should throw error when trying to create a state with missing mandatory fields`() {
-        TODO("Implementation of test case")
-    }
-
 }
