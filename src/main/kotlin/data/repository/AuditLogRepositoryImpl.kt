@@ -24,9 +24,6 @@ class AuditLogRepositoryImpl(
     private fun getEntityHistory(entityId: Int, entityType: AuditedEntityType): List<AuditLogEntity> {
         val uuid = UUID.nameUUIDFromBytes(entityId.toString().toByteArray())
         val history = dataProvider.get().filter { it.entityType == entityType && it.entityId == uuid }
-        if (history.isEmpty()) {
-            throw NoSuchElementException("No audit logs found for $entityType ID: $entityId")
-        }
         return history
     }
 }
