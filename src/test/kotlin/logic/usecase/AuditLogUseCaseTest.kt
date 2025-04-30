@@ -71,7 +71,7 @@ class AuditLogUseCaseTest {
     }
 
     @Test
-    fun `should return success with an empty list when no project audit logs are found`() {
+    fun `should return failure when an exception occurs while retrieving project audit logs`() {
         // Given
         val projectId = 456
         val exception = NoSuchElementException("No audit logs found for ID: $projectId")
