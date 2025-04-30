@@ -11,13 +11,19 @@ class AuditLogUseCase(
         return auditLogRepository.addAudit(auditLogEntity)
     }
 
-    fun getProjectAuditLogs(projectId: Int): List<AuditLogEntity> {
-        return auditLogRepository.getProjectHistory(projectId)
-
+    fun getProjectAuditLogs(projectId: Int): Result<List<AuditLogEntity>> {
+        return try {
+            Result.success(auditLogRepository.getProjectHistory(projectId))
+        }catch (e: NoSuchElementException){
+                Result.failure(e)
+        }
     }
 
-    fun getTaskAuditLogs(taskId: Int): List<AuditLogEntity> {
-        return auditLogRepository.getTaskHistory(taskId)
+    fun getTaskAuditLogs(taskId: Int): Result<List<AuditLogEntity>> {
+        return try {
+            Result.success(auditLogRepository.getTaskHistory(taskId))
+        }catch (e: NoSuchElementException){
+            Result.failure(e)
+        }
     }
-
 }
