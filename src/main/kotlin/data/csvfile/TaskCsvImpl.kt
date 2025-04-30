@@ -66,25 +66,17 @@ class TaskCsvImpl(
 
     private fun ensureFileExists() {
         if (file.exists()) return
-
         try {
-            val success = file.createNewFile()
-            if (!success) {
-                throw PlanMatException.FileWriteException("Failed to create the file '${file.name}'.")
-            }
+            file.createNewFile()
         } catch (e: IOException) {
             throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
     private fun readAndParseFile(): List<TaskEntity> {
-        return try {
-            file.readLines()
-                .filter { it.isNotBlank() }
-                .map { fromCSVLine(it) }
-        } catch (e: IOException) {
-            throw PlanMatException.FileReadException("Error reading file '${file.name}': ${e.message}")
-        }
+        return file.readLines()
+            .filter { it.isNotBlank() }
+            .map { fromCSVLine(it) }
     }
     private fun saveToCsv(data: List<TaskEntity>) {
         try {
@@ -96,16 +88,20 @@ class TaskCsvImpl(
     }
 
     private fun fromCSVLine(line: String): TaskEntity {
-        val parts = line.split(",")
-        return TaskEntity(
-            id = UUID.fromString(parts[0]),
-            title = parts[1],
-            description = parts[2],
-            stateId = UUID.fromString(parts[3]),
-            projectId = UUID.fromString(parts[4]),
-            createdByUserId = UUID.fromString(parts[5]),
-            createdAt = LocalDateTime.parse(parts[6])
-        )
+        try {
+            val parts = line.split(",")
+            return TaskEntity(
+                id = UUID.fromString(parts[0]),
+                title = parts[1],
+                description = parts[2],
+                stateId = UUID.fromString(parts[3]),
+                projectId = UUID.fromString(parts[4]),
+                createdByUserId = UUID.fromString(parts[5]),
+                createdAt = LocalDateTime.parse(parts[6])
+            )
+        } catch (e: Exception) {
+            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+        }
     }
 
     private fun toCSVLine(entity: TaskEntity): String {

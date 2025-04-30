@@ -155,7 +155,7 @@ class TaskCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -179,4 +179,141 @@ class TaskCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("Error writing to file")
     }
+
+    @Test
+    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+        // Given
+        file.writeText("invalid,line,malformed,content")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            taskCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+
+    @Test
+    fun shouldSuccessfullyParseFile_whenValidContent() {
+        // Given
+        val validTask = TaskEntity(
+            id = UUID.randomUUID(),
+            title = "Valid Task",
+            description = "Valid Task Description",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = UUID.randomUUID(),
+            createdAt = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("${validTask.id},${validTask.title},${validTask.description},${validTask.stateId},${validTask.projectId},${validTask.createdByUserId},${validTask.createdAt}")
+
+        // When
+        val result = taskCsv.get()
+
+        // Then
+        assertThat(result.first()).isEqualTo(validTask)
+    }
+
+    @Test
+    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+        // Given
+        val validTask = TaskEntity(
+            id = UUID.randomUUID(),
+            title = "Valid Task",
+            description = "Task description",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = UUID.randomUUID(),
+            createdAt = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("\n\n${validTask.id},${validTask.title},${validTask.description},${validTask.stateId},${validTask.projectId},${validTask.createdByUserId},${validTask.createdAt}\n\n") // Contains empty lines before and after the valid task data
+
+        // When
+        val result = taskCsv.get()
+
+        // Then
+        assertThat(result).isNotEmpty()
+        assertThat(result.first()).isEqualTo(validTask)
+    }
+
+    @Test
+    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+        // Given
+        val nonExistentTask = task.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            taskCsv.update(nonExistentTask)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentTask() {
+        // Given
+        val nonExistentTask = task.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            taskCsv.update(nonExistentTask)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+    @Test
+    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
+        // Given
+        file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            taskCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+    @Test
+    fun shouldThrowFileWriteException_whenDeleteFails() {
+        // Given
+        taskCsv.add(task)
+        val readOnlyFile = File(tempDir, "tasks.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.delete(task.id)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error deleting task")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenUpdateFails() {
+        // Given
+        taskCsv.add(task)
+        val readOnlyFile = File(tempDir, "tasks.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
+
+        val updatedTask = task.copy(title = "Updated Task Title")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.update(updatedTask)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error updating task")
+    }
+
+
 }

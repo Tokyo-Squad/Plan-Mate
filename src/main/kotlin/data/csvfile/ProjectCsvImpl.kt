@@ -67,26 +67,20 @@ class ProjectCsvImpl(
 
     private fun ensureFileExists() {
         if (file.exists()) return
-
         try {
-            val success = file.createNewFile()
-            if (!success) {
-                throw PlanMatException.FileWriteException("Failed to create the file '${file.name}'.")
-            }
+            file.createNewFile()
         } catch (e: IOException) {
             throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
     private fun readAndParseFile(): List<ProjectEntity> {
-        return try {
-            file.readLines()
-                .filter { it.isNotBlank() }
-                .map { fromCSVLine(it) }
-        } catch (e: IOException) {
-            throw PlanMatException.FileReadException("Error reading file '${file.name}': ${e.message}")
-        }
+        return file.readLines()
+            .filter { it.isNotBlank() }
+            .map { fromCSVLine(it) }
     }
+
+
 
     private fun saveToCsv(data: List<ProjectEntity>) {
         try {
@@ -98,15 +92,18 @@ class ProjectCsvImpl(
     }
 
     private fun fromCSVLine(line: String): ProjectEntity {
-        val parts = line.split(",")
-        return ProjectEntity(
-            id = UUID.fromString(parts[0]),
-            name = parts[1],
-            createdByAdminId = UUID.fromString(parts[2]),
-            createdAt = LocalDateTime.parse(parts[3])
-        )
+        try {
+            val parts = line.split(",")
+            return ProjectEntity(
+                id = UUID.fromString(parts[0]),
+                name = parts[1],
+                createdByAdminId = UUID.fromString(parts[2]),
+                createdAt = LocalDateTime.parse(parts[3])
+            )
+        } catch (e: Exception) {
+            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+        }
     }
-
     private fun toCSVLine(entity: ProjectEntity): String {
         return "${entity.id},${entity.name},${entity.createdByAdminId},${entity.createdAt}"
     }

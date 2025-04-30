@@ -137,7 +137,7 @@ class UserCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -176,4 +176,147 @@ class UserCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("Error writing to file")
     }
+
+    @Test
+    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+        // Given
+        file.writeText("invalid,line,malformed,content")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            userCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
+    }
+
+    @Test
+    fun shouldSuccessfullyParseFile_whenValidContent() {
+        // Given
+        val validUser = UserEntity(
+            id = UUID.randomUUID(),
+            userName = "ValidUser",
+            password = "ValidPassword123",
+            type = UserType.ADMIN
+        )
+        file.writeText("${validUser.id},${validUser.userName},${validUser.password},${validUser.type}")
+
+        // When
+        val result = userCsv.get()
+
+        // Then
+        assertThat(result.first()).isEqualTo(validUser)
+    }
+
+    @Test
+    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+        // Given
+        val validUser = UserEntity(
+            id = UUID.randomUUID(),
+            userName = "ValidUser",
+            password = "ValidPassword123",
+            type = UserType.ADMIN
+        )
+        file.writeText("\n\n${validUser.id},${validUser.userName},${validUser.password},${validUser.type}\n\n") // Contains empty lines before and after the valid user data
+
+        // When
+        val result = userCsv.get()
+
+        // Then
+        assertThat(result).isNotEmpty()
+        assertThat(result.first()).isEqualTo(validUser)
+    }
+
+    @Test
+    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+        // Given
+        val nonExistentUser = user.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            userCsv.update(nonExistentUser)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentUser() {
+        // Given
+        val nonExistentUser = user.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            userCsv.update(nonExistentUser)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+    @Test
+    fun shouldThrowException_whenUserTypeIsInvalid() {
+        file.writeText("${UUID.randomUUID()},Test,password123,INVALID_TYPE")
+
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            userCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
+    }
+
+    @Test
+    fun shouldThrowException_whenUserIdIsInvalidUUID() {
+        // Given
+        file.writeText("not-a-uuid,Test,password123,ADMIN")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            userCsv.get()
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenDeleteFails() {
+        // Given
+        userCsv.add(user)
+        val readOnlyFile = File(tempDir, "users.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.delete(user.id)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error deleting user")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenUpdateFails() {
+        // Given
+        userCsv.add(user)
+        val readOnlyFile = File(tempDir, "users.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
+
+        val updatedUser = user.copy(userName = "UpdatedUser")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.update(updatedUser)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error updating user")
+    }
+
 }

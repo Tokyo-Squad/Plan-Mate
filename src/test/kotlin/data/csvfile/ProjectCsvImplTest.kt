@@ -152,10 +152,10 @@ class ProjectCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
             projectCsv.get()
         }
-        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line")
     }
 
     @Test
@@ -176,4 +176,135 @@ class ProjectCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("Error writing to file")
     }
+
+    @Test
+    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+        // Given
+        file.writeText("invalid,line,malformed,content")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            projectCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line: invalid,line,malformed,content")
+    }
+
+    @Test
+    fun shouldSuccessfullyParseFile_whenValidContent() {
+        // Given
+        val validProject = ProjectEntity(
+            id = UUID.randomUUID(),
+            name = "Test Project",
+            createdByAdminId = UUID.randomUUID(),
+            createdAt = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("${validProject.id},${validProject.name},${validProject.createdByAdminId},${validProject.createdAt}")
+
+        // When
+        val result = projectCsv.get()
+
+        // Then
+        assertThat(result.first()).isEqualTo(validProject)
+    }
+
+    @Test
+    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+        // Given
+        val validProject = ProjectEntity(
+            id = UUID.randomUUID(),
+            name = "Valid Project",
+            createdByAdminId = UUID.randomUUID(),
+            createdAt = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("\n\n${validProject.id},${validProject.name},${validProject.createdByAdminId},${validProject.createdAt}\n\n")  // Contains empty lines before and after the valid project data
+
+        // When
+        val result = projectCsv.get()
+
+        // Then
+        assertThat(result).isNotEmpty()
+        assertThat(result.first()).isEqualTo(validProject)
+    }
+
+    @Test
+    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+        // Given
+        val nonExistentProject = project.copy(id = UUID.randomUUID())
+
+        // When:
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            projectCsv.update(nonExistentProject)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentProject() {
+        // Given
+        val nonExistentProject = project.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            projectCsv.update(nonExistentProject)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
+        // Given
+        file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            projectCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenDeleteFails() {
+        // Given
+        projectCsv.add(project)
+        val readOnlyFile = File(tempDir, "projects.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = ProjectCsvImpl(readOnlyFile.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.delete(project.id)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error deleting project")
+    }
+    @Test
+    fun shouldThrowFileWriteException_whenUpdateFails() {
+        // Given
+        projectCsv.add(project)
+        val readOnlyFile = File(tempDir, "projects.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = ProjectCsvImpl(readOnlyFile.absolutePath)  // Corrected to use ProjectCsvImpl
+
+        val updatedProject = project.copy(name = "Updated Project Name")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.update(updatedProject)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error updating project")
+    }
+
 }

@@ -67,24 +67,16 @@ class UserCsvImpl(
 
     private fun ensureFileExists() {
         if (file.exists()) return
-
         try {
-            val success = file.createNewFile()
-            if (!success) {
-                throw PlanMatException.FileWriteException("Failed to create the file '${file.name}'.")
-            }
+            file.createNewFile()
         } catch (e: IOException) {
             throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
     private fun readAndParseFile(): List<UserEntity> {
-        return try {
-            file.readLines()
-                .filter { it.isNotBlank() }
-                .map { fromCSVLine(it) }
-        } catch (e: IOException) {
-            throw PlanMatException.FileReadException("Error reading file '${file.name}': ${e.message}")
-        }
+        return file.readLines()
+            .filter { it.isNotBlank() }
+            .map { fromCSVLine(it) }
     }
 
     private fun saveToCsv(data: List<UserEntity>) {
@@ -97,13 +89,17 @@ class UserCsvImpl(
     }
 
     private fun fromCSVLine(line: String): UserEntity {
-        val parts = line.split(",")
-        return UserEntity(
-            id = UUID.fromString(parts[0]),
-            userName = parts[1],
-            password = parts[2],
-            type = UserType.valueOf(parts[3])
-        )
+        try {
+            val parts = line.split(",")
+            return UserEntity(
+                id = UUID.fromString(parts[0]),
+                userName = parts[1],
+                password = parts[2],
+                type = UserType.valueOf(parts[3])
+            )
+        } catch (e: Exception) {
+            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+        }
     }
 
     private fun toCSVLine(user: UserEntity): String {

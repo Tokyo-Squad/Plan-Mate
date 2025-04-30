@@ -79,10 +79,34 @@ class AuditLogCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenUpdateFails() {
+        // Given
+        csv.add(auditLog)
+
+        // Simulate a situation where the file cannot be written to
+        val readOnlyFile = File(tempDir, "audit_logs.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
+
+        val updatedAuditLog = auditLog.copy(changeDetails = "Updated info")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.update(updatedAuditLog)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error updating audit log")
     }
 
     @Test
@@ -181,6 +205,121 @@ class AuditLogCsvImplTest {
         }
         // Then
         assertThat(exception).hasMessageThat().contains("Error writing to file")
+    }
+
+    @Test
+    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+        // Given
+        file.writeText("invalid,line,malformed,content")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            csv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line: invalid,line,malformed,content")
+    }
+
+    @Test
+    fun shouldSuccessfullyParseFile_whenValidContent() {
+        // Given
+        val validAuditLog = AuditLogEntity(
+            id = UUID.randomUUID(),
+            userId = UUID.randomUUID(),
+            entityType = AuditedEntityType.PROJECT,
+            entityId = UUID.randomUUID(),
+            action = AuditAction.CREATE,
+            changeDetails = "Initial creation",
+            timestamp = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("${validAuditLog.id},${validAuditLog.userId},${validAuditLog.entityType},${validAuditLog.entityId},${validAuditLog.action},${validAuditLog.changeDetails},${validAuditLog.timestamp}")
+
+        // When
+        val result = csv.get()
+
+        // Then
+        assertThat(result.first()).isEqualTo(validAuditLog)
+    }
+
+    @Test
+    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+        // Given
+        val validAuditLog = AuditLogEntity(
+            id = UUID.randomUUID(),
+            userId = UUID.randomUUID(),
+            entityType = AuditedEntityType.PROJECT,
+            entityId = UUID.randomUUID(),
+            action = AuditAction.CREATE,
+            changeDetails = "Initial creation",
+            timestamp = LocalDateTime.parse("2025-04-29T15:00:00")
+        )
+        file.writeText("\n\n${validAuditLog.id},${validAuditLog.userId},${validAuditLog.entityType},${validAuditLog.entityId},${validAuditLog.action},${validAuditLog.changeDetails},${validAuditLog.timestamp}\n\n") // Contains empty lines before and after the valid audit log data
+
+        // When
+        val result = csv.get()
+
+        // Then
+        assertThat(result).isNotEmpty()
+        assertThat(result.first()).isEqualTo(validAuditLog)
+    }
+
+    @Test
+    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+        // Given
+        val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            csv.update(nonExistentProject)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentProject() {
+        // Given
+        val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            csv.update(nonExistentProject)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
+        // Given
+        file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            csv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenDeleteFails() {
+        // Given
+        csv.add(auditLog)
+        val readOnlyFile = File(tempDir, "audit_logs.csv")
+        readOnlyFile.createNewFile()
+        readOnlyFile.setReadable(true)
+        readOnlyFile.setWritable(false)
+
+        val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.delete(auditLog.id)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error deleting audit log")
     }
 
 }

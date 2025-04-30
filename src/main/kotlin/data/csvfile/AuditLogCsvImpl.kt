@@ -71,23 +71,16 @@ class AuditLogCsvImpl(
         if (file.exists()) return
 
         try {
-            val success = file.createNewFile()
-            if (!success) {
-                throw PlanMatException.FileWriteException("Failed to create the file '${file.name}'.")
-            }
+            file.createNewFile()
         } catch (e: IOException) {
             throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
     private fun readAndParseFile(): List<AuditLogEntity> {
-        return try {
-            file.readLines()
+           return file.readLines()
                 .filter { it.isNotBlank() }
                 .map { fromCSVLine(it) }
-        } catch (e: IOException) {
-            throw PlanMatException.FileReadException("Error reading file '${file.name}': ${e.message}")
-        }
     }
 
     private fun saveToCsv(data: List<AuditLogEntity>) {
@@ -100,16 +93,20 @@ class AuditLogCsvImpl(
     }
 
     private fun fromCSVLine(line: String): AuditLogEntity {
-        val parts = line.split(",")
-        return AuditLogEntity(
-            id = UUID.fromString(parts[0]),
-            userId = UUID.fromString(parts[1]),
-            entityType = AuditedEntityType.valueOf(parts[2]),
-            entityId = UUID.fromString(parts[3]),
-            action = AuditAction.valueOf(parts[4]),
-            changeDetails = parts[5],
-            timestamp = LocalDateTime.parse(parts[6])
-        )
+        try {
+            val parts = line.split(",")
+            return AuditLogEntity(
+                id = UUID.fromString(parts[0]),
+                userId = UUID.fromString(parts[1]),
+                entityType = AuditedEntityType.valueOf(parts[2]),
+                entityId = UUID.fromString(parts[3]),
+                action = AuditAction.valueOf(parts[4]),
+                changeDetails = parts[5],
+                timestamp = LocalDateTime.parse(parts[6])
+            )
+        } catch (e: Exception) {
+            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+        }
     }
 
     private fun toCSVLine(entity: AuditLogEntity): String {
