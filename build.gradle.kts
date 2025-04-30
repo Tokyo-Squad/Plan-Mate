@@ -13,7 +13,6 @@ repositories {
 dependencies {
     implementation("io.insert-koin:koin-core:4.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-    implementation ("com.opencsv:opencsv:5.6")
 
     testImplementation(kotlin("test"))
     testImplementation("com.google.truth:truth:1.4.4")

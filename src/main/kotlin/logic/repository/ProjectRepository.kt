@@ -3,7 +3,7 @@ package org.example.logic.repository
 import org.example.entity.ProjectEntity
 import java.util.UUID
 
-interface ProjectsRepository {
+interface ProjectRepository {
 
     fun createProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity>
 

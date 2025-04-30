@@ -1,12 +1,16 @@
 package org.example.data.repository
 
 import kotlinx.datetime.toLocalDateTime
+import org.example.data.DataProvider
 import org.example.data.utils.ProjectDetailsIndex
+import org.example.entity.AuditLogEntity
 import org.example.entity.ProjectEntity
-import org.example.logic.repository.ProjectsRepository
+import org.example.logic.repository.ProjectRepository
 import java.util.UUID
 
-class ProjectsRepositoryImpl : ProjectsRepository {
+class ProjectRepositoryImpl(
+    private val dataProvider: DataProvider<AuditLogEntity>
+) : ProjectRepository {
 
     override fun createProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
         TODO("Not yet implemented")
