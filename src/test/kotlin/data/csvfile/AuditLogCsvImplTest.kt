@@ -60,6 +60,19 @@ class AuditLogCsvImplTest {
     }
 
     @Test
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+        // Given
+        file.writeText("")
+
+        // When
+        val result = csv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+
+    @Test
     fun shouldUpdateEntity_whenIdExists() {
         // Given
         csv.add(auditLog)
@@ -132,15 +145,6 @@ class AuditLogCsvImplTest {
 
         // Then
         assertThat(csv.get()).isEmpty()
-    }
-
-    @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
-        // When / Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
-            csv.delete(UUID.randomUUID())
-        }
-        assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
@@ -320,6 +324,31 @@ class AuditLogCsvImplTest {
 
         // Then
         assertThat(exception).hasMessageThat().contains("Error deleting audit log")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+        // Given
+        csv.add(auditLog)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            csv.delete(UUID.randomUUID())
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+        // Given
+        csv.add(auditLog)
+
+        // When
+        val result = csv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
     }
 
 }

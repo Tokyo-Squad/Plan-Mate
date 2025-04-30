@@ -25,10 +25,7 @@ class UserCsvImplTest {
         file = File(tempDir, "users.csv")
         userCsv = UserCsvImpl(file.absolutePath)
         user = UserEntity(
-            id = UUID.randomUUID(),
-            userName = "user1",
-            password = "password123",
-            type = UserType.ADMIN
+            id = UUID.randomUUID(), userName = "user1", password = "password123", type = UserType.ADMIN
         )
     }
 
@@ -69,6 +66,30 @@ class UserCsvImplTest {
     }
 
     @Test
+    fun shouldReturnNull_whenEntityNotFound() {
+        // Given
+
+        // When
+        val result = userCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+        // Given
+        file.writeText("")
+
+        // When
+        val result = userCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+
+    @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() {
         // Given
         val nonExistent = user.copy(id = UUID.randomUUID())
@@ -92,15 +113,6 @@ class UserCsvImplTest {
 
         // Then
         assertThat(userCsv.get()).isEmpty()
-    }
-
-    @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
-        // When / Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
-            userCsv.delete(UUID.randomUUID())
-        }
-        assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
@@ -193,10 +205,7 @@ class UserCsvImplTest {
     fun shouldSuccessfullyParseFile_whenValidContent() {
         // Given
         val validUser = UserEntity(
-            id = UUID.randomUUID(),
-            userName = "ValidUser",
-            password = "ValidPassword123",
-            type = UserType.ADMIN
+            id = UUID.randomUUID(), userName = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
         file.writeText("${validUser.id},${validUser.userName},${validUser.password},${validUser.type}")
 
@@ -211,10 +220,7 @@ class UserCsvImplTest {
     fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
         // Given
         val validUser = UserEntity(
-            id = UUID.randomUUID(),
-            userName = "ValidUser",
-            password = "ValidPassword123",
-            type = UserType.ADMIN
+            id = UUID.randomUUID(), userName = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
         file.writeText("\n\n${validUser.id},${validUser.userName},${validUser.password},${validUser.type}\n\n") // Contains empty lines before and after the valid user data
 
@@ -253,6 +259,7 @@ class UserCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("not found")
     }
+
     @Test
     fun shouldThrowException_whenUserTypeIsInvalid() {
         file.writeText("${UUID.randomUUID()},Test,password123,INVALID_TYPE")
@@ -317,6 +324,31 @@ class UserCsvImplTest {
 
         // Then
         assertThat(exception).hasMessageThat().contains("Error updating user")
+    }
+
+    @Test
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+        // Given
+        userCsv.add(user)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            userCsv.delete(UUID.randomUUID())
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+        // Given
+        userCsv.add(user)
+
+        // When
+        val result = userCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
     }
 
 }

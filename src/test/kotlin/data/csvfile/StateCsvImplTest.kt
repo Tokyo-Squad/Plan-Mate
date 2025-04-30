@@ -51,6 +51,18 @@ class StateCsvImplTest {
     }
 
     @Test
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+        // Given
+        file.writeText("")
+
+        // When
+        val result = stateCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+    @Test
     fun shouldThrowException_whenCsvLineIsMalformed() {
         // Given
         file.writeText("invalid,line,also-invalid")
@@ -100,15 +112,6 @@ class StateCsvImplTest {
 
         // Then
         assertThat(stateCsv.get()).isEmpty()
-    }
-
-    @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
-        // When / Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
-            stateCsv.delete(UUID.randomUUID())
-        }
-        assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
@@ -189,9 +192,7 @@ class StateCsvImplTest {
     fun shouldSuccessfullyParseFile_whenValidContent() {
         // Given
         val validState = StateEntity(
-            id = UUID.randomUUID(),
-            name = "Valid State",
-            projectId = UUID.randomUUID()
+            id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
         )
         file.writeText("${validState.id},${validState.name},${validState.projectId}")
 
@@ -206,9 +207,7 @@ class StateCsvImplTest {
     fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
         // Given
         val validState = StateEntity(
-            id = UUID.randomUUID(),
-            name = "Valid State",
-            projectId = UUID.randomUUID()
+            id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
         )
         file.writeText("\n\n${validState.id},${validState.name},${validState.projectId}\n\n") // Contains empty lines before and after the valid state data
 
@@ -247,6 +246,7 @@ class StateCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("not found")
     }
+
     @Test
     fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
         // Given
@@ -258,6 +258,7 @@ class StateCsvImplTest {
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
     }
+
     @Test
     fun shouldThrowFileWriteException_whenDeleteFails() {
         // Given
@@ -300,4 +301,28 @@ class StateCsvImplTest {
         assertThat(exception).hasMessageThat().contains("Error updating state")
     }
 
+    @Test
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+        // Given
+        stateCsv.add(state)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            stateCsv.delete(UUID.randomUUID())
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+        // Given
+        stateCsv.add(state)
+
+        // When
+        val result = stateCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
 }

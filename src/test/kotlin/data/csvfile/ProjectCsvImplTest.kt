@@ -55,6 +55,29 @@ class ProjectCsvImplTest {
     }
 
     @Test
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+        // Given
+        file.writeText("")
+
+        // When
+        val result = projectCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+    @Test
+    fun shouldReturnNull_whenEntityNotFound() {
+        // Given
+
+        // When
+        val result = projectCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+    @Test
     fun shouldUpdateEntity_whenIdExists() {
         // Given
         projectCsv.add(project)
@@ -107,15 +130,6 @@ class ProjectCsvImplTest {
 
         // Then
         assertThat(file.exists()).isTrue()
-    }
-
-    @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
-        // When / Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
-            projectCsv.delete(UUID.randomUUID())
-        }
-        assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
@@ -285,6 +299,7 @@ class ProjectCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("Error deleting project")
     }
+
     @Test
     fun shouldThrowFileWriteException_whenUpdateFails() {
         // Given
@@ -307,4 +322,28 @@ class ProjectCsvImplTest {
         assertThat(exception).hasMessageThat().contains("Error updating project")
     }
 
+    @Test
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+        // Given
+        projectCsv.add(project)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            projectCsv.delete(UUID.randomUUID())
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+        // Given
+        projectCsv.add(project)
+
+        // When
+        val result = projectCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
 }

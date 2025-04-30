@@ -72,6 +72,18 @@ class TaskCsvImplTest {
     }
 
     @Test
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+        // Given
+        file.writeText("")
+
+        // When
+        val result = taskCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
+
+    @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() {
         // Given
         val nonExistent = task.copy(id = UUID.randomUUID())
@@ -110,15 +122,6 @@ class TaskCsvImplTest {
 
         // Then
         assertThat(taskCsv.get()).isEmpty()
-    }
-
-    @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
-        // When / Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
-            taskCsv.delete(UUID.randomUUID())
-        }
-        assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
@@ -262,6 +265,7 @@ class TaskCsvImplTest {
         // Then
         assertThat(exception).hasMessageThat().contains("not found")
     }
+
     @Test
     fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
         // Given
@@ -273,6 +277,7 @@ class TaskCsvImplTest {
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
     }
+
     @Test
     fun shouldThrowFileWriteException_whenDeleteFails() {
         // Given
@@ -315,5 +320,28 @@ class TaskCsvImplTest {
         assertThat(exception).hasMessageThat().contains("Error updating task")
     }
 
+    @Test
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+        // Given
+        taskCsv.add(task)
 
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            taskCsv.delete(UUID.randomUUID())
+        }
+        // Then
+        assertThat(exception).hasMessageThat().contains("not found")
+    }
+
+    @Test
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+        // Given
+        taskCsv.add(task)
+
+        // When
+        val result = taskCsv.getById(UUID.randomUUID())
+
+        // Then
+        assertThat(result).isNull()
+    }
 }
