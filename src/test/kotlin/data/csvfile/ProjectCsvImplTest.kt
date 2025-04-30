@@ -95,6 +95,21 @@ class ProjectCsvImplTest {
     }
 
     @Test
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+        // Given
+        file.createNewFile()
+        assertThat(file.exists()).isTrue()
+
+        val projectCsv = ProjectCsvImpl(file.absolutePath)
+
+        // When
+        projectCsv.add(project)
+
+        // Then
+        assertThat(file.exists()).isTrue()
+    }
+
+    @Test
     fun shouldThrowItemNotFound_whenDeletingNonExistentEntity() {
         // When / Then
         val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
@@ -129,6 +144,18 @@ class ProjectCsvImplTest {
             failingCsv.add(project)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
+    }
+
+    @Test
+    fun shouldThrowException_whenCsvLineIsMalformed() {
+        // Given
+        file.writeText("invalid,line,also-invalid")
+
+        // Then
+        val exception = assertFailsWith<IllegalArgumentException> {
+            projectCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
     }
 
     @Test

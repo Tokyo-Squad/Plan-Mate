@@ -132,6 +132,33 @@ class UserCsvImplTest {
     }
 
     @Test
+    fun shouldThrowException_whenCsvLineIsMalformed() {
+        // Given
+        file.writeText("invalid,line,also-invalid")
+
+        // Then
+        val exception = assertFailsWith<IllegalArgumentException> {
+            userCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+
+    @Test
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+        // Given
+        file.createNewFile()
+        assertThat(file.exists()).isTrue()
+
+        val userCsv = UserCsvImpl(file.absolutePath)
+
+        // When
+        userCsv.add(user)
+
+        // Then
+        assertThat(file.exists()).isTrue()
+    }
+
+    @Test
     fun shouldThrowFileWriteException_whenWriteFails() {
         // Given
         val readOnlyFile = File(tempDir, "users.csv")

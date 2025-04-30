@@ -74,6 +74,18 @@ class AuditLogCsvImplTest {
     }
 
     @Test
+    fun shouldThrowException_whenCsvLineIsMalformed() {
+        // Given
+        file.writeText("invalid,line,also-invalid")
+
+        // Then
+        val exception = assertFailsWith<IllegalArgumentException> {
+            csv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
+    }
+
+    @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() {
         // Given
         val nonExistent = auditLog.copy(id = UUID.randomUUID())
@@ -117,6 +129,22 @@ class AuditLogCsvImplTest {
 
         // Then
         assertThat(result).isEmpty()
+    }
+
+    @Test
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+        // Given
+        file.createNewFile()
+        assertThat(file.exists()).isTrue()
+
+        val csv = AuditLogCsvImpl(file.absolutePath)
+
+        // When
+        csv.add(auditLog)
+
+        // Then
+        assertThat(file.exists()).isTrue()
+        assertThat(csv.get()).hasSize(1)
     }
 
     @Test

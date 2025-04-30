@@ -1,11 +1,14 @@
 package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
+import io.mockk.every
+import io.mockk.mockk
 import org.example.entity.StateEntity
 import org.example.utils.PlanMatException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.IOException
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -50,6 +53,18 @@ class StateCsvImplTest {
 
         // Then
         assertThat(result).isEqualTo(state)
+    }
+
+    @Test
+    fun shouldThrowException_whenCsvLineIsMalformed() {
+        // Given
+        file.writeText("invalid,line,also-invalid")
+
+        // Then
+        val exception = assertFailsWith<IllegalArgumentException> {
+            stateCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
     }
 
     @Test
@@ -146,5 +161,56 @@ class StateCsvImplTest {
 
         // Then
         assertThat(exception).hasMessageThat().contains("Error writing to file")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenIOExceptionOccurs() {
+        // Given
+        val fileMock = mockk<File> {
+            every { exists() } returns false
+            every { createNewFile() } throws IOException("Error creating file")
+        }
+
+        val failingCsv = StateCsvImpl(fileMock.absolutePath)
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingCsv.get()
+        }
+
+        assertThat(exception).hasMessageThat().contains("Error creating file")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenFileCreationFailsWithMockk() {
+        // Given
+        val fileMock = mockk<File> {
+            every { exists() } returns false
+            every { createNewFile() } returns false
+        }
+
+        val stateCsv = StateCsvImpl(fileMock.absolutePath)
+
+        // When / Then
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            stateCsv.get()
+        }
+
+        assertThat(exception).hasMessageThat().contains("Failed to create the file")
+    }
+
+    @Test
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+        // Given
+        file.createNewFile()
+        assertThat(file.exists()).isTrue()
+
+        val stateCsv = StateCsvImpl(file.absolutePath)
+
+        // When
+        stateCsv.add(state)
+
+        // Then
+        assertThat(file.exists()).isTrue()
     }
 }

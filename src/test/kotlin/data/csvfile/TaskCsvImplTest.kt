@@ -86,6 +86,21 @@ class TaskCsvImplTest {
     }
 
     @Test
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+        // Given
+        file.createNewFile()
+        assertThat(file.exists()).isTrue()
+
+        val taskCsv = TaskCsvImpl(file.absolutePath)
+
+        // When
+        taskCsv.add(task)
+
+        // Then
+        assertThat(file.exists()).isTrue()
+    }
+
+    @Test
     fun shouldDeleteEntity_whenIdExists() {
         // Given
         taskCsv.add(task)
@@ -132,6 +147,18 @@ class TaskCsvImplTest {
             failingCsv.add(task)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
+    }
+
+    @Test
+    fun shouldThrowException_whenCsvLineIsMalformed() {
+        // Given
+        file.writeText("invalid,line,also-invalid")
+
+        // Then
+        val exception = assertFailsWith<IllegalArgumentException> {
+            taskCsv.get()
+        }
+        assertThat(exception).hasMessageThat().contains("Invalid UUID string")
     }
 
     @Test
