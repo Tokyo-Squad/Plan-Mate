@@ -59,14 +59,31 @@ class AuditLogUseCaseTest {
             changeDetails = "Project updated"
         )
 
-
+        val expectedLogs = listOf(auditLog1, auditLog2)
         every { auditLogRepository.getProjectHistory(projectId) } returns listOf(auditLog1, auditLog2)
 
         // When
-        val projectHistory = auditLogUseCase.getProjectAuditLogs(projectId)
+        val result = auditLogUseCase.getProjectAuditLogs(projectId)
 
         // Then
-        assertEquals(listOf(auditLog1, auditLog2), projectHistory)
+        assertTrue(result.isSuccess)
+        assertEquals(expectedLogs, result.getOrNull())
+    }
+
+    @Test
+    fun `should return success with an empty list when no project audit logs are found`() {
+        // Given
+        val projectId = 456
+        val exception = NoSuchElementException("No audit logs found for ID: $projectId")
+        every { auditLogRepository.getProjectHistory(projectId) } throws exception
+
+        // When
+        val result = auditLogUseCase.getProjectAuditLogs(projectId)
+
+        // Then
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+
     }
 
     @Test
@@ -87,14 +104,29 @@ class AuditLogUseCaseTest {
             changeDetails = "Task created"
         )
 
-        every { auditLogRepository.getTaskHistory(taskId) } returns listOf(taskLog1, taskLog2, )
+        val expectedLogs = listOf(taskLog1, taskLog2)
+        every { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
 
         // When
-        val taskHistory = auditLogUseCase.getTaskAuditLogs(taskId)
+        val result = auditLogUseCase.getTaskAuditLogs(taskId)
 
         // Then
-        assertEquals(listOf(taskLog1, taskLog2), taskHistory)
+        assertTrue(result.isSuccess)
+        assertEquals(expectedLogs, result.getOrNull())
     }
 
+    @Test
+    fun `should return failure when an exception occurs while retrieving task audit logs`() {
+        // Given
+        val taskId = 303
+        val exception = NoSuchElementException("No audit logs found for ID: $taskId")
+        every { auditLogRepository.getTaskHistory(taskId) } throws exception
 
+        // When
+        val result = auditLogUseCase.getTaskAuditLogs(taskId)
+
+        // Then
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
+    }
 }
