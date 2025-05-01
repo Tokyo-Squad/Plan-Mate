@@ -2,6 +2,7 @@ package data.csvfile
 
 import kotlinx.datetime.LocalDateTime
 import org.example.data.DataProvider
+import org.example.data.utils.ProjectDetailsIndex
 import org.example.entity.ProjectEntity
 import org.example.utils.PlanMatException
 import java.io.File
@@ -37,11 +38,7 @@ class ProjectCsvImpl(
         }
 
         items[index] = item
-        try {
-            saveToCsv(items)
-        } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error updating project: ${e.message}")
-        }
+        safeSave(items, "update")
     }
 
     override fun delete(id: UUID) {
@@ -53,17 +50,15 @@ class ProjectCsvImpl(
         }
 
         items.remove(projectToDelete)
-        try {
-            saveToCsv(items)
-        } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error deleting project: ${e.message}")
-        }
+        safeSave(items, "deleting")
+
     }
 
     private fun loadFromCsv(): List<ProjectEntity> {
         ensureFileExists()
         return readAndParseFile()
     }
+
 
     private fun ensureFileExists() {
         if (file.exists()) return
@@ -74,12 +69,19 @@ class ProjectCsvImpl(
         }
     }
 
+    private fun safeSave(items: List<ProjectEntity>, operation: String) {
+        try {
+            saveToCsv(items)
+        } catch (e: Exception) {
+            throw PlanMatException.FileWriteException("Error $operation project: ${e.message}")
+        }
+    }
+
     private fun readAndParseFile(): List<ProjectEntity> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
-
 
 
     private fun saveToCsv(data: List<ProjectEntity>) {
@@ -95,15 +97,16 @@ class ProjectCsvImpl(
         try {
             val parts = line.split(",")
             return ProjectEntity(
-                id = UUID.fromString(parts[0]),
-                name = parts[1],
-                createdByAdminId = UUID.fromString(parts[2]),
-                createdAt = LocalDateTime.parse(parts[3])
+                id = UUID.fromString(parts[ProjectDetailsIndex.ID_INDEX]),
+                name = parts[ProjectDetailsIndex.NAME_INDEX],
+                createdByAdminId = UUID.fromString(parts[ProjectDetailsIndex.CREATED_BY_INDEX]),
+                createdAt = LocalDateTime.parse(parts[ProjectDetailsIndex.CREATED_AT_INDEX])
             )
         } catch (e: Exception) {
             throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
+
     private fun toCSVLine(entity: ProjectEntity): String {
         return "${entity.id},${entity.name},${entity.createdByAdminId},${entity.createdAt}"
     }

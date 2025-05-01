@@ -1,57 +1,104 @@
 package org.example.data.repository
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toLocalDateTime
 import org.example.data.DataProvider
-import org.example.data.utils.ProjectDetailsIndex
+import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
+import org.example.entity.AuditedEntityType
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
-import java.util.UUID
+import org.example.utils.PlanMatException
+import java.util.*
 
 class ProjectRepositoryImpl(
-    private val dataProvider: DataProvider<AuditLogEntity>
+    private val projectDataProvider: DataProvider<ProjectEntity>,
+    private val auditDataProvider: DataProvider<AuditLogEntity>
 ) : ProjectRepository {
 
     override fun createProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
-        TODO("Not yet implemented")
+        return try {
+            require(project.name.isNotBlank()) { "Project name cannot be blank" }
+            UUID.fromString(currentUser)
+
+            projectDataProvider.add(project)
+
+            auditDataProvider.add(
+                AuditLogEntity(
+                    userId = UUID.fromString(currentUser),
+                    entityType = AuditedEntityType.PROJECT,
+                    entityId = project.id,
+                    action = AuditAction.CREATE,
+                    changeDetails = "Created project: ${project.name}",
+                    timestamp = Clock.System.now().toLocalDateTime(UTC)
+                )
+            )
+            Result.success(project)
+        } catch (e: PlanMatException) {
+            Result.failure(e)
+        } catch (e: IllegalArgumentException) {
+            Result.failure(PlanMatException.ValidationException(e.message ?: "Invalid input"))
+        }
     }
 
     override fun updateProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
-        TODO("Not yet implemented")
+        return try {
+            projectDataProvider.update(project)
+
+            auditDataProvider.add(
+                AuditLogEntity(
+                    userId = UUID.fromString(currentUser),
+                    entityType = AuditedEntityType.PROJECT,
+                    entityId = project.id,
+                    action = AuditAction.UPDATE,
+                    changeDetails = "Updated project: ${project.name}",
+                    timestamp = Clock.System.now().toLocalDateTime(UTC)
+                )
+            )
+            Result.success(project)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun deleteProject(projectId: UUID, currentUser: String): Result<Unit> {
-        TODO("Not yet implemented")
+        return try {
+            val project = projectDataProvider.getById(projectId) ?: throw NoSuchElementException("Project not found")
+
+            projectDataProvider.delete(projectId)
+
+            auditDataProvider.add(
+                AuditLogEntity(
+                    userId = UUID.fromString(currentUser),
+                    entityType = AuditedEntityType.PROJECT,
+                    entityId = projectId,
+                    action = AuditAction.DELETE,
+                    changeDetails = "Deleted project: ${project.name}",
+                    timestamp = Clock.System.now().toLocalDateTime(UTC)
+                )
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun getAllProjects(): Result<List<ProjectEntity>> {
-        TODO("Not yet implemented")
+        return try {
+            Result.success(projectDataProvider.get())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun getProjectById(projectId: String): Result<ProjectEntity> {
-        TODO("Not yet implemented")
-    }
-
-    private fun convertProjectToCsv(project: ProjectEntity): String {
-        return listOf(
-            project.id,
-            project.name,
-            project.description,
-            project.createdByAdminId,
-            project.createdAt.toString(),
-        ).joinToString(",")
-    }
-
-    private fun convertCsvToProject(line: String): ProjectEntity {
-        val projectDetails = line.split(",")
-        require(projectDetails.size == 5) { "Invalid CSV format it expected 5 columns, check the csv file" }
-
-        return ProjectEntity(
-            id = UUID.fromString(projectDetails[ProjectDetailsIndex.ID_INDEX]),
-            name = projectDetails[ProjectDetailsIndex.NAME_INDEX],
-            description = projectDetails[ProjectDetailsIndex.DESCRIPTION_INDEX],
-            createdByAdminId = UUID.fromString(projectDetails[ProjectDetailsIndex.CREATED_BY_INDEX]),
-            createdAt = projectDetails[ProjectDetailsIndex.CREATED_AT_INDEX].toLocalDateTime(),
-        )
+        return try {
+            val uuid = UUID.fromString(projectId)
+            val project = projectDataProvider.getById(uuid) ?: throw NoSuchElementException("Project not found")
+            Result.success(project)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
