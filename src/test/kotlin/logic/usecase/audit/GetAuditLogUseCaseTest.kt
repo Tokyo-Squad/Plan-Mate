@@ -1,15 +1,13 @@
-package logic.usecase
+package logic.usecase.audit
 
 import fakeData.createAuditLogEntity
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
-import org.example.logic.usecase.AddAuditLogUseCase
-import org.example.logic.usecase.GetAuditLogUseCase
-import org.junit.jupiter.api.Assertions.*
+import org.example.logic.usecase.audit.GetAuditLogUseCase
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -51,8 +49,8 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedEntityType.PROJECT)
 
         // Then
-        assertTrue(result.isSuccess)
-        assertEquals(expectedLogs, result.getOrNull())
+        Assertions.assertTrue(result.isSuccess)
+        Assertions.assertEquals(expectedLogs, result.getOrNull())
     }
 
     @Test
@@ -66,8 +64,8 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(projectId, AuditedEntityType.PROJECT)
 
         // Then
-        assertTrue(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
+        Assertions.assertTrue(result.isFailure)
+        Assertions.assertEquals(exception, result.exceptionOrNull())
 
     }
 
@@ -93,11 +91,11 @@ class GetAuditLogUseCaseTest {
         every { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId,AuditedEntityType.TASK)
+        val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-        assertTrue(result.isSuccess)
-        assertEquals(expectedLogs, result.getOrNull())
+        Assertions.assertTrue(result.isSuccess)
+        Assertions.assertEquals(expectedLogs, result.getOrNull())
     }
 
     @Test
@@ -108,10 +106,10 @@ class GetAuditLogUseCaseTest {
         every { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId,AuditedEntityType.TASK)
+        val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-        assertTrue(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
+        Assertions.assertTrue(result.isFailure)
+        Assertions.assertEquals(exception, result.exceptionOrNull())
     }
 }

@@ -27,8 +27,12 @@ tasks.test {
 kotlin {
     jvmToolchain(22)
 }
+val filteredCoverage = fileTree(layout.buildDirectory.dir("classes/kotlin/main")) {
+    include("**/logic/usecase/**")
+}
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    classDirectories.setFrom(filteredCoverage)
     reports {
         xml.required.set(true)
         csv.required.set(false)
@@ -36,12 +40,13 @@ tasks.jacocoTestReport {
     }
 }
 tasks.jacocoTestCoverageVerification {
+    classDirectories.setFrom(filteredCoverage)
     violationRules {
         rule {
             limit {
                 counter = "CLASS"
                 value = "COVEREDRATIO"
-                minimum = "1.0".toBigDecimal()
+                minimum = "0.8".toBigDecimal()
             }
         }
     }

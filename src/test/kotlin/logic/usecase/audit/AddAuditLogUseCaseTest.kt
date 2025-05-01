@@ -1,4 +1,4 @@
-package logic.usecase
+package logic.usecase.audit
 
 import fakeData.createAuditLogEntity
 import io.mockk.mockk
@@ -6,9 +6,7 @@ import io.mockk.verify
 import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
-import org.example.logic.usecase.AddAuditLogUseCase
-import org.example.logic.usecase.GetAuditLogUseCase
-import org.junit.jupiter.api.Assertions.*
+import org.example.logic.usecase.audit.AddAuditLogUseCase
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
