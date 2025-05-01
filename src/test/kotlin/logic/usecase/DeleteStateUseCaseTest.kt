@@ -1,6 +1,5 @@
 package logic.usecase
 
-import org.junit.jupiter.api.Assertions.*
 import fakeData.StateFakeData
 import io.mockk.every
 import io.mockk.mockk
