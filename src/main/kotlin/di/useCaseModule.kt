@@ -14,4 +14,5 @@ val useCaseModule = module {
     singleOf(::GetUserByUsernameUseCase)
     singleOf(::GetAuditLogUseCase)
     singleOf(::AddAuditLogUseCase)
+    
 }
