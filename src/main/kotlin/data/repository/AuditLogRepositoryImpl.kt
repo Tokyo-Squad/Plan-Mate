@@ -11,7 +11,11 @@ class AuditLogRepositoryImpl(
     private val dataProvider: DataProvider<AuditLogEntity>
 ) : AuditLogRepository {
     override fun addAudit(auditLogEntity: AuditLogEntity) {
-        dataProvider.add(auditLogEntity)
+        try {
+            dataProvider.add(auditLogEntity)
+        }catch (e: Exception) {
+            throw InvalidStateIdException("Failed to add audit log due to invalid state.")
+        }
     }
 
     override fun getProjectHistory(projectId: Int): List<AuditLogEntity> =

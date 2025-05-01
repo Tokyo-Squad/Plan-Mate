@@ -3,6 +3,7 @@ package org.example.logic.usecase.audit
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
+import org.example.utils.PlanMatException.InvalidStateIdException
 
 class GetAuditLogUseCase(
     private val auditLogRepository: AuditLogRepository
@@ -18,7 +19,7 @@ class GetAuditLogUseCase(
                 AuditedEntityType.PROJECT -> Result.success(auditLogRepository.getProjectHistory(id))
                 AuditedEntityType.TASK -> Result.success(auditLogRepository.getTaskHistory(id))
             }
-        } catch (e: NoSuchElementException) {
+        } catch (e: InvalidStateIdException) {
             Result.failure(e)
         }
     }
