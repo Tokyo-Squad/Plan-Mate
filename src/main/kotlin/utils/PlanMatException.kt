@@ -15,4 +15,6 @@ open class PlanMatException(message: String) : Exception(message) {
     class UserActionNotAllowedException(
         message: String = "This user is not allowed to perform this action."
     ) : PlanMatException(message)
+
+    class InvalidStateIdException(message: String = "Invalid state id, no audit logs found.") : PlanMatException(message)
 }
