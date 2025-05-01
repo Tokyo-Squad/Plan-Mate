@@ -93,7 +93,7 @@ class UserCsvImpl(
             val parts = line.split(",")
             return UserEntity(
                 id = UUID.fromString(parts[0]),
-                userName = parts[1],
+                username = parts[1],
                 password = parts[2],
                 type = UserType.valueOf(parts[3])
             )
@@ -103,6 +103,6 @@ class UserCsvImpl(
     }
 
     private fun toCSVLine(user: UserEntity): String {
-        return "${user.id},${user.userName},${user.password},${user.type}"
+        return "${user.id},${user.username},${user.password},${user.type}"
     }
 }

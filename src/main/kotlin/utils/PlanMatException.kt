@@ -10,4 +10,9 @@ open class PlanMatException(message: String) : Exception(message) {
 
     class InvalidFormatException(message: String = "Invalid data format.") : PlanMatException(message)
 
+    class ValidationException(message: String = "Validation failed.") : PlanMatException(message)
+
+    class UserActionNotAllowedException(
+        message: String = "This user is not allowed to perform this action."
+    ) : PlanMatException(message)
 }
