@@ -2,13 +2,14 @@ package org.example.logic.usecase.user
 
 import org.example.entity.UserEntity
 import org.example.logic.repository.UserRepository
+import org.example.utils.PlanMatException
 
 class GetUserByUsernameUseCase(
     private val userRepository: UserRepository
 ) {
     operator fun invoke(username: String): Result<UserEntity> {
         if (username.isBlank()) {
-            return Result.failure(IllegalArgumentException("Username cannot be empty"))
+            return Result.failure(PlanMatException.ValidationException("Username cannot be empty"))
         }
         return runCatching {
             userRepository.getUserByUsername(username).getOrThrow()
