@@ -25,7 +25,7 @@ class UserCsvImplTest {
         file = File(tempDir, "users.csv")
         userCsv = UserCsvImpl(file.absolutePath)
         user = UserEntity(
-            id = UUID.randomUUID(), userName = "user1", password = "password123", type = UserType.ADMIN
+            id = UUID.randomUUID(), username = "user1", password = "password123", type = UserType.ADMIN
         )
     }
 
@@ -55,14 +55,14 @@ class UserCsvImplTest {
     fun shouldUpdateEntity_whenIdExists() {
         // Given
         userCsv.add(user)
-        val updated = user.copy(userName = "updatedUser")
+        val updated = user.copy(username = "updatedUser")
 
         // When
         userCsv.update(updated)
 
         // Then
         val result = userCsv.getById(updated.id)
-        assertThat(result?.userName).isEqualTo("updatedUser")
+        assertThat(result?.username).isEqualTo("updatedUser")
     }
 
     @Test
@@ -205,9 +205,9 @@ class UserCsvImplTest {
     fun shouldSuccessfullyParseFile_whenValidContent() {
         // Given
         val validUser = UserEntity(
-            id = UUID.randomUUID(), userName = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
+            id = UUID.randomUUID(), username = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
-        file.writeText("${validUser.id},${validUser.userName},${validUser.password},${validUser.type}")
+        file.writeText("${validUser.id},${validUser.username},${validUser.password},${validUser.type}")
 
         // When
         val result = userCsv.get()
@@ -220,9 +220,9 @@ class UserCsvImplTest {
     fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
         // Given
         val validUser = UserEntity(
-            id = UUID.randomUUID(), userName = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
+            id = UUID.randomUUID(), username = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
-        file.writeText("\n\n${validUser.id},${validUser.userName},${validUser.password},${validUser.type}\n\n") // Contains empty lines before and after the valid user data
+        file.writeText("\n\n${validUser.id},${validUser.username},${validUser.password},${validUser.type}\n\n") // Contains empty lines before and after the valid user data
 
         // When
         val result = userCsv.get()
@@ -315,7 +315,7 @@ class UserCsvImplTest {
 
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
 
-        val updatedUser = user.copy(userName = "UpdatedUser")
+        val updatedUser = user.copy(username = "UpdatedUser")
 
         // When
         val exception = assertFailsWith<PlanMatException.FileWriteException> {
