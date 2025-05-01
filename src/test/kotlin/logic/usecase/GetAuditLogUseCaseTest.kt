@@ -11,36 +11,18 @@ import org.example.logic.usecase.AddAuditLogUseCase
 import org.example.logic.usecase.GetAuditLogUseCase
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.test.Test
 
-class AuditLogUseCaseTest {
-
-    private lateinit var addAuditLogUseCase: AddAuditLogUseCase
+class GetAuditLogUseCaseTest {
     private lateinit var getAuditLogsUseCase: GetAuditLogUseCase
     private val auditLogRepository: AuditLogRepository = mockk(relaxed = true)
 
     @BeforeEach
     fun setUp() {
-        addAuditLogUseCase = AddAuditLogUseCase(auditLogRepository)
         getAuditLogsUseCase = GetAuditLogUseCase(auditLogRepository)
     }
 
-    @Test
-    fun `should create a new audit log when creating a new project or task`() {
-        // Given
-        val auditLogEntity = createAuditLogEntity(
-            entityType = AuditedEntityType.TASK,
-            action = AuditAction.CREATE,
-            changeDetails = "Task created"
-        )
-
-        // When
-        addAuditLogUseCase.invoke(auditLogEntity)
-
-        // Then
-        verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
-    }
 
     @Test
     fun `should retrieve audit logs filtered by project ID`() {
@@ -66,7 +48,7 @@ class AuditLogUseCaseTest {
         every { auditLogRepository.getProjectHistory(projectId) } returns listOf(auditLog1, auditLog2)
 
         // When
-        val result = getAuditLogsUseCase.invoke(projectId)
+        val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedEntityType.PROJECT)
 
         // Then
         assertTrue(result.isSuccess)
@@ -81,7 +63,7 @@ class AuditLogUseCaseTest {
         every { auditLogRepository.getProjectHistory(projectId) } throws exception
 
         // When
-        val result = getAuditLogsUseCase.invoke(projectId)
+        val result = getAuditLogsUseCase.invoke(projectId, AuditedEntityType.PROJECT)
 
         // Then
         assertTrue(result.isFailure)
@@ -111,7 +93,7 @@ class AuditLogUseCaseTest {
         every { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId)
+        val result = getAuditLogsUseCase.invoke(taskId,AuditedEntityType.TASK)
 
         // Then
         assertTrue(result.isSuccess)
@@ -126,7 +108,7 @@ class AuditLogUseCaseTest {
         every { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId)
+        val result = getAuditLogsUseCase.invoke(taskId,AuditedEntityType.TASK)
 
         // Then
         assertTrue(result.isFailure)
