@@ -12,6 +12,6 @@ val useCaseModule = module {
     singleOf(::UpdateUserUseCase)
     singleOf(::GetUserByIdUseCase)
     singleOf(::GetUserByUsernameUseCase)
-    singleOf(::AddAuditLogUseCase)
     singleOf(::GetAuditLogUseCase)
+    singleOf(::AddAuditLogUseCase)
 }
