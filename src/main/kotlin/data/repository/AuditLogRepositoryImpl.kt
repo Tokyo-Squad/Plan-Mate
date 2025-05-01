@@ -4,6 +4,7 @@ import org.example.data.DataProvider
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
+import org.example.utils.PlanMatException.InvalidStateIdException
 import java.util.UUID
 
 class AuditLogRepositoryImpl(
@@ -25,7 +26,7 @@ class AuditLogRepositoryImpl(
         val uuid = UUID.nameUUIDFromBytes(entityId.toString().toByteArray())
         val history = dataProvider.get().filter { it.entityType == entityType && it.entityId == uuid }
         if (history.isEmpty()) {
-            throw NoSuchElementException("No audit logs found for ID: $entityId")
+            throw InvalidStateIdException()
         }
         return history
     }

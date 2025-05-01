@@ -7,6 +7,7 @@ import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.GetAuditLogUseCase
+import org.example.utils.PlanMatException.InvalidStateIdException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,7 +24,7 @@ class GetAuditLogUseCaseTest {
 
 
     @Test
-    fun `should retrieve audit logs filtered by project ID`() {
+    fun `should retrieve audit logs filtered by project ID when provided ID is valid`() {
         // Given
         val projectId = 123
         val projectUUID = UUID.nameUUIDFromBytes(projectId.toString().toByteArray())
@@ -57,7 +58,7 @@ class GetAuditLogUseCaseTest {
     fun `should return failure when an exception occurs while retrieving project audit logs`() {
         // Given
         val projectId = 456
-        val exception = NoSuchElementException("No audit logs found for ID: $projectId")
+        val exception = InvalidStateIdException()
         every { auditLogRepository.getProjectHistory(projectId) } throws exception
 
         // When
@@ -70,7 +71,7 @@ class GetAuditLogUseCaseTest {
     }
 
     @Test
-    fun `should retrieve audit logs filtered by task ID`() {
+    fun `should retrieve audit logs filtered by task ID when provided ID is valid`() {
         // Given
         val taskId = 456
         val taskUUID = UUID.nameUUIDFromBytes(taskId.toString().toByteArray())
@@ -99,10 +100,10 @@ class GetAuditLogUseCaseTest {
     }
 
     @Test
-    fun `should return failure when an exception occurs while retrieving task audit logs`() {
+    fun `should throw InvalidStateIdException when using invalid ID`() {
         // Given
         val taskId = 303
-        val exception = NoSuchElementException("No audit logs found for ID: $taskId")
+        val exception = InvalidStateIdException()
         every { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When
