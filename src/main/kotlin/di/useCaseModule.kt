@@ -1,7 +1,6 @@
 package org.example.di
 
-import org.example.data.repository.AuditLogRepositoryImpl
-import org.example.logic.repository.AuditLogRepository
+
 import org.example.logic.usecase.audit.AddAuditLogUseCase
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.logic.usecase.user.*
