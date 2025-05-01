@@ -4,6 +4,7 @@ import org.example.data.DataProvider
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
+import org.example.utils.PlanMatException
 import org.example.utils.PlanMatException.InvalidStateIdException
 import java.util.UUID
 
@@ -13,8 +14,8 @@ class AuditLogRepositoryImpl(
     override fun addAudit(auditLogEntity: AuditLogEntity) {
         try {
             dataProvider.add(auditLogEntity)
-        }catch (e: Exception) {
-            throw InvalidStateIdException("Failed to add audit log due to invalid state.")
+        }catch (e: PlanMatException.FileWriteException) {
+            throw PlanMatException.FileWriteException("Failed to add audit log due to invalid state.")
         }
     }
 

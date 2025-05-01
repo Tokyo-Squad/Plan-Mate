@@ -2,6 +2,7 @@ package org.example.logic.usecase.audit
 
 import org.example.entity.AuditLogEntity
 import org.example.logic.repository.AuditLogRepository
+import org.example.utils.PlanMatException
 import org.example.utils.PlanMatException.InvalidStateIdException
 
 class AddAuditLogUseCase(
@@ -11,7 +12,7 @@ class AddAuditLogUseCase(
         return try {
             auditLogRepository.addAudit(auditLogEntity)
             Result.success(true)
-        } catch (e: InvalidStateIdException) {
+        } catch (e: PlanMatException.FileWriteException) {
             Result.failure(e)
         }
     }

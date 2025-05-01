@@ -1,5 +1,6 @@
 package logic.usecase.audit
 
+import com.google.common.truth.Truth.assertThat
 import fakeData.createAuditLogEntity
 import io.mockk.every
 import io.mockk.mockk
@@ -8,8 +9,7 @@ import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.AddAuditLogUseCase
-import org.example.utils.PlanMatException.InvalidStateIdException
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.example.utils.PlanMatException.FileWriteException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -30,7 +30,6 @@ class AddAuditLogUseCaseTest {
             action = AuditAction.CREATE,
             changeDetails = "Task created"
         )
-
         // When
         addAuditLogUseCase.invoke(auditLogEntity)
 
@@ -39,14 +38,14 @@ class AddAuditLogUseCaseTest {
     }
 
     @Test
-    fun `should return failure when InvalidStateIdException is thrown by repository`() {
+    fun `should return failure when FileWriteException is thrown by repository`() {
         // Given
         val auditLogEntity = createAuditLogEntity(
             entityType = AuditedEntityType.PROJECT,
             action = AuditAction.UPDATE,
             changeDetails = "Project updated"
         )
-        val exception = InvalidStateIdException("Failed to add audit log due to invalid state.")
+        val exception = FileWriteException("Error writing audit log to file.")
         every { auditLogRepository.addAudit(auditLogEntity) } throws exception
 
         // When
@@ -54,9 +53,8 @@ class AddAuditLogUseCaseTest {
 
         // Then
         verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is InvalidStateIdException)
-        assertTrue(result.exceptionOrNull()?.message == "Failed to add audit log due to invalid state.")
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull() is FileWriteException)
+        assertThat(result.exceptionOrNull()?.message == "Error writing audit log to file.")
     }
-
 }

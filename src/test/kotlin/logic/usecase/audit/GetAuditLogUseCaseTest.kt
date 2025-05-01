@@ -1,5 +1,6 @@
 package logic.usecase.audit
 
+import com.google.common.truth.Truth.assertThat
 import fakeData.createAuditLogEntity
 import io.mockk.every
 import io.mockk.mockk
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.test.assertEquals
 
 class GetAuditLogUseCaseTest {
     private lateinit var getAuditLogsUseCase: GetAuditLogUseCase
@@ -95,8 +97,8 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-        Assertions.assertTrue(result.isSuccess)
-        Assertions.assertEquals(expectedLogs, result.getOrNull())
+        assertThat(result.isSuccess).isTrue()
+        assertEquals(expectedLogs, result.getOrNull())
     }
 
     @Test
@@ -110,7 +112,7 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-        Assertions.assertTrue(result.isFailure)
-        Assertions.assertEquals(exception, result.exceptionOrNull())
+        assertThat(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
     }
 }
