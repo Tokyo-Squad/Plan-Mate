@@ -14,72 +14,173 @@ import kotlin.test.assertFailsWith
 
 class AuthProviderImplTest {
 
- @TempDir
- lateinit var tempDir: File
+    @TempDir
+    lateinit var tempDir: File
 
- private lateinit var file: File
- private lateinit var authProvider: AuthProviderImpl
- private lateinit var user: UserEntity
+    private lateinit var file: File
+    private lateinit var authProvider: AuthProviderImpl
+    private lateinit var user: UserEntity
 
- @BeforeEach
- fun setup() {
-  file = File(tempDir, "current_user.csv")
-  authProvider = AuthProviderImpl(file.absolutePath)
-  user = UserEntity(
-   id = UUID.randomUUID(),
-   username = "user1",
-   password = "password123",
-   type = UserType.ADMIN
-  )
- }
+    @BeforeEach
+    fun setup() {
+        file = File(tempDir, "current_user.csv")
+        authProvider = AuthProviderImpl(file.absolutePath)
+        user = UserEntity(
+            id = UUID.randomUUID(),
+            username = "user1",
+            password = "password123",
+            type = UserType.ADMIN
+        )
+    }
 
- @Test
- fun shouldStoreUser_whenAddCurrentUser() {
-  authProvider.addCurrentUser(user)
+    @Test
+    fun shouldStoreUser_whenAddCurrentUser() {
+        // Given
+        val userToAdd = user
 
-  val result = authProvider.getCurrentUser()
-  assertThat(result).isEqualTo(user)
- }
+        // When
+        authProvider.addCurrentUser(userToAdd)
 
- @Test
- fun shouldDeleteUser_whenDeleteCurrentUser() {
-  authProvider.addCurrentUser(user)
+        // Then
+        val result = authProvider.getCurrentUser()
+        assertThat(result).isEqualTo(userToAdd)
+    }
 
-  authProvider.deleteCurrentUser()
+    @Test
+    fun shouldDeleteUser_whenDeleteCurrentUser() {
+        // Given
+        authProvider.addCurrentUser(user)
 
-  val result = authProvider.getCurrentUser()
-  assertThat(result).isNull()
- }
+        // When
+        authProvider.deleteCurrentUser()
 
- @Test
- fun shouldReturnNull_whenNoUserStored() {
-  val result = authProvider.getCurrentUser()
-  assertThat(result).isNull()
- }
+        // Then
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            authProvider.getCurrentUser()
+        }
+        assertThat(exception).hasMessageThat().contains("No current user found.")
+    }
 
- @Test
- fun shouldThrowFileWriteException_whenFileWriteFails() {
-  val readOnlyFile = File(tempDir, "readonly.csv").apply {
-   createNewFile()
-   setWritable(false)
-  }
-  val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
+    @Test
+    fun shouldThrowItemNotFoundException_whenNoUserStored() {
+        // Given
+        // No user is added
 
-  val exception = assertFailsWith<PlanMatException.FileWriteException> {
-   failingProvider.addCurrentUser(user)
-  }
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            authProvider.getCurrentUser()
+        }
 
-  assertThat(exception).hasMessageThat().contains("Error writing")
- }
+        // Then
+        assertThat(exception).hasMessageThat().contains("No current user found.")
+    }
 
- @Test
- fun shouldThrowFormatException_whenUserFileIsMalformed() {
-  file.writeText("invalid,line,content")
+    @Test
+    fun shouldThrowFileWriteException_whenFileWriteFails() {
+        // Given
+        val readOnlyFile = File(tempDir, "readonly.csv").apply {
+            createNewFile()
+            setWritable(false)
+        }
+        val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
 
-  val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
-   authProvider.getCurrentUser()
-  }
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingProvider.addCurrentUser(user)
+        }
 
-  assertThat(exception).hasMessageThat().contains("Malformed CSV line")
- }
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error writing")
+    }
+
+    @Test
+    fun shouldThrowFormatException_whenUserFileIsMalformed() {
+        // Given
+        file.writeText("invalid,line,content")
+
+        // When
+        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+            authProvider.getCurrentUser()
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Malformed CSV line")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenFileCreationFails() {
+        // Given
+        val fileWithNoPermission = File(tempDir, "no_permission.csv").apply {
+            createNewFile()
+            setReadable(true)
+            setWritable(false)
+        }
+        val failingProvider = AuthProviderImpl(fileWithNoPermission.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingProvider.addCurrentUser(user)
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error writing current user to file")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenErrorDeletingUser() {
+        // Given
+        val fileWithNoPermission = File(tempDir, "no_permission_delete.csv").apply {
+            createNewFile()
+            setWritable(true)
+        }
+        val failingProvider = AuthProviderImpl(fileWithNoPermission.absolutePath)
+        failingProvider.addCurrentUser(user)
+        fileWithNoPermission.setWritable(false)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingProvider.deleteCurrentUser() // Attempt to delete user with write permission issue
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("Error deleting current user")
+    }
+
+    @Test
+    fun shouldThrowItemNotFoundException_whenFileIsEmpty() {
+        // Given
+        val emptyFile = File(tempDir, "empty.csv").apply { createNewFile() }
+        val provider = AuthProviderImpl(emptyFile.absolutePath)
+
+        // When
+        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+            provider.getCurrentUser()
+        }
+
+        // Then
+        assertThat(exception).hasMessageThat().contains("No current user found.")
+    }
+
+    @Test
+    fun shouldThrowFileWriteException_whenAddUserFails() {
+        // GIVEN
+        val readOnlyFile = File(tempDir, "current_user.csv").apply {
+            createNewFile()
+            setReadable(true)
+            setWritable(false)
+        }
+
+        val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
+        val newUser = user.copy(username = "UpdatedUser")
+
+        // WHEN
+        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+            failingProvider.addCurrentUser(newUser)
+        }
+
+        // THEN
+        assertThat(exception).hasMessageThat().contains("Error writing current user to file")
+    }
+
+
 }

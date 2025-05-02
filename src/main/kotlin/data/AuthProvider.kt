@@ -5,5 +5,5 @@ import org.example.entity.UserEntity
 interface AuthProvider {
     fun addCurrentUser(user: UserEntity)
     fun deleteCurrentUser()
-    fun getCurrentUser(): UserEntity?
+    fun getCurrentUser(): UserEntity
 }
