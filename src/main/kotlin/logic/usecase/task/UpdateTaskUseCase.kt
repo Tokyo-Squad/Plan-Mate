@@ -7,8 +7,13 @@ import java.util.UUID
 class UpdateTaskUseCase(
     private val taskRepository: TaskRepository,
 ) {
-
-    operator fun invoke(taskEntity: TaskEntity, currentUserId: UUID): Result<TaskEntity> {
-        return Result.failure(Exception("UpdateTaskUseCase"))
+    operator fun invoke(
+        task: TaskEntity,
+        currentUserId: UUID
+    ): Result<Unit> {
+        if (task.title.isBlank()) {
+            return Result.failure(IllegalArgumentException("title cannot be empty"))
+        }
+        return runCatching { taskRepository.update(task,currentUserId).getOrThrow() }
     }
 }
