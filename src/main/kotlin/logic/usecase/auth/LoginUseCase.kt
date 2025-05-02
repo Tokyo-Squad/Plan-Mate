@@ -6,6 +6,6 @@ class LoginUseCase(
     private val authRepository: AuthenticationRepository
 ) {
     operator fun invoke(username: String, password: String): Result<Unit> {
-        return Result.failure(exception = Exception())
+        return authRepository.login(username, password)
     }
 }

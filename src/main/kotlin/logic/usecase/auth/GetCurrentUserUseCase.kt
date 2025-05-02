@@ -8,6 +8,6 @@ class GetCurrentUserUseCase(
 ) {
 
     operator fun invoke(): Result<UserEntity?> {
-        return Result.failure(Exception())
+        return authRepository.getCurrentUser()
     }
 }

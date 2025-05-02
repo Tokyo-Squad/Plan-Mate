@@ -7,6 +7,6 @@ class LogoutUseCase(
 ) {
 
     operator fun invoke(): Result<Unit> {
-        return Result.failure(Exception())
+        return authRepository.logout()
     }
 }
