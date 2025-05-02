@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.ProjectRepository
-import org.example.logic.usecase.user.DeleteProjectUseCase
+import org.example.logic.usecase.project.DeleteProjectUseCase
 import org.junit.Assert.assertTrue
 import java.util.*
 import kotlin.test.Test
