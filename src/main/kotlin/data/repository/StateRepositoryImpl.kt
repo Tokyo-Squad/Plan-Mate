@@ -1,5 +1,6 @@
 package org.example.data.repository
 
+
 import org.example.data.DataProvider
 import org.example.entity.StateEntity
 import org.example.logic.repository.StateRepository
