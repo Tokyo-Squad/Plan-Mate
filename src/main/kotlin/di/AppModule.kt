@@ -9,8 +9,6 @@ import org.example.data.repository.ProjectRepositoryImpl
 import org.example.entity.AuditLogEntity
 import org.example.entity.ProjectEntity
 import org.koin.core.qualifier.named
-import org.example.data.repository.*
-import org.example.logic.repository.AuditLogRepository
 import org.koin.dsl.module
 
 val appModule = module {
@@ -24,7 +22,6 @@ val appModule = module {
     single<DataProvider<AuditLogEntity>> { AuditLogCsvImpl(get(named("auditLogs"))) }
     single { TaskCsvImpl(get(named("tasks"))) }
     single { UserCsvImpl(get(named("users"))) }
+    single { ProjectRepositoryImpl(get(),get()) }
     single { AuditLogCsvImpl(get(named("auditLogs"))) }
-
-
 }

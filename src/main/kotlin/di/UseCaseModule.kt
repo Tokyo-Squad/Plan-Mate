@@ -14,5 +14,9 @@ val useCaseModule = module {
     singleOf(::GetUserByUsernameUseCase)
     singleOf(::GetAuditLogUseCase)
     singleOf(::AddAuditLogUseCase)
-    
+    single { AddProjectUseCase(get()) }
+    single { UpdateProjectUseCase(get()) }
+    single { DeleteProjectUseCase(get()) }
+    single { GetProjectUseCase(get()) }
+    single { ListProjectsUseCase(get()) }
 }

@@ -17,16 +17,14 @@ class ProjectRepositoryImpl(
     private val auditDataProvider: DataProvider<AuditLogEntity>
 ) : ProjectRepository {
 
-    override fun createProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
+    override fun addProject(project: ProjectEntity): Result<ProjectEntity> {
         return try {
             require(project.name.isNotBlank()) { "Project name cannot be blank" }
-            UUID.fromString(currentUser)
-
             projectDataProvider.add(project)
 
             auditDataProvider.add(
                 AuditLogEntity(
-                    userId = UUID.fromString(currentUser),
+                    userId = project.createdByAdminId,
                     entityType = AuditedEntityType.PROJECT,
                     entityId = project.id,
                     action = AuditAction.CREATE,
@@ -37,18 +35,16 @@ class ProjectRepositoryImpl(
             Result.success(project)
         } catch (e: PlanMatException) {
             Result.failure(e)
-        } catch (e: IllegalArgumentException) {
-            Result.failure(PlanMatException.ValidationException(e.message ?: "Invalid input"))
         }
     }
 
-    override fun updateProject(project: ProjectEntity, currentUser: String): Result<ProjectEntity> {
+    override fun updateProject(project: ProjectEntity, currentUserId: UUID): Result<ProjectEntity> {
         return try {
             projectDataProvider.update(project)
 
             auditDataProvider.add(
                 AuditLogEntity(
-                    userId = UUID.fromString(currentUser),
+                    userId = currentUserId,
                     entityType = AuditedEntityType.PROJECT,
                     entityId = project.id,
                     action = AuditAction.UPDATE,
@@ -62,7 +58,7 @@ class ProjectRepositoryImpl(
         }
     }
 
-    override fun deleteProject(projectId: UUID, currentUser: String): Result<Unit> {
+    override fun deleteProject(projectId: UUID, currentUserId: UUID): Result<Unit> {
         return try {
             val project = projectDataProvider.getById(projectId) ?: throw NoSuchElementException("Project not found")
 
@@ -70,7 +66,7 @@ class ProjectRepositoryImpl(
 
             auditDataProvider.add(
                 AuditLogEntity(
-                    userId = UUID.fromString(currentUser),
+                    userId = currentUserId,
                     entityType = AuditedEntityType.PROJECT,
                     entityId = projectId,
                     action = AuditAction.DELETE,
