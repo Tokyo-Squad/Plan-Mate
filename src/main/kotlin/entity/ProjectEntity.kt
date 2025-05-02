@@ -7,5 +7,5 @@ data class ProjectEntity(
     val id: UUID = UUID.randomUUID(),
     val name: String,
     val createdByAdminId: UUID,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
 )
