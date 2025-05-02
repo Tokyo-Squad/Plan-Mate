@@ -1,4 +1,4 @@
-package logic.usecase.user.projectuscases
+package logic.usecase.project
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.fakeAdminEntity
