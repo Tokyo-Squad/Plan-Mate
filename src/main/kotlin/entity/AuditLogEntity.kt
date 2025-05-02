@@ -15,8 +15,7 @@ data class AuditLogEntity(
 
 enum class AuditedEntityType {
     TASK,
-    PROJECT,
-    STATE
+    PROJECT
 }
 
 enum class AuditAction {
