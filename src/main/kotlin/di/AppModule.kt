@@ -1,6 +1,7 @@
 package org.example.di
 
 import data.csvfile.*
+import org.example.data.csvfile.AuthProviderImpl
 import org.example.data.repository.ProjectRepositoryImpl
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -11,6 +12,7 @@ val appModule = module {
     single(named("tasks")) { "tasks.csv" }
     single(named("users")) { "users.csv" }
     single(named("auditLogs")) { "audit_logs.csv" }
+    single(named("auth")) { "auth.csv" }
 
     single { ProjectCsvImpl((get(named("projects")))) }
     single { AuditLogCsvImpl(get(named("auditLogs"))) }
@@ -18,4 +20,5 @@ val appModule = module {
     single { UserCsvImpl(get(named("users"))) }
     single { StateCsvImpl(get(named("states"))) }
     single { ProjectRepositoryImpl(get(), get()) }
+    single { AuthProviderImpl(get(named("auth"))) }
 }
