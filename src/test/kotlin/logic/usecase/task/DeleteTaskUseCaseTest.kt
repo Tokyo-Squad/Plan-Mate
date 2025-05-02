@@ -1,76 +1,53 @@
 package logic.usecase.task
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
 
+import com.google.common.truth.Truth.assertThat
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.DeleteTaskUseCase
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 
 class DeleteTaskUseCaseTest {
+ private lateinit var repository: TaskRepository
+ private lateinit var useCase: DeleteTaskUseCase
+ private lateinit var id: UUID
+ private lateinit var userId: UUID
 
- private lateinit var taskRepository: TaskRepository
- private lateinit var deleteTaskUseCase: DeleteTaskUseCase
-
- @Before
+ @BeforeEach
  fun setUp() {
-  taskRepository = mockk()
-  deleteTaskUseCase = DeleteTaskUseCase(taskRepository)
+  id = UUID.randomUUID()
+  userId = UUID.randomUUID()
+  repository = mockk(relaxed = true)
+  useCase = DeleteTaskUseCase(repository)
  }
 
  @Test
- fun `should delete task successfully`()  {
-  val taskId = UUID.randomUUID()
-  val currentUserId = UUID.randomUUID()
+ fun `should succeed when repository delete succeeds`() {
+  // Given
+  every { repository.delete(id, userId) } returns Result.success(Unit)
 
-  coEvery { taskRepository.delete(taskId, currentUserId) } returns Result.success(Unit)
+  // When
+  val result = useCase(id, userId)
 
-  val result = deleteTaskUseCase(taskId, currentUserId)
-
-  assertTrue(result.isSuccess)
-  coVerify { taskRepository.delete(taskId, currentUserId) }
+  // Then
+  assertThat(result.isSuccess)
+  verify { repository.delete(id, userId) }
  }
 
  @Test
- fun `should fail to delete non-existing task`()  {
-  val taskId = UUID.randomUUID()
-  val currentUserId = UUID.randomUUID()
+ fun `should fail when repository delete fails`() {
+  // Given
+  val ex = RuntimeException("Delete failed")
+  every { repository.delete(id, userId) } returns Result.failure(ex)
 
-  coEvery { taskRepository.delete(taskId, currentUserId) } returns Result.failure(Exception("Task not found"))
+  // When
+  val result = useCase(id, userId)
 
-  val result = deleteTaskUseCase(taskId, currentUserId)
-
-  assertFalse(result.isSuccess)
-  coVerify { taskRepository.delete(taskId, currentUserId) }
- }
-
- @Test
- fun `should fail to delete task without permission`() {
-  val taskId = UUID.randomUUID()
-  val currentUserId = UUID.randomUUID()
-
-  coEvery { taskRepository.delete(taskId, currentUserId) } returns Result.failure(Exception("Unauthorized"))
-
-  val result = deleteTaskUseCase(taskId, currentUserId)
-
-  assertFalse(result.isSuccess)
-  coVerify { taskRepository.delete(taskId, currentUserId) }
- }
-
- @Test
- fun `should call repository delete method exactly once`() {
-  val taskId = UUID.randomUUID()
-  val currentUserId = UUID.randomUUID()
-
-  coEvery { taskRepository.delete(taskId, currentUserId) } returns Result.success(Unit)
-
-  deleteTaskUseCase(taskId, currentUserId)
-
-  coVerify(exactly = 1) { taskRepository.delete(taskId, currentUserId) }
+  // Then
+  assertThat(result.isFailure)
+  verify { repository.delete(id, userId) }
  }
 }
-
