@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
-import org.example.logic.usecase.user.ListProjectsUseCase
+import org.example.logic.usecase.project.ListProjectsUseCase
 import org.junit.Assert.assertEquals
 import kotlin.test.Test
 

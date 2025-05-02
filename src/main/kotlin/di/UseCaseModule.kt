@@ -2,8 +2,9 @@ package org.example.di
 
 import org.example.logic.usecase.audit.AddAuditLogUseCase
 import org.example.logic.usecase.audit.GetAuditLogUseCase
-import org.example.logic.usecase.user.*
+import org.example.logic.usecase.project.*
 import org.example.logic.usecase.task.*
+import org.example.logic.usecase.user.*
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -25,6 +26,4 @@ val useCaseModule = module {
     single { DeleteProjectUseCase(get()) }
     single { GetProjectUseCase(get()) }
     single { ListProjectsUseCase(get()) }
-
-
 }

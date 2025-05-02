@@ -8,7 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.ProjectRepository
-import org.example.logic.usecase.user.UpdateProjectUseCase
+import org.example.logic.usecase.project.UpdateProjectUseCase
 import org.example.utils.PlanMatException
 import kotlin.test.Test
 

@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
-import org.example.logic.usecase.user.GetProjectUseCase
+import org.example.logic.usecase.project.GetProjectUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import java.util.*

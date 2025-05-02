@@ -7,7 +7,7 @@ import fakeData.fakeRegularUserEntity
 import io.mockk.every
 import io.mockk.mockk
 import org.example.logic.repository.ProjectRepository
-import org.example.logic.usecase.user.AddProjectUseCase
+import org.example.logic.usecase.project.AddProjectUseCase
 import org.example.utils.PlanMatException
 import kotlin.test.Test
 

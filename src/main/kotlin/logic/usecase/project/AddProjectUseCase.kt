@@ -1,4 +1,4 @@
-package org.example.logic.usecase.user
+package org.example.logic.usecase.project
 
 import org.example.entity.ProjectEntity
 import org.example.entity.UserEntity
