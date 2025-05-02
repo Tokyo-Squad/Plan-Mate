@@ -13,8 +13,8 @@ import org.example.entity.TaskEntity
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.repository.StateRepository
 import org.example.logic.repository.TaskRepository
-import org.example.presentation.PlanMatException
-import java.util.*
+import org.example.utils.PlanMatException
+import java.util.UUID
 
 class TaskRepositoryImpl(
     private val auditLogRepository: AuditLogRepository,
@@ -74,7 +74,7 @@ class TaskRepositoryImpl(
         val time = " at ${formatTime(dateTime)}"
         return when {
             new.stateId != old.stateId ->
-                "$base from ${stateRepository.getById(old.stateId)} to ${stateRepository.getById(new.stateId)}$time"
+                "$base from ${stateRepository.getStateById(old.stateId)} to ${stateRepository.getStateById(new.stateId)}$time"
 
             new.title != old.title ->
                 "$base renamed from '${old.title}' to '${new.title}'$time"
