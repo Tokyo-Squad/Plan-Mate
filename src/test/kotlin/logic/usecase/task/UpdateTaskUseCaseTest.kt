@@ -1,89 +1,96 @@
 package logic.usecase.task
 
-import io.mockk.coEvery
-import io.mockk.coVerify
+import com.google.common.truth.Truth.assertThat
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.UpdateTaskUseCase
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.example.entity.AuditedEntityType
 import java.util.UUID
-import kotlin.test.*
+import kotlin.test.Test
 
 class UpdateTaskUseCaseTest {
+ private lateinit var repository: TaskRepository
+ private lateinit var useCase: UpdateTaskUseCase
 
- private lateinit var taskRepository: TaskRepository
- private lateinit var updateTaskUseCase: UpdateTaskUseCase
-
- private val dummyUserId = UUID.randomUUID()
-
- @Before
+ @BeforeEach
  fun setUp() {
-  taskRepository = mockk()
-  updateTaskUseCase = UpdateTaskUseCase(taskRepository)
+  repository = mockk(relaxed = true)
+  useCase = UpdateTaskUseCase(repository)
  }
 
  @Test
- fun `should update task successfully`() {
-  val task = buildDummyTask()
-
-  coEvery { taskRepository.update(task, dummyUserId) } returns Result.success(Unit)
-
-  val result = updateTaskUseCase(task, dummyUserId)
-
-  assertTrue(result.isSuccess)
-  coVerify { taskRepository.update(task, dummyUserId) }
- }
-
- @Test
- fun `should return failure if update fails`(){
-  val task = buildDummyTask()
-
-  coEvery { taskRepository.update(task, dummyUserId) } returns Result.failure(Exception("Update failed"))
-
-  val result = updateTaskUseCase(task, dummyUserId)
-
-  assertFalse(result.isSuccess)
-  coVerify { taskRepository.update(task, dummyUserId) }
- }
-
- @Test
- fun `should call repository exactly once`() {
-  val task = buildDummyTask()
-
-  coEvery { taskRepository.update(task, dummyUserId) } returns Result.success(Unit)
-
-  updateTaskUseCase(task, dummyUserId)
-
-  coVerify(exactly = 1) { taskRepository.update(task, dummyUserId) }
- }
-
- @Test
- fun `should preserve task id and project id`() {
-  val task = buildDummyTask()
-
-  coEvery { taskRepository.update(task, dummyUserId) } returns Result.success(Unit)
-
-  val result = updateTaskUseCase(task, dummyUserId)
-
-  assertTrue(result.isSuccess)
-  assertEquals(task.id, task.id)
-  assertNotNull(task.projectId)
- }
-
- private fun buildDummyTask(): TaskEntity {
-  return TaskEntity(
-   id = UUID.randomUUID(),
-   title = "Updated Task",
-   description = "Updated description",
+ fun `should succeed when repository update succeeds`() {
+  // Given
+  val userId = UUID.randomUUID()
+  val auditedType = AuditedEntityType.TASK
+  val task = TaskEntity(
+   title = "Title",
+   description = "Desc",
    stateId = UUID.randomUUID(),
    projectId = UUID.randomUUID(),
-   createdByUserId = UUID.randomUUID(),
+   createdByUserId = userId,
    createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
   )
+  every { repository.update(task, auditedType, userId) } returns Result.success(Unit)
+
+  // When
+  val result = useCase(task, auditedType, userId)
+
+  // Then
+  assertThat(result.isSuccess).isTrue()
+  verify { repository.update(task, auditedType, userId) }
+ }
+
+ @Test
+ fun `should fail when title is blank`() {
+  // Given
+  val userId = UUID.randomUUID()
+  val auditedType = AuditedEntityType.TASK
+  val task = TaskEntity(
+   title = "",
+   description = "Desc",
+   stateId = UUID.randomUUID(),
+   projectId = UUID.randomUUID(),
+   createdByUserId = userId,
+   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+  )
+
+  // When
+  val result = useCase(task, auditedType, userId)
+
+  // Then
+  assertThat(result.isFailure).isTrue()
+  verify(exactly = 0) { repository.update(any(), any(), any()) }
+ }
+
+ @Test
+ fun `should fail when repository update fails`() {
+  // Given
+  val userId = UUID.randomUUID()
+  val auditedType = AuditedEntityType.TASK
+  val task = TaskEntity(
+   title = "Title",
+   description = "Desc",
+   stateId = UUID.randomUUID(),
+   projectId = UUID.randomUUID(),
+   createdByUserId = userId,
+   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+  )
+  val ex = RuntimeException("Update failed")
+  every { repository.update(task, auditedType, userId) } returns Result.failure(ex)
+
+  // When
+  val result = useCase(task, auditedType, userId)
+
+  // Then
+  assertThat(result.isFailure).isTrue()
+  verify { repository.update(task, auditedType, userId) }
  }
 }
