@@ -20,7 +20,7 @@ class ProjectEditScreen(
     private val updateStateUseCase: UpdateStateUseCase,
     private val getProjectUseCase: GetProjectUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val getStatesByProjectId: GetStatesByProjectId, // Add this
+    private val getStatesByProjectId: GetStatesByProjectId,
     private val addStateUseCase: AddStateUseCase,
     private val deleteStateUseCase: DeleteStateUseCase
 ) {

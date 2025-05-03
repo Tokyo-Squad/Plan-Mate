@@ -30,7 +30,6 @@ class AuditLogRepositoryImpl(
         val history = dataProvider.get().filter {
             it.entityType == entityType && it.entityId == entityId
         }
-        // Instead of throwing an exception, just return the empty list
         return history
     }
 }

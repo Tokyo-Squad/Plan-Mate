@@ -45,7 +45,6 @@ class AuditScreen(
         }
 
         try {
-            // First validate that the input is a valid UUID
             val uuid = try {
                 UUID.fromString(projectId)
             } catch (e: IllegalArgumentException) {

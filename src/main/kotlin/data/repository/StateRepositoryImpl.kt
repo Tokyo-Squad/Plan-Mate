@@ -51,7 +51,7 @@ class StateRepositoryImpl(
 
     override fun getByProjectId(projectId: UUID): Result<List<StateEntity>> {
         return try {
-            val allStates = dataProvider.get() // Get all states from CSV
+            val allStates = dataProvider.get()
             val statesForProject = allStates.filter { it.projectId == projectId }
             Result.success(statesForProject)
         } catch (e: Exception) {
