@@ -1,85 +1,76 @@
 package logic.usecase.auth
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LoginUseCase
 import org.example.utils.PlanMateException
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class LoginUseCaseTest {
 
+class LoginUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val loginUseCase = LoginUseCase(authRepository)
 
     @Test
-    fun `should return success when credentials are valid`() {
-        // arrange
-        val username = "validUser"
-        val password = "validPassword"
-        every { authRepository.login(username, password) } returns Result.success(Unit)
+    fun `should return Success(Unit) when credentials are valid`() {
+        every { authRepository.login("validUser", "validPassword") } returns Result.success(Unit)
 
-        // act
-        val result = loginUseCase(username, password)
+        val result = loginUseCase("validUser", "validPassword")
 
-        // assert
-        assertTrue(result.isSuccess)
-        verify { authRepository.login(username, password) }
+        assertThat(result.isSuccess).isTrue()
     }
 
     @Test
-    fun `should return failure when user not found`() {
-        // arrange
-        val username = "nonExistingUser"
-        val password = "somePassword"
+    fun `should propagate ItemNotFoundException when user does not exist`() {
         val expectedError = PlanMateException.ItemNotFoundException("User not found.")
-        every { authRepository.login(username, password) } returns Result.failure(expectedError)
+        every { authRepository.login("nonExistingUser", any()) } returns Result.failure(expectedError)
 
-        // act
-        val result = loginUseCase(username, password)
+        val result = loginUseCase("nonExistingUser", "somePassword")
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.ItemNotFoundException)
-        assertEquals("User not found.", result.exceptionOrNull()?.message)
-        verify { authRepository.login(username, password) }
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
     }
 
     @Test
-    fun `should return failure when password is incorrect`() {
-        // arrange
-        val username = "validUser"
-        val password = "wrongPassword"
+    fun `should propagate ValidationException when password is incorrect`() {
         val expectedError = PlanMateException.ValidationException("Password is not correct.")
-        every { authRepository.login(username, password) } returns Result.failure(expectedError)
+        every { authRepository.login("validUser", "wrongPassword") } returns Result.failure(expectedError)
 
-        // act
-        val result = loginUseCase(username, password)
+        val result = loginUseCase("validUser", "wrongPassword")
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
-        assertEquals("Password is not correct.", result.exceptionOrNull()?.message)
-        verify { authRepository.login(username, password) }
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
     }
 
     @Test
-    fun `should return failure when repository throws exception`() {
-        // arrange
-        val username = "validUser"
-        val password = "validPassword"
+    fun `should propagate RuntimeException when repository fails unexpectedly`() {
         val expectedError = RuntimeException("Network error")
-        every { authRepository.login(username, password) } returns Result.failure(expectedError)
+        every { authRepository.login(any(), any()) } returns Result.failure(expectedError)
 
-        // act
-        val result = loginUseCase(username, password)
+        val result = loginUseCase("validUser", "validPassword")
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is RuntimeException)
-        assertEquals("Network error", result.exceptionOrNull()?.message)
-        verify { authRepository.login(username, password) }
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
+    }
+
+    @Test
+    fun `should call authRepository with exact credentials once`() {
+        every { authRepository.login("validUser", "validPassword") } returns Result.success(Unit)
+
+        loginUseCase("validUser", "validPassword")
+
+        verify(exactly = 1) { authRepository.login("validUser", "validPassword") }
+
+
+    }
+
+    @Test
+    fun `should propagate ValidationException when username is empty`() {
+        val expectedError = PlanMateException.ValidationException("Username cannot be empty.")
+        every { authRepository.login("", any()) } returns Result.failure(expectedError)
+
+        val result = loginUseCase("", "anyPassword")
+
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
     }
 }
