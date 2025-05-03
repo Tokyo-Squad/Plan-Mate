@@ -14,9 +14,7 @@ import org.example.logic.repository.ProjectRepository
 import org.example.logic.repository.StateRepository
 import org.example.logic.repository.TaskRepository
 import org.example.logic.repository.UserRepository
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
-import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val appModule = module {
