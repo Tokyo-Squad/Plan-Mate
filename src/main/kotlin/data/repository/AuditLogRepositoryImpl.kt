@@ -19,11 +19,11 @@ class AuditLogRepositoryImpl(
         }
     }
 
-    override fun getProjectHistory(projectId: Int): List<AuditLogEntity> =
+    override fun getProjectHistory(projectId: UUID): List<AuditLogEntity> =
         getEntityHistory(projectId, AuditedEntityType.PROJECT)
 
 
-    override fun getTaskHistory(taskId: Int): List<AuditLogEntity> =
+    override fun getTaskHistory(taskId: UUID): List<AuditLogEntity> =
         getEntityHistory(taskId, AuditedEntityType.TASK)
 
 
