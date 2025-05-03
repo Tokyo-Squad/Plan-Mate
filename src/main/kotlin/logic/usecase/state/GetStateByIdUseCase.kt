@@ -1,8 +1,8 @@
-package org.example.logic.usecase
+package org.example.logic.usecase.state
 
 import org.example.entity.StateEntity
 import org.example.logic.repository.StateRepository
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.util.UUID
 
 class GetStateByIdUseCase(
@@ -11,7 +11,7 @@ class GetStateByIdUseCase(
     operator fun invoke(stateId: UUID): Result<StateEntity> {
         return try {
             stateRepository.getStateById(stateId)
-        } catch (e: PlanMatException.ItemNotFoundException) {
+        } catch (e: PlanMateException.ItemNotFoundException) {
             Result.failure(e)
         }
     }

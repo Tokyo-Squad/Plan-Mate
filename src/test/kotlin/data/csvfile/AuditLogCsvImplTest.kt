@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDateTime
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -92,7 +92,7 @@ class AuditLogCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -114,7 +114,7 @@ class AuditLogCsvImplTest {
         val updatedAuditLog = auditLog.copy(changeDetails = "Updated info")
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.update(updatedAuditLog)
         }
 
@@ -128,7 +128,7 @@ class AuditLogCsvImplTest {
         val nonExistent = auditLog.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             csv.update(nonExistent)
         }
         // Then
@@ -187,7 +187,7 @@ class AuditLogCsvImplTest {
         val csv = AuditLogCsvImpl(failingFile.absolutePath)
 
         // Then
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             csv.add(auditLog)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -204,7 +204,7 @@ class AuditLogCsvImplTest {
         val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.add(auditLog)
         }
         // Then
@@ -217,7 +217,7 @@ class AuditLogCsvImplTest {
         file.writeText("invalid,line,malformed,content")
 
         // When / Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line: invalid,line,malformed,content")
@@ -272,7 +272,7 @@ class AuditLogCsvImplTest {
         val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             csv.update(nonExistentProject)
         }
 
@@ -286,7 +286,7 @@ class AuditLogCsvImplTest {
         val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             csv.update(nonExistentProject)
         }
 
@@ -300,7 +300,7 @@ class AuditLogCsvImplTest {
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
 
         // When / Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line")
@@ -318,7 +318,7 @@ class AuditLogCsvImplTest {
         val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.delete(auditLog.id)
         }
 
@@ -332,7 +332,7 @@ class AuditLogCsvImplTest {
         csv.add(auditLog)
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             csv.delete(UUID.randomUUID())
         }
         // Then

@@ -5,7 +5,7 @@ import org.example.data.DataProvider
 import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.repository.UserRepository
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 
 class AuthenticationRepositoryImpl(
     private val authenticationProvider: AuthProvider,
@@ -16,10 +16,10 @@ class AuthenticationRepositoryImpl(
     override fun login(username: String, password: String): Result<Unit> {
         return try {
             val user = userRepository.getUserByUsername(username)
-                .getOrElse { throw PlanMatException.ItemNotFoundException("User not found.") }
+                .getOrElse { throw PlanMateException.ItemNotFoundException("User not found.") }
 
             if (user.password != password) {
-                throw PlanMatException.ValidationException("Password is not correct.")
+                throw PlanMateException.ValidationException("Password is not correct.")
             }
 
             authenticationProvider.addCurrentUser(user)
@@ -33,7 +33,7 @@ class AuthenticationRepositoryImpl(
         return try {
 
             userRepository.getUserByUsername(newUser.username).onSuccess {
-                throw PlanMatException.ValidationException("A user with that username already exists.")
+                throw PlanMateException.ValidationException("A user with that username already exists.")
             }
 
             dataProvider.add(newUser)

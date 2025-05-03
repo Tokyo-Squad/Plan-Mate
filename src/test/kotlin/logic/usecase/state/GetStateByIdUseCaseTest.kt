@@ -6,8 +6,8 @@ import fakeData.StateFakeData
 import io.mockk.every
 import io.mockk.mockk
 import org.example.logic.repository.StateRepository
-import org.example.logic.usecase.GetStateByIdUseCase
-import org.example.utils.PlanMatException
+import org.example.logic.usecase.state.GetStateByIdUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import java.util.UUID
 import kotlin.test.Test
@@ -40,7 +40,7 @@ class GetStateByIdUseCaseTest {
     @Test fun `invoke returns failure when repository throws ItemNotFoundException`() {
         //Given
         val id = UUID.randomUUID()
-        val ex = PlanMatException.ItemNotFoundException("State with ID $id not found")
+        val ex = PlanMateException.ItemNotFoundException("State with ID $id not found")
         every { repo.getStateById(id) } throws ex
 
         //When

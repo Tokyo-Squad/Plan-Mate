@@ -6,8 +6,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.StateRepository
-import org.example.logic.usecase.AddStateUseCase
-import org.example.utils.PlanMatException
+import org.example.logic.usecase.state.AddStateUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -45,7 +45,7 @@ class AddStateUseCaseTest {
     fun `invoke returns failure when repository throws FileWriteException`() {
         //Given
         val state = fake.createState()
-        val ex = PlanMatException.FileWriteException("disk full")
+        val ex = PlanMateException.FileWriteException("disk full")
         every { repo.addState(state) } throws ex
 
         //When

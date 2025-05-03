@@ -6,8 +6,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.StateRepository
-import org.example.logic.usecase.UpdateStateUseCase
-import org.example.utils.PlanMatException
+import org.example.logic.usecase.state.UpdateStateUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -46,7 +46,7 @@ class UpdateStateUseCaseTest {
         //Given
         val oldState = fake.createState()
         val newState = oldState.copy(name = "Done")
-        val ex = PlanMatException.ItemNotFoundException("not found")
+        val ex = PlanMateException.ItemNotFoundException("not found")
         every { repo.updateState(oldState, newState) } throws ex
 
         //When

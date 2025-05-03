@@ -9,7 +9,7 @@ import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.AddAuditLogUseCase
-import org.example.utils.PlanMatException.FileWriteException
+import org.example.utils.PlanMateException.FileWriteException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 

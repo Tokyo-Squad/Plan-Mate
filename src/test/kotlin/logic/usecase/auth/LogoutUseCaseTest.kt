@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LogoutUseCase
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -46,7 +46,7 @@ class LogoutUseCaseTest {
     @Test
     fun `should return failure when user session is invalid`() {
         // arrange
-        val expectedError = PlanMatException.ValidationException("Invalid session")
+        val expectedError = PlanMateException.ValidationException("Invalid session")
         every { authRepository.logout() } returns Result.failure(expectedError)
 
         // act
@@ -54,7 +54,7 @@ class LogoutUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ValidationException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
         assertEquals("Invalid session", result.exceptionOrNull()?.message)
         verify { authRepository.logout() }
     }

@@ -1,8 +1,8 @@
-package org.example.logic.usecase
+package org.example.logic.usecase.state
 
 import org.example.entity.StateEntity
 import org.example.logic.repository.StateRepository
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 
 class DeleteStateUseCase(
     private val stateRepository: StateRepository
@@ -10,7 +10,7 @@ class DeleteStateUseCase(
     operator fun invoke(stateId: StateEntity): Result<Result<Boolean>> =
         try {
             Result.success(stateRepository.deleteState(stateId))
-        } catch (e: PlanMatException.ItemNotFoundException) {
+        } catch (e: PlanMateException.ItemNotFoundException) {
             Result.failure(e)
         }
 }

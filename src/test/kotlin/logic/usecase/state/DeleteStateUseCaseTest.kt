@@ -6,8 +6,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.StateRepository
-import org.example.logic.usecase.DeleteStateUseCase
-import org.example.utils.PlanMatException
+import org.example.logic.usecase.state.DeleteStateUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import kotlin.test.Test
 
@@ -42,7 +42,7 @@ class DeleteStateUseCaseTest {
     @Test fun `invoke returns failure when repository throws ItemNotFoundException`() {
         //Given
         val state = fake.createState()
-        val ex = PlanMatException.ItemNotFoundException("not found")
+        val ex = PlanMateException.ItemNotFoundException("not found")
         every { repo.deleteState(state) } throws ex
 
         //When

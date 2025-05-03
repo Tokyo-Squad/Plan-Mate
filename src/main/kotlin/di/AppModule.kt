@@ -19,6 +19,6 @@ val appModule = module {
     single { TaskCsvImpl(get(named("tasks"))) }
     single { UserCsvImpl(get(named("users"))) }
     single { StateCsvImpl(get(named("states"))) }
-    single { ProjectRepositoryImpl(get(), get()) }
     single { AuthProviderImpl(get(named("auth"))) }
+    single { ProjectRepositoryImpl(get(), get()) }
 }
