@@ -1,5 +1,6 @@
 package logic.usecase.auth
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -8,76 +9,72 @@ import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.utils.PlanMateException
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-class GetCurrentUserUseCaseTest {
 
+class GetCurrentUserUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val getCurrentUserUseCase = GetCurrentUserUseCase(authRepository)
 
     @Test
-    fun `should return success with user when user is authenticated`() {
-        // arrange
-        val currentUser = UserEntity(
+    fun `should return authenticated user when session is valid`() {
+        val expectedUser = UserEntity(
             username = "testUser",
             password = "password123",
             type = UserType.MATE
         )
-        every { authRepository.getCurrentUser() } returns Result.success(currentUser)
+        every { authRepository.getCurrentUser() } returns Result.success(expectedUser)
 
-        // act
         val result = getCurrentUserUseCase()
 
-        // assert
-        assertTrue(result.isSuccess)
-        assertEquals(currentUser, result.getOrNull())
-        verify { authRepository.getCurrentUser() }
+        assertThat(result.getOrNull()).isEqualTo(expectedUser)
     }
 
     @Test
-    fun `should return success with null when no user is authenticated`() {
-        // arrange
+    fun `should return null when no user is authenticated`() {
         every { authRepository.getCurrentUser() } returns Result.success(null)
 
-        // act
         val result = getCurrentUserUseCase()
 
-        // assert
-        assertTrue(result.isSuccess)
-        assertNull(result.getOrNull())
-        verify { authRepository.getCurrentUser() }
+        assertThat(result.getOrNull()).isNull()
     }
 
     @Test
-    fun `should return failure when repository throws exception`() {
-        // arrange
+    fun `should propagate RuntimeException when repository fails`() {
         val expectedError = RuntimeException("Failed to get current user")
         every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
 
-        // act
         val result = getCurrentUserUseCase()
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is RuntimeException)
-        assertEquals("Failed to get current user", result.exceptionOrNull()?.message)
-        verify { authRepository.getCurrentUser() }
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
     }
 
     @Test
-    fun `should return failure when session is invalid`() {
-        // arrange
+    fun `should propagate ValidationException when session is invalid`() {
         val expectedError = PlanMateException.ValidationException("Invalid session")
         every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
 
-        // act
         val result = getCurrentUserUseCase()
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
-        assertEquals("Invalid session", result.exceptionOrNull()?.message)
-        verify { authRepository.getCurrentUser() }
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
+    }
+
+    @Test
+    fun `should call authRepository exactly once`() {
+        every { authRepository.getCurrentUser() } returns Result.success(null)
+
+        getCurrentUserUseCase()
+
+        verify(exactly = 1) { authRepository.getCurrentUser() }
+    }
+
+    @Test
+    fun `should propagate ItemNotFoundException when user not found`() {
+        val expectedError = PlanMateException.ItemNotFoundException("User not found")
+        every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
+
+        val result = getCurrentUserUseCase()
+
+        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
     }
 }

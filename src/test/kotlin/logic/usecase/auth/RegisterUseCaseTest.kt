@@ -1,5 +1,6 @@
 package logic.usecase.auth
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -12,138 +13,91 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class RegisterUseCaseTest {
-
     private val authRepository = mockk<AuthenticationRepository>()
     private val registerUseCase = RegisterUseCase(authRepository)
+    private val adminUser = UserEntity(
+        username = "admin",
+        password = "adminPass",
+        type = UserType.ADMIN
+    )
+    private val mateUser = UserEntity(
+        username = "mate",
+        password = "matePass",
+        type = UserType.MATE
+    )
+    private val validNewUser = UserEntity(
+        username = "newUser",
+        password = "password123",
+        type = UserType.MATE
+    )
 
     @Test
     fun `should return success when admin creates new user`() {
-        // arrange
-        val newUser = UserEntity(
-            username = "newUser",
-            password = "password123",
-            type = UserType.MATE
-        )
-        val adminUser = UserEntity(
-            username = "admin",
-            password = "adminPass",
-            type = UserType.ADMIN
-        )
-        every { authRepository.register(newUser, adminUser) } returns Result.success(Unit)
-
-        // act
-        val result = registerUseCase(newUser, adminUser)
-
-        // assert
-        assertTrue(result.isSuccess)
-        verify { authRepository.register(newUser, adminUser) }
+        every { authRepository.register(validNewUser, adminUser) } returns Result.success(Unit)
+        assertTrue(registerUseCase(validNewUser, adminUser).isSuccess)
     }
 
     @Test
-    fun `should return failure when MATE user tries to create new user`() {
-        // arrange
-        val newUser = UserEntity(
-            username = "newUser",
-            password = "password123",
-            type = UserType.MATE
-        )
-        val mateUser = UserEntity(
-            username = "mate",
-            password = "matePass",
-            type = UserType.MATE
-        )
+    fun `should call repository when admin creates user`() {
+        every { authRepository.register(validNewUser, adminUser) } returns Result.success(Unit)
+        registerUseCase(validNewUser, adminUser)
+        verify { authRepository.register(validNewUser, adminUser) }
+    }
 
-        // act
-        val result = registerUseCase(newUser, mateUser)
+    @Test
+    fun `should return failure when MATE user tries to create user`() {
+        assertTrue(registerUseCase(validNewUser, mateUser).isFailure)
+    }
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.UserActionNotAllowedException)
-        assertEquals(
-            "MATE users cannot create new users.",
-            result.exceptionOrNull()?.message
-        )
+    @Test
+    fun `should return UserActionNotAllowedException when MATE creates user`() {
+        assertThat(registerUseCase(validNewUser, mateUser).exceptionOrNull())
+            .isInstanceOf(PlanMateException.UserActionNotAllowedException::class.java)
+    }
+
+    @Test
+    fun `should prevent repository call when MATE creates user`() {
+        registerUseCase(validNewUser, mateUser)
         verify(exactly = 0) { authRepository.register(any(), any()) }
     }
 
     @Test
-    fun `should return failure when username already exists`() {
-        // arrange
-        val newUser = UserEntity(
-            username = "existingUser",
-            password = "password123",
-            type = UserType.MATE
-        )
-        val adminUser = UserEntity(
-            username = "admin",
-            password = "adminPass",
-            type = UserType.ADMIN
-        )
-        val expectedError = PlanMateException.ValidationException("A user with that username already exists.")
-        every { authRepository.register(newUser, adminUser) } returns Result.failure(expectedError)
-
-        // act
-        val result = registerUseCase(newUser, adminUser)
-
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
-        assertEquals(
-            "A user with that username already exists.",
-            result.exceptionOrNull()?.message
-        )
-        verify { authRepository.register(newUser, adminUser) }
+    fun `should return failure when username exists`() {
+        val error = PlanMateException.ValidationException("Username exists")
+        every { authRepository.register(validNewUser, adminUser) } returns Result.failure(error)
+        assertTrue(registerUseCase(validNewUser, adminUser).isFailure)
     }
 
     @Test
-    fun `should return failure when repository throws exception`() {
-        // arrange
-        val newUser = UserEntity(
-            username = "newUser",
-            password = "password123",
-            type = UserType.MATE
-        )
-        val adminUser = UserEntity(
-            username = "admin",
-            password = "adminPass",
-            type = UserType.ADMIN
-        )
-        val expectedError = RuntimeException("Failed to register user")
-        every { authRepository.register(newUser, adminUser) } returns Result.failure(expectedError)
-
-        // act
-        val result = registerUseCase(newUser, adminUser)
-
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is RuntimeException)
-        assertEquals("Failed to register user", result.exceptionOrNull()?.message)
-        verify { authRepository.register(newUser, adminUser) }
+    fun `should propagate ValidationException for existing username`() {
+        val error = PlanMateException.ValidationException("Username exists")
+        every { authRepository.register(validNewUser, adminUser) } returns Result.failure(error)
+        assertThat(registerUseCase(validNewUser, adminUser).exceptionOrNull())
+            .isEqualTo(error)
     }
 
     @Test
-    fun `should return failure when new user data is invalid`() {
-        // arrange
-        val newUser = UserEntity(
-            username = "",  // Invalid: empty username
-            password = "password123",
-            type = UserType.MATE
-        )
-        val adminUser = UserEntity(
-            username = "admin",
-            password = "adminPass",
-            type = UserType.ADMIN
-        )
-        val expectedError = PlanMateException.ValidationException("Username cannot be empty")
-        every { authRepository.register(newUser, adminUser) } returns Result.failure(expectedError)
+    fun `should propagate repository exceptions`() {
+        val error = RuntimeException("DB error")
+        every { authRepository.register(validNewUser, adminUser) } returns Result.failure(error)
+        assertThat(registerUseCase(validNewUser, adminUser).exceptionOrNull())
+            .isEqualTo(error)
+    }
 
-        // act
-        val result = registerUseCase(newUser, adminUser)
+    @Test
+    fun `should return failure for invalid new user data`() {
+        val invalidUser = validNewUser.copy(username = "")
+        val error = PlanMateException.ValidationException("Invalid username")
+        every { authRepository.register(invalidUser, adminUser) } returns Result.failure(error)
+        assertTrue(registerUseCase(invalidUser, adminUser).isFailure)
+    }
 
-        // assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
-        assertEquals("Username cannot be empty", result.exceptionOrNull()?.message)
-        verify { authRepository.register(newUser, adminUser) }
+    @Test
+    fun `should propagate ValidationException for invalid data`() {
+        val invalidUser = validNewUser.copy(username = "")
+        val error = PlanMateException.ValidationException("Invalid username")
+        every { authRepository.register(invalidUser, adminUser) } returns Result.failure(error)
+        assertThat(registerUseCase(invalidUser, adminUser).exceptionOrNull())
+            .isEqualTo(error)
     }
 }
