@@ -3,7 +3,7 @@ package data.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.DataProvider
 import org.example.entity.ProjectEntity
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -20,7 +20,7 @@ class ProjectCsvImpl(
             items.add(item)
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error adding project: ${e.message}")
+            throw PlanMateException.FileWriteException("Error adding project: ${e.message}")
         }
     }
 
@@ -33,14 +33,14 @@ class ProjectCsvImpl(
         val index = items.indexOfFirst { it.id == item.id }
 
         if (index == -1) {
-            throw PlanMatException.ItemNotFoundException("Project with ID ${item.id} not found.")
+            throw PlanMateException.ItemNotFoundException("Project with ID ${item.id} not found.")
         }
 
         items[index] = item
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error updating project: ${e.message}")
+            throw PlanMateException.FileWriteException("Error updating project: ${e.message}")
         }
     }
 
@@ -49,14 +49,14 @@ class ProjectCsvImpl(
         val projectToDelete = items.find { it.id == id }
 
         if (projectToDelete == null) {
-            throw PlanMatException.ItemNotFoundException("Project with ID $id not found.")
+            throw PlanMateException.ItemNotFoundException("Project with ID $id not found.")
         }
 
         items.remove(projectToDelete)
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error deleting project: ${e.message}")
+            throw PlanMateException.FileWriteException("Error deleting project: ${e.message}")
         }
     }
 
@@ -70,7 +70,7 @@ class ProjectCsvImpl(
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
@@ -87,7 +87,7 @@ class ProjectCsvImpl(
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
 
@@ -101,7 +101,7 @@ class ProjectCsvImpl(
                 createdAt = LocalDateTime.parse(parts[3])
             )
         } catch (e: Exception) {
-            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+            throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
     private fun toCSVLine(entity: ProjectEntity): String {

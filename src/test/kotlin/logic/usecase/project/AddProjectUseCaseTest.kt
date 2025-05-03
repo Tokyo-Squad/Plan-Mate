@@ -8,7 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.AddProjectUseCase
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import kotlin.test.Test
 
 class AddProjectUseCaseTest {
@@ -24,7 +24,7 @@ class AddProjectUseCaseTest {
         val result = useCase(testProject, regularUser)
 
         assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMatException.UserActionNotAllowedException::class.java)
+            .isInstanceOf(PlanMateException.UserActionNotAllowedException::class.java)
     }
 
     @Test
@@ -33,7 +33,7 @@ class AddProjectUseCaseTest {
         val result = useCase(blankProject, adminUser)
 
         assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMatException.ValidationException::class.java)
+            .isInstanceOf(PlanMateException.ValidationException::class.java)
     }
 
     @Test

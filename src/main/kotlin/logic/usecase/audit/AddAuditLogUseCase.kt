@@ -2,8 +2,7 @@ package org.example.logic.usecase.audit
 
 import org.example.entity.AuditLogEntity
 import org.example.logic.repository.AuditLogRepository
-import org.example.utils.PlanMatException
-import org.example.utils.PlanMatException.InvalidStateIdException
+import org.example.utils.PlanMateException
 
 class AddAuditLogUseCase(
     private val auditLogRepository: AuditLogRepository
@@ -12,7 +11,7 @@ class AddAuditLogUseCase(
         return try {
             auditLogRepository.addAudit(auditLogEntity)
             Result.success(true)
-        } catch (e: PlanMatException.FileWriteException) {
+        } catch (e: PlanMateException.FileWriteException) {
             Result.failure(e)
         }
     }

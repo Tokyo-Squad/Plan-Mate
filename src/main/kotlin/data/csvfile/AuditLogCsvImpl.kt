@@ -5,7 +5,7 @@ import org.example.data.DataProvider
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -22,7 +22,7 @@ class AuditLogCsvImpl(
             items.add(item)
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error adding audit log: ${e.message}")
+            throw PlanMateException.FileWriteException("Error adding audit log: ${e.message}")
         }
     }
 
@@ -35,14 +35,14 @@ class AuditLogCsvImpl(
         val index = items.indexOfFirst { it.id == item.id }
 
         if (index == -1) {
-            throw PlanMatException.ItemNotFoundException("Audit log with ID ${item.id} not found.")
+            throw PlanMateException.ItemNotFoundException("Audit log with ID ${item.id} not found.")
         }
 
         items[index] = item
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error updating audit log: ${e.message}")
+            throw PlanMateException.FileWriteException("Error updating audit log: ${e.message}")
         }
     }
 
@@ -51,14 +51,14 @@ class AuditLogCsvImpl(
         val logToDelete = items.find { it.id == id }
 
         if (logToDelete == null) {
-            throw PlanMatException.ItemNotFoundException("Audit log with ID $id not found.")
+            throw PlanMateException.ItemNotFoundException("Audit log with ID $id not found.")
         }
 
         items.remove(logToDelete)
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error deleting audit log: ${e.message}")
+            throw PlanMateException.FileWriteException("Error deleting audit log: ${e.message}")
         }
     }
 
@@ -73,7 +73,7 @@ class AuditLogCsvImpl(
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
@@ -88,7 +88,7 @@ class AuditLogCsvImpl(
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
 
@@ -105,7 +105,7 @@ class AuditLogCsvImpl(
                 timestamp = LocalDateTime.parse(parts[6])
             )
         } catch (e: Exception) {
-            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+            throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
 

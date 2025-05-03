@@ -7,7 +7,7 @@ import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.RegisterUseCase
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -58,7 +58,7 @@ class RegisterUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.UserActionNotAllowedException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.UserActionNotAllowedException)
         assertEquals(
             "MATE users cannot create new users.",
             result.exceptionOrNull()?.message
@@ -79,7 +79,7 @@ class RegisterUseCaseTest {
             password = "adminPass",
             type = UserType.ADMIN
         )
-        val expectedError = PlanMatException.ValidationException("A user with that username already exists.")
+        val expectedError = PlanMateException.ValidationException("A user with that username already exists.")
         every { authRepository.register(newUser, adminUser) } returns Result.failure(expectedError)
 
         // act
@@ -87,7 +87,7 @@ class RegisterUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ValidationException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
         assertEquals(
             "A user with that username already exists.",
             result.exceptionOrNull()?.message
@@ -134,7 +134,7 @@ class RegisterUseCaseTest {
             password = "adminPass",
             type = UserType.ADMIN
         )
-        val expectedError = PlanMatException.ValidationException("Username cannot be empty")
+        val expectedError = PlanMateException.ValidationException("Username cannot be empty")
         every { authRepository.register(newUser, adminUser) } returns Result.failure(expectedError)
 
         // act
@@ -142,7 +142,7 @@ class RegisterUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ValidationException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
         assertEquals("Username cannot be empty", result.exceptionOrNull()?.message)
         verify { authRepository.register(newUser, adminUser) }
     }

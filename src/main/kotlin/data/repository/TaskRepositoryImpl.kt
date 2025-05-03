@@ -13,7 +13,7 @@ import org.example.entity.TaskEntity
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.repository.StateRepository
 import org.example.logic.repository.TaskRepository
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.util.UUID
 
 class TaskRepositoryImpl(
@@ -37,14 +37,14 @@ class TaskRepositoryImpl(
         currentUserId: UUID
     ): Result<Unit> = runCatching {
         val old = dataProvider.getById(task.id)
-            ?: throw PlanMatException.ItemNotFoundException("Task ${task.id} not found")
+            ?: throw PlanMateException.ItemNotFoundException("Task ${task.id} not found")
         dataProvider.update(task)
         val details = generateUpdateDetails(old, task, currentUserId, now())
         audit(currentUserId, task.id, AuditAction.UPDATE, details)
     }
 
     override fun delete(id: UUID, currentUserId: UUID): Result<Unit> = runCatching {
-        if (dataProvider.getById(id) == null) throw PlanMatException.ItemNotFoundException("Task $id not found")
+        if (dataProvider.getById(id) == null) throw PlanMateException.ItemNotFoundException("Task $id not found")
         dataProvider.delete(id)
         audit(
             currentUserId,
@@ -55,13 +55,13 @@ class TaskRepositoryImpl(
     }
 
     override fun getTaskById(id: UUID): Result<TaskEntity> = runCatching {
-        dataProvider.getById(id) ?: throw PlanMatException.ItemNotFoundException("Task $id not found")
+        dataProvider.getById(id) ?: throw PlanMateException.ItemNotFoundException("Task $id not found")
     }
 
     override fun getTasksByProjectId(projectId: UUID): Result<List<TaskEntity>> = runCatching {
         dataProvider.get().filter { it.projectId == projectId }
             .takeIf { it.isNotEmpty() }
-            ?: throw PlanMatException.ItemNotFoundException("Project $projectId not found")
+            ?: throw PlanMateException.ItemNotFoundException("Project $projectId not found")
     }
 
     private fun generateUpdateDetails(

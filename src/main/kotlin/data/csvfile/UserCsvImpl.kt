@@ -3,7 +3,7 @@ package data.csvfile
 import org.example.data.DataProvider
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -20,7 +20,7 @@ class UserCsvImpl(
             users.add(item)
             saveToCsv(users)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error adding user: ${e.message}")
+            throw PlanMateException.FileWriteException("Error adding user: ${e.message}")
         }
     }
 
@@ -33,14 +33,14 @@ class UserCsvImpl(
         val index = users.indexOfFirst { it.id == item.id }
 
         if (index == -1) {
-            throw PlanMatException.ItemNotFoundException("User with ID ${item.id} not found.")
+            throw PlanMateException.ItemNotFoundException("User with ID ${item.id} not found.")
         }
 
         users[index] = item
         try {
             saveToCsv(users)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error updating user: ${e.message}")
+            throw PlanMateException.FileWriteException("Error updating user: ${e.message}")
         }
     }
 
@@ -50,14 +50,14 @@ class UserCsvImpl(
         val userToDelete = users.find { it.id == id }
 
         if (userToDelete == null) {
-            throw PlanMatException.ItemNotFoundException("User with ID $id not found.")
+            throw PlanMateException.ItemNotFoundException("User with ID $id not found.")
         }
 
         users.remove(userToDelete)
         try {
             saveToCsv(users)
         } catch (e: Exception) {
-            throw PlanMatException.FileWriteException("Error deleting user: ${e.message}")
+            throw PlanMateException.FileWriteException("Error deleting user: ${e.message}")
         }
     }
     private fun loadFromCsv(): List<UserEntity> {
@@ -70,7 +70,7 @@ class UserCsvImpl(
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
     private fun readAndParseFile(): List<UserEntity> {
@@ -84,7 +84,7 @@ class UserCsvImpl(
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
+            throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
 
@@ -98,7 +98,7 @@ class UserCsvImpl(
                 type = UserType.valueOf(parts[3])
             )
         } catch (e: Exception) {
-            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+            throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
 

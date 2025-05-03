@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import org.example.data.csvfile.AuthProviderImpl
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -55,7 +55,7 @@ class AuthProviderImplTest {
         authProvider.deleteCurrentUser()
 
         // Then
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             authProvider.getCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("No current user found.")
@@ -67,7 +67,7 @@ class AuthProviderImplTest {
         // No user is added
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             authProvider.getCurrentUser()
         }
 
@@ -85,7 +85,7 @@ class AuthProviderImplTest {
         val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.addCurrentUser(user)
         }
 
@@ -99,7 +99,7 @@ class AuthProviderImplTest {
         file.writeText("invalid,line,content")
 
         // When
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             authProvider.getCurrentUser()
         }
 
@@ -118,7 +118,7 @@ class AuthProviderImplTest {
         val failingProvider = AuthProviderImpl(fileWithNoPermission.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.addCurrentUser(user)
         }
 
@@ -138,7 +138,7 @@ class AuthProviderImplTest {
         fileWithNoPermission.setWritable(false)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.deleteCurrentUser() // Attempt to delete user with write permission issue
         }
 
@@ -153,7 +153,7 @@ class AuthProviderImplTest {
         val provider = AuthProviderImpl(emptyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             provider.getCurrentUser()
         }
 
@@ -174,7 +174,7 @@ class AuthProviderImplTest {
         val newUser = user.copy(username = "UpdatedUser")
 
         // WHEN
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.addCurrentUser(newUser)
         }
 

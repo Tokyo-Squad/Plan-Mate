@@ -7,7 +7,7 @@ import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -68,7 +68,7 @@ class GetCurrentUserUseCaseTest {
     @Test
     fun `should return failure when session is invalid`() {
         // arrange
-        val expectedError = PlanMatException.ValidationException("Invalid session")
+        val expectedError = PlanMateException.ValidationException("Invalid session")
         every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
 
         // act
@@ -76,7 +76,7 @@ class GetCurrentUserUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ValidationException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
         assertEquals("Invalid session", result.exceptionOrNull()?.message)
         verify { authRepository.getCurrentUser() }
     }

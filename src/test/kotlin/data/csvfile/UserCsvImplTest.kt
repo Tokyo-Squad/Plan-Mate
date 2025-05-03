@@ -3,7 +3,7 @@ package data.csvfile
 import com.google.common.truth.Truth.assertThat
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -95,7 +95,7 @@ class UserCsvImplTest {
         val nonExistent = user.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             userCsv.update(nonExistent)
         }
 
@@ -137,7 +137,7 @@ class UserCsvImplTest {
         val failingCsv = UserCsvImpl(failingFile.absolutePath)
 
         // Then
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.add(user)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -149,7 +149,7 @@ class UserCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -181,7 +181,7 @@ class UserCsvImplTest {
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.add(user)
         }
 
@@ -195,7 +195,7 @@ class UserCsvImplTest {
         file.writeText("invalid,line,malformed,content")
 
         // When / Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
@@ -238,7 +238,7 @@ class UserCsvImplTest {
         val nonExistentUser = user.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             userCsv.update(nonExistentUser)
         }
 
@@ -252,7 +252,7 @@ class UserCsvImplTest {
         val nonExistentUser = user.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             userCsv.update(nonExistentUser)
         }
 
@@ -264,7 +264,7 @@ class UserCsvImplTest {
     fun shouldThrowException_whenUserTypeIsInvalid() {
         file.writeText("${UUID.randomUUID()},Test,password123,INVALID_TYPE")
 
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
@@ -276,7 +276,7 @@ class UserCsvImplTest {
         file.writeText("not-a-uuid,Test,password123,ADMIN")
 
         // When
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             userCsv.get()
         }
         // Then
@@ -296,7 +296,7 @@ class UserCsvImplTest {
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.delete(user.id)
         }
 
@@ -318,7 +318,7 @@ class UserCsvImplTest {
         val updatedUser = user.copy(username = "UpdatedUser")
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.update(updatedUser)
         }
 
@@ -332,7 +332,7 @@ class UserCsvImplTest {
         userCsv.add(user)
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             userCsv.delete(UUID.randomUUID())
         }
         // Then

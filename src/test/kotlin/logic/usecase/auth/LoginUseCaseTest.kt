@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LoginUseCase
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -34,7 +34,7 @@ class LoginUseCaseTest {
         // arrange
         val username = "nonExistingUser"
         val password = "somePassword"
-        val expectedError = PlanMatException.ItemNotFoundException("User not found.")
+        val expectedError = PlanMateException.ItemNotFoundException("User not found.")
         every { authRepository.login(username, password) } returns Result.failure(expectedError)
 
         // act
@@ -42,7 +42,7 @@ class LoginUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ItemNotFoundException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ItemNotFoundException)
         assertEquals("User not found.", result.exceptionOrNull()?.message)
         verify { authRepository.login(username, password) }
     }
@@ -52,7 +52,7 @@ class LoginUseCaseTest {
         // arrange
         val username = "validUser"
         val password = "wrongPassword"
-        val expectedError = PlanMatException.ValidationException("Password is not correct.")
+        val expectedError = PlanMateException.ValidationException("Password is not correct.")
         every { authRepository.login(username, password) } returns Result.failure(expectedError)
 
         // act
@@ -60,7 +60,7 @@ class LoginUseCaseTest {
 
         // assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PlanMatException.ValidationException)
+        assertTrue(result.exceptionOrNull() is PlanMateException.ValidationException)
         assertEquals("Password is not correct.", result.exceptionOrNull()?.message)
         verify { authRepository.login(username, password) }
     }

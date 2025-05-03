@@ -8,7 +8,7 @@ import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.GetAuditLogUseCase
-import org.example.utils.PlanMatException.InvalidStateIdException
+import org.example.utils.PlanMateException.InvalidStateIdException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

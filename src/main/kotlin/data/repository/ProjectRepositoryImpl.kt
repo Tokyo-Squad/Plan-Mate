@@ -9,7 +9,7 @@ import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.util.*
 
 class ProjectRepositoryImpl(
@@ -33,7 +33,7 @@ class ProjectRepositoryImpl(
                 )
             )
             Result.success(project)
-        } catch (e: PlanMatException) {
+        } catch (e: PlanMateException) {
             Result.failure(e)
         }
     }

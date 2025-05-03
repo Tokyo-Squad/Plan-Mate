@@ -3,7 +3,7 @@ package org.example.logic.usecase.audit
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
-import org.example.utils.PlanMatException.InvalidStateIdException
+import org.example.utils.PlanMateException.InvalidStateIdException
 
 class GetAuditLogUseCase(
     private val auditLogRepository: AuditLogRepository

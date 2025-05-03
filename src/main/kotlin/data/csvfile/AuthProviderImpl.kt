@@ -3,7 +3,7 @@ package org.example.data.csvfile
 import org.example.data.AuthProvider
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -20,7 +20,7 @@ class AuthProviderImpl(
             // Overwrite the file with the new user's data
             file.writeText(toCSVLine(user))
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error writing current user to file: ${e.message}")
+            throw PlanMateException.FileWriteException("Error writing current user to file: ${e.message}")
         }
     }
 
@@ -29,7 +29,7 @@ class AuthProviderImpl(
         try {
             file.writeText("") // clear file content
         } catch (e: IOException) {
-            throw PlanMatException.FileWriteException("Error deleting current user: ${e.message}")
+            throw PlanMateException.FileWriteException("Error deleting current user: ${e.message}")
         }
     }
 
@@ -37,12 +37,12 @@ class AuthProviderImpl(
         ensureFileExists()
         val content = file.readText().trim()
         if (content.isBlank()) {
-            throw PlanMatException.ItemNotFoundException("No current user found.")
+            throw PlanMateException.ItemNotFoundException("No current user found.")
         }
         return try {
             fromCSVLine(content)
         } catch (e: Exception) {
-            throw PlanMatException.InvalidFormatException("Malformed current user data: ${e.message}")
+            throw PlanMateException.InvalidFormatException("Malformed current user data: ${e.message}")
         }
     }
 
@@ -60,7 +60,7 @@ class AuthProviderImpl(
                 type = UserType.valueOf(parts[3])
             )
         } catch (e: Exception) {
-            throw PlanMatException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+            throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
 
@@ -69,7 +69,7 @@ class AuthProviderImpl(
             try {
                 file.createNewFile()
             } catch (e: IOException) {
-                throw PlanMatException.FileWriteException("Could not create file: ${e.message}")
+                throw PlanMateException.FileWriteException("Could not create file: ${e.message}")
             }
         }
     }

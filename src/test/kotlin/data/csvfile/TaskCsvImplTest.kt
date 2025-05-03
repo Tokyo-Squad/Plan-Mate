@@ -3,7 +3,7 @@ package data.csvfile
 import com.google.common.truth.Truth.assertThat
 import kotlinx.datetime.LocalDateTime
 import org.example.entity.TaskEntity
-import org.example.utils.PlanMatException
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -89,7 +89,7 @@ class TaskCsvImplTest {
         val nonExistent = task.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             taskCsv.update(nonExistent)
         }
 
@@ -146,7 +146,7 @@ class TaskCsvImplTest {
         val failingCsv = TaskCsvImpl(failingFile.absolutePath)
 
         // Then
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.add(task)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -158,7 +158,7 @@ class TaskCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -175,7 +175,7 @@ class TaskCsvImplTest {
         val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.add(task)
         }
 
@@ -189,7 +189,7 @@ class TaskCsvImplTest {
         file.writeText("invalid,line,malformed,content")
 
         // When / Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -244,7 +244,7 @@ class TaskCsvImplTest {
         val nonExistentTask = task.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             taskCsv.update(nonExistentTask)
         }
 
@@ -258,7 +258,7 @@ class TaskCsvImplTest {
         val nonExistentTask = task.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             taskCsv.update(nonExistentTask)
         }
 
@@ -272,7 +272,7 @@ class TaskCsvImplTest {
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
 
         // When / Then
-        val exception = assertFailsWith<PlanMatException.InvalidFormatException> {
+        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -290,7 +290,7 @@ class TaskCsvImplTest {
         val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.delete(task.id)
         }
 
@@ -312,7 +312,7 @@ class TaskCsvImplTest {
         val updatedTask = task.copy(title = "Updated Task Title")
 
         // When
-        val exception = assertFailsWith<PlanMatException.FileWriteException> {
+        val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingCsv.update(updatedTask)
         }
 
@@ -326,7 +326,7 @@ class TaskCsvImplTest {
         taskCsv.add(task)
 
         // When
-        val exception = assertFailsWith<PlanMatException.ItemNotFoundException> {
+        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             taskCsv.delete(UUID.randomUUID())
         }
         // Then
