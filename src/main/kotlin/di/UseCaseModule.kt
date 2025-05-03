@@ -21,9 +21,9 @@ val useCaseModule = module {
     singleOf(::GetTaskByIdUseCase)
     singleOf(::GetTasksByProjectIdUseCase)
     singleOf(::UpdateTaskUseCase)
-    single { AddProjectUseCase(get()) }
-    single { UpdateProjectUseCase(get()) }
-    single { DeleteProjectUseCase(get()) }
-    single { GetProjectUseCase(get()) }
-    single { ListProjectsUseCase(get()) }
+    singleOf(::AddProjectUseCase)
+    singleOf(::UpdateProjectUseCase)
+    singleOf(::DeleteProjectUseCase)
+    singleOf(::GetProjectUseCase)
+    singleOf(::ListProjectsUseCase)
 }
