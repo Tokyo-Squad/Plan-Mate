@@ -28,6 +28,7 @@ class AuthProviderImpl(
         ensureFileExists()
         try {
             file.writeText("") // clear file content
+            file.delete()
         } catch (e: IOException) {
             throw PlanMateException.FileWriteException("Error deleting current user: ${e.message}")
         }

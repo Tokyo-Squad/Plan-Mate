@@ -5,8 +5,7 @@ import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
 import org.example.utils.PlanMateException
-import org.example.utils.PlanMateException.InvalidStateIdException
-import java.util.UUID
+import java.util.*
 
 class AuditLogRepositoryImpl(
     private val dataProvider: DataProvider<AuditLogEntity>
@@ -27,12 +26,11 @@ class AuditLogRepositoryImpl(
         getEntityHistory(taskId, AuditedEntityType.TASK)
 
 
-    private fun getEntityHistory(entityId: Int, entityType: AuditedEntityType): List<AuditLogEntity> {
-        val uuid = UUID.nameUUIDFromBytes(entityId.toString().toByteArray())
-        val history = dataProvider.get().filter { it.entityType == entityType && it.entityId == uuid }
-        if (history.isEmpty()) {
-            throw InvalidStateIdException()
+    private fun getEntityHistory(entityId: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
+        val history = dataProvider.get().filter {
+            it.entityType == entityType && it.entityId == entityId
         }
+        // Instead of throwing an exception, just return the empty list
         return history
     }
 }

@@ -13,7 +13,7 @@ class AuthenticationRepositoryImpl(
     private val dataProvider: DataProvider<UserEntity>
 ) : AuthenticationRepository {
 
-    override fun login(username: String, password: String): Result<Unit> {
+    override fun login(username: String, password: String): Result<UserEntity> {
         return try {
             val user = userRepository.getUserByUsername(username)
                 .getOrElse { throw PlanMateException.ItemNotFoundException("User not found.") }
@@ -23,7 +23,7 @@ class AuthenticationRepositoryImpl(
             }
 
             authenticationProvider.addCurrentUser(user)
-            Result.success(Unit)
+            Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -37,7 +37,6 @@ class AuthenticationRepositoryImpl(
             }
 
             dataProvider.add(newUser)
-
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
