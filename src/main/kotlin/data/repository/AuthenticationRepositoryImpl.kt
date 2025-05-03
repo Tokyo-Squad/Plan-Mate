@@ -6,11 +6,13 @@ import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.repository.UserRepository
 import org.example.utils.PlanMateException
+import org.example.utils.hasher.PasswordHasher
 
 class AuthenticationRepositoryImpl(
     private val authenticationProvider: AuthProvider,
     private val userRepository: UserRepository,
-    private val dataProvider: DataProvider<UserEntity>
+    private val dataProvider: DataProvider<UserEntity>,
+    private val passwordHasher: PasswordHasher
 ) : AuthenticationRepository {
 
     override fun login(username: String, password: String): Result<Unit> {
@@ -18,8 +20,8 @@ class AuthenticationRepositoryImpl(
             val user = userRepository.getUserByUsername(username)
                 .getOrElse { throw PlanMateException.ItemNotFoundException("User not found.") }
 
-            if (user.password != password) {
-                throw PlanMateException.ValidationException("Password is not correct.")
+            if (!isPasswordValid(user, password)) {
+                throw PlanMateException.AuthenticationException("Invalid credentials")
             }
 
             authenticationProvider.addCurrentUser(user)
@@ -29,14 +31,14 @@ class AuthenticationRepositoryImpl(
         }
     }
 
-    override fun register(newUser: UserEntity, currentUser: UserEntity): Result<Unit> {
+    override fun register(user: UserEntity, currentUser: UserEntity): Result<Unit> {
         return try {
 
-            userRepository.getUserByUsername(newUser.username).onSuccess {
-                throw PlanMateException.ValidationException("A user with that username already exists.")
+            userRepository.getUserByUsername(user.username).onSuccess {
+                throw PlanMateException.AuthenticationException("A user with that username already exists.")
             }
-
-            dataProvider.add(newUser)
+            val hashedUser = user.copy(password = passwordHasher.hash(user.password))
+            dataProvider.add(hashedUser)
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -58,6 +60,15 @@ class AuthenticationRepositoryImpl(
             Result.success(authenticationProvider.getCurrentUser())
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private fun isPasswordValid(user: UserEntity, inputPassword: String): Boolean {
+        return try {
+            val hashedInput = passwordHasher.hash(inputPassword)
+            user.password == hashedInput
+        } catch (e: Exception) {
+            false
         }
     }
 }

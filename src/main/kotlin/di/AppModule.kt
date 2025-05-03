@@ -21,6 +21,7 @@ import org.example.logic.repository.ProjectRepository
 import org.example.logic.repository.StateRepository
 import org.example.logic.repository.TaskRepository
 import org.example.logic.repository.UserRepository
+import org.example.utils.hasher.PasswordMD5HasherImpl
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -33,6 +34,7 @@ val appModule = module{
         single(named("auditLogs")) { "audit_logs.csv" }
         single(named("auth")) { "auth.csv" }
 
+        single { PasswordMD5HasherImpl() }
         single<DataProvider<ProjectEntity>> { ProjectCsvImpl(get(named("projects"))) }
         single<DataProvider<StateEntity>> { StateCsvImpl(get(named("states"))) }
         single<DataProvider<TaskEntity>> { TaskCsvImpl(get(named("tasks"))) }
@@ -42,7 +44,7 @@ val appModule = module{
         single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
 
         single<AuditLogRepository> { AuditLogRepositoryImpl(get()) }
-        single<AuthenticationRepository> { AuthenticationRepositoryImpl(get(), get(), get()) }
+        single<AuthenticationRepository> { AuthenticationRepositoryImpl(get(), get(), get(),get()) }
         single<ProjectRepository> { ProjectRepositoryImpl(get(), get()) }
         single<StateRepository> { StateRepositoryImpl(get()) }
         single<TaskRepository> { TaskRepositoryImpl(get(), get(), get()) }
