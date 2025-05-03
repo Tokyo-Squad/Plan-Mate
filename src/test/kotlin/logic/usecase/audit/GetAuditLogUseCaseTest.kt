@@ -12,8 +12,9 @@ import org.example.utils.PlanMateException.InvalidStateIdException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
+
 
 class GetAuditLogUseCaseTest {
     private lateinit var getAuditLogsUseCase: GetAuditLogUseCase
@@ -28,18 +29,17 @@ class GetAuditLogUseCaseTest {
     @Test
     fun `should retrieve audit logs filtered by project ID when provided ID is valid`() {
         // Given
-        val projectId = 123
-        val projectUUID = UUID.nameUUIDFromBytes(projectId.toString().toByteArray())
-
+        val projectUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
+        val projectId = UUID.fromString(projectUUID)
         val auditLog1 = createAuditLogEntity(
-            entityId = projectUUID,
+            entityId = projectId,
             entityType = AuditedEntityType.PROJECT,
             action = AuditAction.CREATE,
             changeDetails = "Project created"
         )
 
         val auditLog2 = createAuditLogEntity(
-            entityId = projectUUID,
+            entityId = projectId,
             entityType = AuditedEntityType.PROJECT,
             action = AuditAction.UPDATE,
             changeDetails = "Project updated"
@@ -59,8 +59,10 @@ class GetAuditLogUseCaseTest {
     @Test
     fun `should return failure when an exception occurs while retrieving project audit logs`() {
         // Given
-        val projectId = 456
+        val projectUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
+        val projectId = UUID.fromString(projectUUID)
         val exception = InvalidStateIdException()
+
         every { auditLogRepository.getProjectHistory(projectId) } throws exception
 
         // When
@@ -75,16 +77,16 @@ class GetAuditLogUseCaseTest {
     @Test
     fun `should retrieve audit logs filtered by task ID when provided ID is valid`() {
         // Given
-        val taskId = 456
-        val taskUUID = UUID.nameUUIDFromBytes(taskId.toString().toByteArray())
+        val taskUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
+        val taskId = UUID.fromString(taskUUID)
         val taskLog1 = createAuditLogEntity(
-            entityId = taskUUID,
+            entityId = taskId,
             entityType = AuditedEntityType.TASK,
             action = AuditAction.CREATE,
             changeDetails = "Task updated"
         )
         val taskLog2 = createAuditLogEntity(
-            entityId = taskUUID,
+            entityId = taskId,
             entityType = AuditedEntityType.TASK,
             action = AuditAction.UPDATE,
             changeDetails = "Task created"
@@ -104,12 +106,13 @@ class GetAuditLogUseCaseTest {
     @Test
     fun `should throw InvalidStateIdException when using invalid ID`() {
         // Given
-        val taskId = 303
+        val taskUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
+        val taskId = UUID.fromString(taskUUID)
         val exception = InvalidStateIdException()
         every { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
+        val result = getAuditLogsUseCase.invoke(UUID.fromString(taskUUID), AuditedEntityType.TASK)
 
         // Then
         assertThat(result.isFailure)
