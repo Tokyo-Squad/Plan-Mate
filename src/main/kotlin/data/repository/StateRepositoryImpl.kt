@@ -5,7 +5,7 @@ import org.example.data.DataProvider
 import org.example.entity.StateEntity
 import org.example.logic.repository.StateRepository
 import org.example.utils.PlanMateException
-import java.util.UUID
+import java.util.*
 
 class StateRepositoryImpl(
     private val dataProvider: DataProvider<StateEntity>
@@ -44,6 +44,16 @@ class StateRepositoryImpl(
             val existing = dataProvider.getById(stateId)
                 ?: throw PlanMateException.ItemNotFoundException("State with ID $stateId does not exist")
             Result.success(existing)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun getByProjectId(projectId: UUID): Result<List<StateEntity>> {
+        return try {
+            val allStates = dataProvider.get()
+            val statesForProject = allStates.filter { it.projectId == projectId }
+            Result.success(statesForProject)
         } catch (e: Exception) {
             Result.failure(e)
         }

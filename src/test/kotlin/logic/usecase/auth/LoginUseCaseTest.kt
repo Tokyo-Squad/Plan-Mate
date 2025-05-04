@@ -1,6 +1,7 @@
 package logic.usecase.auth
 
 import com.google.common.truth.Truth.assertThat
+import fakeData.fakeAdminEntity
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -13,10 +14,11 @@ import org.junit.jupiter.api.Test
 class LoginUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val loginUseCase = LoginUseCase(authRepository)
+    private val userType = fakeAdminEntity()
 
     @Test
     fun `should return Success(Unit) when credentials are valid`() {
-        every { authRepository.login("validUser", "validPassword") } returns Result.success(Unit)
+        every { authRepository.login("validUser", "validPassword") } returns Result.success(userType)
 
         val result = loginUseCase("validUser", "validPassword")
 
@@ -55,7 +57,7 @@ class LoginUseCaseTest {
 
     @Test
     fun `should call authRepository with exact credentials once`() {
-        every { authRepository.login("validUser", "validPassword") } returns Result.success(Unit)
+        every { authRepository.login("validUser", "validPassword") } returns Result.success(userType)
 
         loginUseCase("validUser", "validPassword")
 
