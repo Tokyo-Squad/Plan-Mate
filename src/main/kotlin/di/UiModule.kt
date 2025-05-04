@@ -31,7 +31,6 @@ val uiModule = module {
             projectScreen = get(),
             projectEditScreen = get(),
             auditScreen = get(),
-            getProjectUseCase = get()
         )
     }
 
