@@ -35,7 +35,7 @@ class MateScreen(
 
     private fun handleProjects() {
         try {
-            val projectsResult = getProjectsUseCase() // Returns Result<List<ProjectEntity>>
+            val projectsResult = getProjectsUseCase()
             val projects = projectsResult.getOrElse { exception ->
                 console.writeError("Failed to load projects: ${exception.message}")
                 return

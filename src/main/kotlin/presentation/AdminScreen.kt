@@ -7,7 +7,6 @@ import org.example.entity.UserType
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.RegisterUseCase
 import org.example.logic.usecase.project.AddProjectUseCase
-import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.project.ListProjectsUseCase
 import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectEditScreen
@@ -21,10 +20,8 @@ class AdminScreen(
     private val createUserUseCase: RegisterUseCase,
     private val getCurrentUser: GetCurrentUserUseCase,
     private val projectScreen: ProjectScreen,
-    private val projectEditScreen: ProjectEditScreen,  // Add this
-    private val auditScreen: AuditScreen,  // Add this
-    private val getProjectUseCase: GetProjectUseCase
-
+    private val projectEditScreen: ProjectEditScreen,
+    private val auditScreen: AuditScreen,
 
 ) {
     fun show() {

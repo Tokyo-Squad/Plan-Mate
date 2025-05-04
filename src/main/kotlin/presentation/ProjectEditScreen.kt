@@ -91,13 +91,11 @@ class ProjectEditScreen(
             console.write("\n=== Edit Project States ===")
 
             try {
-                // Get current states
                 val states = getStatesByProjectId(project.id).getOrElse { e ->
                     console.writeError("Failed to get states: ${e.message}")
                     return
                 }
 
-                // Display current states
                 console.write("Current states:")
                 if (states.isEmpty()) {
                     console.write("(No states defined for this project)")
@@ -107,7 +105,6 @@ class ProjectEditScreen(
                     }
                 }
 
-                // Show state management options
                 console.write("\nOptions:")
                 console.write("1. Add new state")
                 console.write("2. Edit existing state")
@@ -153,15 +150,11 @@ class ProjectEditScreen(
             return
         }
 
-        // Create new state entity
         val newState = StateEntity(
             id = UUID.randomUUID(),
             name = stateName,
             projectId = project.id
         )
-
-        // Add the state using the AddStateUseCase
-        // Note: You'll need to inject this use case
         addStateUseCase(newState)
             .onSuccess { result ->
                 result.onSuccess {

@@ -21,7 +21,6 @@ class PlanMateConsoleUI(
     private var currentUser: UserEntity? = null
 
     fun start() {
-        // Try to get the current user once at the beginning
         currentUser = getCurrentUserUseCase.invoke().getOrNull()
 
 
@@ -31,14 +30,12 @@ class PlanMateConsoleUI(
                 val option = showMainMenu()
 
                 if (currentUser != null) {
-                    // User is logged in
                     when (option) {
                         1 -> routeToUserScreen(currentUser!!)
                         2 -> logout()
                         else -> console.writeError("Invalid option. Please try again.")
                     }
                 } else {
-                    // No user logged in
                     when (option) {
                         1 -> handleLogin()
                         2 -> exit()
