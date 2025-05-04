@@ -75,7 +75,6 @@ class AuditScreen(
         }
 
         try {
-            // First validate that the input is a valid UUID
             val uuid = try {
                 UUID.fromString(taskId)
             } catch (e: IllegalArgumentException) {
@@ -112,7 +111,6 @@ class AuditScreen(
     }
 
     private fun formatDateTime(dateTime: LocalDateTime): String {
-        // Using kotlinx.datetime
         return "${dateTime.monthNumber}/${dateTime.dayOfMonth} ${dateTime.hour}:${dateTime.minute}"
     }
 }
