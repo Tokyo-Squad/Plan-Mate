@@ -16,7 +16,7 @@ class AuditLogCsvImpl(
 
     private val file: File = File(fileName)
 
-    override fun add(item: AuditLogEntity) {
+    override suspend fun add(item: AuditLogEntity) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -26,11 +26,11 @@ class AuditLogCsvImpl(
         }
     }
 
-    override fun get(): List<AuditLogEntity> = loadFromCsv()
+    override suspend fun get(): List<AuditLogEntity> = loadFromCsv()
 
-    override fun getById(id: UUID): AuditLogEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): AuditLogEntity? = loadFromCsv().find { it.id == id }
 
-    override fun update(item: AuditLogEntity) {
+    override suspend fun update(item: AuditLogEntity) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -46,7 +46,7 @@ class AuditLogCsvImpl(
         }
     }
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         val items = loadFromCsv().toMutableList()
         val logToDelete = items.find { it.id == id }
 

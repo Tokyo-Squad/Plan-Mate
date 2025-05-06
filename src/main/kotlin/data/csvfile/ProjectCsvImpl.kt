@@ -14,7 +14,7 @@ class ProjectCsvImpl(
 
     private val file: File = File(fileName)
 
-    override fun add(item: ProjectEntity) {
+    override suspend fun add(item: ProjectEntity) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -24,11 +24,11 @@ class ProjectCsvImpl(
         }
     }
 
-    override fun get(): List<ProjectEntity> = loadFromCsv()
+    override suspend fun get(): List<ProjectEntity> = loadFromCsv()
 
-    override fun getById(id: UUID): ProjectEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): ProjectEntity? = loadFromCsv().find { it.id == id }
 
-    override fun update(item: ProjectEntity) {
+    override suspend fun update(item: ProjectEntity) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -44,7 +44,7 @@ class ProjectCsvImpl(
         }
     }
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         val items = loadFromCsv().toMutableList()
         val projectToDelete = items.find { it.id == id }
 

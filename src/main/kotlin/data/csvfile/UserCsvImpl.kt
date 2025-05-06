@@ -14,7 +14,7 @@ class UserCsvImpl(
 ) : DataProvider<UserEntity> {
     private val file: File = File(fileName)
 
-    override fun add(item: UserEntity) {
+    override suspend fun add(item: UserEntity) {
         try {
             val users = loadFromCsv().toMutableList()
             users.add(item)
@@ -24,11 +24,11 @@ class UserCsvImpl(
         }
     }
 
-    override fun get(): List<UserEntity> = loadFromCsv()
+    override suspend fun get(): List<UserEntity> = loadFromCsv()
 
-    override fun getById(id: UUID): UserEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): UserEntity? = loadFromCsv().find { it.id == id }
 
-    override fun update(item: UserEntity) {
+    override suspend fun update(item: UserEntity) {
         val users = loadFromCsv().toMutableList()
         val index = users.indexOfFirst { it.id == item.id }
 
@@ -45,7 +45,7 @@ class UserCsvImpl(
     }
 
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         val users = loadFromCsv().toMutableList()
         val userToDelete = users.find { it.id == id }
 
