@@ -1,12 +1,14 @@
 package org.example.data.mongo
 
 import com.mongodb.client.model.Filters
-import com.mongodb.client.model.ReplaceOptions
-import com.mongodb.kotlin.client.coroutine.MongoCollection
-import kotlinx.coroutines.flow.firstOrNull
+import com.mongodb.client.model.Updates
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import org.bson.Document
 import org.example.data.DataProvider
 import org.example.entity.UserEntity
+import org.example.entity.UserType
 import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
@@ -14,33 +16,42 @@ import java.util.*
 class UsersMongoImpl(
     private val db: MongoDBClient
 ) : DataProvider<UserEntity> {
-    private val usersCollection: MongoCollection<UserEntity> = db.getDatabase().getCollection("users")
+    private val usersCollection = db.getDatabase().getCollection<Document>("users")
 
     override fun add(item: UserEntity) {
-        MongoExceptionHandler.handleOperation("user creation") {
-            usersCollection.insertOne(item)
+        MongoExceptionHandler.handleOperation("adding user") {
+            val document = toDocument(item)
+            usersCollection.insertOne(document)
         }
     }
 
     override fun get(): List<UserEntity> {
         return MongoExceptionHandler.handleOperation("fetching all users") {
-            usersCollection.find().toList()
+            usersCollection.find()
+                .map { doc -> fromDocument(doc) }
+                .toList()
         }
     }
 
     override fun getById(id: UUID): UserEntity? {
         return MongoExceptionHandler.handleOperation("fetching user by ID") {
-            usersCollection.find(Filters.eq("_id", id))
-                .firstOrNull()
+            val filter = Filters.eq("_id", id.toString())
+            val document = usersCollection.find(filter).first()
+            document?.let { fromDocument(it) }
                 ?: throw PlanMateException.ItemNotFoundException("User not found with id: $id")
         }
     }
 
     override fun update(item: UserEntity) {
         MongoExceptionHandler.handleOperation("updating user") {
-            val filter = Filters.eq("_id", item.id)
-            val options = ReplaceOptions().upsert(false)
-            val result = usersCollection.replaceOne(filter, item, options)
+            val filter = Filters.eq("_id", item.id.toString())
+            val update = Updates.combine(
+                Updates.set("username", item.username),
+                Updates.set("password", item.password),
+                Updates.set("type", item.type.name)
+            )
+
+            val result = usersCollection.updateOne(filter, update)
 
             if (result.matchedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("User not found with id: ${item.id}")
@@ -50,11 +61,33 @@ class UsersMongoImpl(
 
     override fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting user") {
-            val result = usersCollection.deleteOne(Filters.eq("_id", id))
+            val filter = Filters.eq("_id", id.toString())
+            val result = usersCollection.deleteOne(filter)
 
             if (result.deletedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("User not found with id: $id")
             }
+        }
+    }
+
+    private fun toDocument(item: UserEntity): Document {
+        return Document()
+            .append("_id", item.id.toString())
+            .append("username", item.username)
+            .append("password", item.password)
+            .append("type", item.type.name)
+    }
+
+    private fun fromDocument(doc: Document): UserEntity {
+        return try {
+            UserEntity(
+                id = UUID.fromString(doc.getString("_id")),
+                username = doc.getString("username"),
+                password = doc.getString("password"),
+                type = UserType.valueOf(doc.getString("type"))
+            )
+        } catch (e: Exception) {
+            throw PlanMateException.InvalidFormatException("Malformed MongoDB document: ${e.message}")
         }
     }
 }
