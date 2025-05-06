@@ -5,22 +5,22 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
-import org.example.data.MangoDBDataProvider
+import org.example.data.DataProvider
 import org.example.data.utils.toDocument
 import org.example.data.utils.toProjectEntity
 import org.example.entity.ProjectEntity
 import org.example.utils.PlanMateException
 import java.util.*
 
-class ProjectMangoDBImpl(
+class ProjectMongoDBImpl(
     private val mongoClient: MongoDBClient
-) : MangoDBDataProvider<ProjectEntity> {
+) : DataProvider<ProjectEntity> {
 
     private val collection: MongoCollection<Document> by lazy {
         mongoClient.getDatabase().getCollection("projects")
     }
 
-    override suspend fun add(item: ProjectEntity) {
+    override  fun add(item: ProjectEntity) {
         try {
             collection.insertOne(item.toDocument())
         } catch (e: Exception) {
@@ -29,7 +29,7 @@ class ProjectMangoDBImpl(
 
     }
 
-    override suspend fun get(): List<ProjectEntity> {
+    override  fun get(): List<ProjectEntity> {
         return try {
             collection.find()
                 .map { it.toProjectEntity() }
@@ -39,7 +39,7 @@ class ProjectMangoDBImpl(
         }
     }
 
-    override suspend fun getById(id: UUID): ProjectEntity? {
+    override  fun getById(id: UUID): ProjectEntity? {
         return try {
             collection.find(Document("_id", id)).firstOrNull()?.toProjectEntity()
         } catch (e: Exception) {
@@ -47,7 +47,7 @@ class ProjectMangoDBImpl(
         }
     }
 
-    override suspend fun update(item: ProjectEntity) {
+    override  fun update(item: ProjectEntity) {
         try {
             val result = collection.replaceOne(
                 Document("_id", item.id),
@@ -62,7 +62,7 @@ class ProjectMangoDBImpl(
         }
     }
 
-    override suspend fun delete(id: UUID) {
+    override  fun delete(id: UUID) {
         try {
             val result = collection.deleteOne(Document("_id", id))
 
