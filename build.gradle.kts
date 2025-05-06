@@ -18,11 +18,11 @@ dependencies {
     testImplementation("com.google.truth:truth:1.4.4")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testImplementation("io.mockk:mockk:1.14.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     //Kotlin coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     //MongoDB
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.1")
-
 
 }
 
