@@ -23,7 +23,7 @@ class AddAuditLogUseCaseTest {
     }
 
     @Test
-    fun `should create a new audit log when creating a new project or task`() {
+    fun `should call repository to add audit log and return true on success`() {
         // Given
         val auditLogEntity = createAuditLogEntity(
             entityType = AuditedEntityType.TASK,
@@ -31,14 +31,16 @@ class AddAuditLogUseCaseTest {
             changeDetails = "Task created"
         )
         // When
-        addAuditLogUseCase.invoke(auditLogEntity)
+        every { auditLogRepository.addAudit(auditLogEntity) } returns Unit
+        val result = addAuditLogUseCase.invoke(auditLogEntity)
 
         // Then
         verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
+        assertThat(result).isTrue()
     }
 
     @Test
-    fun `should return failure when FileWriteException is thrown by repository`() {
+    fun `should call repository and return false when FileWriteException is thrown by repository`() {
         // Given
         val auditLogEntity = createAuditLogEntity(
             entityType = AuditedEntityType.PROJECT,
@@ -53,5 +55,6 @@ class AddAuditLogUseCaseTest {
 
         // Then
         verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
+        assertThat(result).isFalse()
     }
 }
