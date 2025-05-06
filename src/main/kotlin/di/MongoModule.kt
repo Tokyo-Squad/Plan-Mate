@@ -4,20 +4,28 @@ import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import org.bson.UuidRepresentation
+import org.example.data.mongo.MongoDBClient
 import org.koin.dsl.module
+import java.util.*
 
 val mongoModule = module {
     single {
-        val connectionString =
-            "mongodb+srv://<your-username>:<your-password>@cluster0.watzb0c.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-        val databaseName = "planMate"
+        val properties = Properties().apply {
+            javaClass.classLoader.getResourceAsStream("local.properties")?.use { inputStream ->
+                load(inputStream)
+            } ?: throw IllegalStateException("Could not load local.properties")
+        }
 
-        val settings = MongoClientSettings.builder()
-            .uuidRepresentation(UuidRepresentation.STANDARD)
-            .applyConnectionString(ConnectionString(connectionString))
-            .build()
+        val username = properties.getProperty("mongodb.username")
+        val password = properties.getProperty("mongodb.password")
 
-        val client = MongoClient.create(settings)
-        client.getDatabase(databaseName)
+        if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
+            throw IllegalStateException("Username or password not found in local.properties")
+        }
+        MongoDBClient(username, password)
+    }
+
+    single {
+        get<MongoDBClient>().getDatabase()
     }
 }
