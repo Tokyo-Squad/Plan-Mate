@@ -7,12 +7,12 @@ import org.example.utils.PlanMateException
 class AddAuditLogUseCase(
     private val auditLogRepository: AuditLogRepository
 ) {
-    operator fun invoke(auditLogEntity: AuditLogEntity): Result<Boolean> {
+    operator fun invoke(auditLogEntity: AuditLogEntity): Boolean {
         return try {
             auditLogRepository.addAudit(auditLogEntity)
-            Result.success(true)
+            return true
         } catch (e: PlanMateException.FileWriteException) {
-            Result.failure(e)
+            return false
         }
     }
 }
