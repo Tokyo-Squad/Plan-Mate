@@ -43,3 +43,5 @@ bin/
 
 ### CSV Files ###
 *.csv
+
+local.properties
