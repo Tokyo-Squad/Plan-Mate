@@ -2,9 +2,12 @@ package logic.usecase.audit
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.createAuditLogEntity
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
@@ -23,7 +26,7 @@ class AddAuditLogUseCaseTest {
     }
 
     @Test
-    fun `should call repository to add audit log and return true on success`() {
+    fun `should call repository to add audit log and return true on success`() = runTest{
         // Given
         val auditLogEntity = createAuditLogEntity(
             entityType = AuditedEntityType.TASK,
@@ -31,16 +34,16 @@ class AddAuditLogUseCaseTest {
             changeDetails = "Task created"
         )
         // When
-        every { auditLogRepository.addAudit(auditLogEntity) } returns Unit
+        coEvery { auditLogRepository.addAudit(auditLogEntity) } returns Unit
         val result = addAuditLogUseCase.invoke(auditLogEntity)
 
         // Then
-        verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
+        coVerify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
         assertThat(result).isTrue()
     }
 
     @Test
-    fun `should call repository and return false when FileWriteException is thrown by repository`() {
+    fun `should call repository and return false when FileWriteException is thrown by repository`() = runTest{
         // Given
         val auditLogEntity = createAuditLogEntity(
             entityType = AuditedEntityType.PROJECT,
@@ -48,13 +51,13 @@ class AddAuditLogUseCaseTest {
             changeDetails = "Project updated"
         )
         val exception = FileWriteException("Error writing audit log to file.")
-        every { auditLogRepository.addAudit(auditLogEntity) } throws exception
+        coEvery { auditLogRepository.addAudit(auditLogEntity) } throws exception
 
         // When
         val result = addAuditLogUseCase.invoke(auditLogEntity)
 
         // Then
-        verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
+        coVerify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
         assertThat(result).isFalse()
     }
 }
