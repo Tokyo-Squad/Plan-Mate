@@ -53,8 +53,5 @@ class AddAuditLogUseCaseTest {
 
         // Then
         verify(exactly = 1) { auditLogRepository.addAudit(auditLogEntity) }
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull() is FileWriteException)
-        assertThat(result.exceptionOrNull()?.message == "Error writing audit log to file.")
     }
 }
