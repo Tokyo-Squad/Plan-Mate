@@ -10,11 +10,11 @@ class GetAuditLogUseCase(
     private val auditLogRepository: AuditLogRepository
 ) {
 
-    operator fun invoke(id: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
+    suspend operator fun invoke(id: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
         return getAuditLogs(id,entityType)
     }
 
-    private fun getAuditLogs(id: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
+    private suspend fun getAuditLogs(id: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
         return try {
             when (entityType) {
                 AuditedEntityType.PROJECT -> (auditLogRepository.getProjectHistory(id))
