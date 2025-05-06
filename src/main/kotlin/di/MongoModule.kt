@@ -6,22 +6,21 @@ import com.mongodb.kotlin.client.coroutine.MongoClient
 import org.bson.UuidRepresentation
 import org.example.data.mongo.MongoDBClient
 import org.koin.dsl.module
+import java.io.File
 import java.util.*
 
 val mongoModule = module {
     single {
         val properties = Properties().apply {
-            javaClass.classLoader.getResourceAsStream("local.properties")?.use { inputStream ->
+            File("local.properties").inputStream().use { inputStream ->
                 load(inputStream)
-            } ?: throw IllegalStateException("Could not load local.properties")
+            }
         }
 
         val username = properties.getProperty("mongodb.username")
+            ?: throw IllegalStateException("MongoDB username not found in local.properties")
         val password = properties.getProperty("mongodb.password")
-
-        if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
-            throw IllegalStateException("Username or password not found in local.properties")
-        }
+            ?: throw IllegalStateException("MongoDB password not found in local.properties")
         MongoDBClient(username, password)
     }
 
