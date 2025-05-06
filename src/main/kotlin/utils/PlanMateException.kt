@@ -24,4 +24,29 @@ open class PlanMateException(message: String) : Exception(message) {
 
     class InvalidStateIdException(message: String = "Invalid state id, no audit logs found.") :
         PlanMateException(message)
+
+    // MongoDB Exceptions
+    class DatabaseConnectionException(
+        message: String = "Failed to connect to database."
+    ) : PlanMateException(message)
+
+    class DatabaseOperationException(
+        message: String = "Database operation failed."
+    ) : PlanMateException(message)
+
+    class DatabaseTimeoutException(
+        message: String = "Database operation timed out."
+    ) : PlanMateException(message)
+
+    class DuplicateKeyException(
+        message: String = "Duplicate key violation in database."
+    ) : PlanMateException(message)
+
+    class DatabaseAuthenticationException(
+        message: String = "Database authentication failed."
+    ) : PlanMateException(message)
+
+    class DatabaseTransactionException(
+        message: String = "Database transaction failed."
+    ) : PlanMateException(message)
 }
