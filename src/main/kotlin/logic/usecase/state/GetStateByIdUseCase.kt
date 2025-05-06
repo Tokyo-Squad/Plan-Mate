@@ -8,11 +8,15 @@ import java.util.UUID
 class GetStateByIdUseCase(
     private val stateRepository: StateRepository
 ) {
-    operator fun invoke(stateId: UUID): Result<StateEntity> {
-        return try {
-            stateRepository.getStateById(stateId)
+    suspend operator fun invoke(stateId: UUID): StateEntity {
+        try {
+            return stateRepository.getStateById(stateId)
         } catch (e: PlanMateException.ItemNotFoundException) {
-            Result.failure(e)
+            throw e
+        } catch (e: PlanMateException.DatabaseException) {
+            throw e
+        } catch (e: Exception) {
+            throw PlanMateException.DatabaseException("An unexpected error occurred while retrieving the state: ${e.message}")
         }
     }
 }

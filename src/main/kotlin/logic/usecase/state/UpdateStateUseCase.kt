@@ -7,10 +7,15 @@ import org.example.utils.PlanMateException
 class UpdateStateUseCase(
     private val stateRepository: StateRepository
 ) {
-    operator fun invoke(stateId: StateEntity, newState: StateEntity): Result<Result<StateEntity>> =
+    suspend operator fun invoke(stateEntity: StateEntity, newState: StateEntity): StateEntity {
         try {
-            Result.success(stateRepository.updateState(stateId, newState))
+            return stateRepository.updateState(stateEntity.id, newState)
         } catch (e: PlanMateException.ItemNotFoundException) {
-            Result.failure(e)
+            throw e
+        } catch (e: PlanMateException.DatabaseException) {
+            throw e
+        } catch (e: Exception) {
+            throw PlanMateException.DatabaseException("An unexpected error occurred while updating the state: ${e.message}")
         }
+    }
 }

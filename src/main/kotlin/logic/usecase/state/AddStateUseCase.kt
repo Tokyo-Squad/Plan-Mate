@@ -7,11 +7,15 @@ import org.example.utils.PlanMateException
 class AddStateUseCase(
     private val stateRepository: StateRepository
 ) {
-    operator fun invoke(state: StateEntity): Result<Result<String>> =
+    suspend operator fun invoke(state: StateEntity) {
         try {
-            Result.success(stateRepository.addState(state))
+            stateRepository.addState(state)
         } catch (e: PlanMateException.FileWriteException) {
-            Result.failure(e)
+            throw e
+        } catch (e: PlanMateException.DatabaseException) {
+            throw e
+        } catch (e: Exception) {
+            throw PlanMateException.DatabaseException("An unexpected error occurred while adding the state: ${e.message}")
         }
-
+    }
 }

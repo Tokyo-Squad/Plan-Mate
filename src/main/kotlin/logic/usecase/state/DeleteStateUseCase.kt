@@ -7,10 +7,15 @@ import org.example.utils.PlanMateException
 class DeleteStateUseCase(
     private val stateRepository: StateRepository
 ) {
-    operator fun invoke(stateId: StateEntity): Result<Result<Boolean>> =
+    suspend operator fun invoke(stateEntity: StateEntity) {
         try {
-            Result.success(stateRepository.deleteState(stateId))
+            stateRepository.deleteState(stateEntity.id)
         } catch (e: PlanMateException.ItemNotFoundException) {
-            Result.failure(e)
+            throw e
+        } catch (e: PlanMateException.DatabaseException) {
+            throw e
+        } catch (e: Exception) {
+            throw PlanMateException.DatabaseException("An unexpected error occurred while deleting the state: ${e.message}")
         }
+    }
 }

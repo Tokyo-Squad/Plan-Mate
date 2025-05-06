@@ -22,4 +22,7 @@ open class PlanMateException(message: String) : Exception(message) {
 
     class InvalidStateIdException(message: String = "Invalid state id, no audit logs found.") :
         PlanMateException(message)
+
+    class DatabaseException(message: String = "Database operation failed.") : PlanMateException(message)
+
 }
