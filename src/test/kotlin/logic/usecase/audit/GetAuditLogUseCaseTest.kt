@@ -52,8 +52,7 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedEntityType.PROJECT)
 
         // Then
-//        Assertions.assertTrue(result.isSuccess)
-//        Assertions.assertEquals(expectedLogs, result.getOrNull())
+        assertThat(result).isEqualTo(expectedLogs)
     }
 
     @Test
@@ -69,8 +68,7 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(projectId, AuditedEntityType.PROJECT)
 
         // Then
-//        Assertions.assertTrue(result.isFailure)
-//        Assertions.assertEquals(exception, result.exceptionOrNull())
+        assertThat(result).isEmpty()
 
     }
 
@@ -99,8 +97,7 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-//        assertThat(result.isSuccess).isTrue()
-//        assertEquals(expectedLogs, result.getOrNull())
+        assertThat(result).isEqualTo(expectedLogs)
     }
 
     @Test
@@ -115,8 +112,6 @@ class GetAuditLogUseCaseTest {
         val result = getAuditLogsUseCase.invoke(UUID.fromString(taskUUID), AuditedEntityType.TASK)
 
         // Then
-        // TODO
-//        assertThat(result.isFailure)
-//        assertEquals(exception, result.exceptionOrNull())
+        assertThat(result).isEmpty()
     }
 }
