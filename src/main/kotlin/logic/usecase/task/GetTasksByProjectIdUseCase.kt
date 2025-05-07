@@ -7,6 +7,5 @@ import java.util.UUID
 class GetTasksByProjectIdUseCase(
     private val taskRepository: TaskRepository,
 ) {
-    operator fun invoke(projectId: UUID): Result<List<TaskEntity>> =
-        runCatching { taskRepository.getTasksByProjectId(projectId).getOrThrow() }
+    suspend operator fun invoke(projectId: UUID):List<TaskEntity> = taskRepository.getTasksByProjectId(projectId)
 }

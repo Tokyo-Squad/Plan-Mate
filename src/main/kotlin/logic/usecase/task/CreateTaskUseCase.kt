@@ -7,10 +7,8 @@ import java.util.UUID
 class CreateTaskUseCase(
     private val taskRepository: TaskRepository,
 ) {
-    operator fun invoke(task: TaskEntity, currentUserId: UUID): Result<Unit> {
-        if (task.title.isBlank()) {
-            return Result.failure(IllegalArgumentException("title cannot be empty"))
-        }
-        return runCatching { taskRepository.create(task, currentUserId).getOrThrow() }
+     suspend operator fun invoke(task: TaskEntity, currentUserId: UUID) {
+        if (task.title.isBlank()) throw IllegalArgumentException("title cannot be empty")
+        taskRepository.create(task, currentUserId)
     }
 }
