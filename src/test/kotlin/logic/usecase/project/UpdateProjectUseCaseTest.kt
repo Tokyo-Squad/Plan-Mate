@@ -76,6 +76,15 @@ class UpdateProjectUseCaseTest {
     }
 
     @Test
+    fun `should throw ConcurrentModificationException when version mismatch`() = runTest {
+        coEvery { mockRepo.updateProject(any(), any()) } throws ConcurrentModificationException()
+
+        assertThrows<ConcurrentModificationException> {
+            useCase(testProject, adminUser)
+        }
+    }
+
+    @Test
     fun `should throw ValidationException when project name is whitespace only`() = runTest {
         val whitespaceProject = testProject.copy(name = "   ")
 
@@ -85,4 +94,5 @@ class UpdateProjectUseCaseTest {
 
         assertThat(exception).hasMessageThat().contains("cannot be blank")
     }
+
 }

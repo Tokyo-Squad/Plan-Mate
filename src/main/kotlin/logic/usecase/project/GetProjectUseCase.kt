@@ -7,7 +7,7 @@ import java.util.*
 class GetProjectUseCase(
     private val projectRepository: ProjectRepository
 ) {
-    operator fun invoke(projectId: UUID): Result<ProjectEntity> {
+    suspend operator fun invoke(projectId: UUID): ProjectEntity {
         return projectRepository.getProjectById(projectId.toString())
     }
 }

@@ -9,16 +9,22 @@ import org.example.utils.PlanMateException
 class AddProjectUseCase(
     private val projectRepository: ProjectRepository,
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         projectEntity: ProjectEntity,
         currentUser: UserEntity
-    ): Result<ProjectEntity> {
-        if (currentUser.type != UserType.ADMIN) return Result.failure(PlanMateException.UserActionNotAllowedException())
-        if (projectEntity.name.isBlank()) return Result.failure(PlanMateException.ValidationException())
-
-        return runCatching {
-            projectRepository.addProject(projectEntity).getOrThrow()
+    ): ProjectEntity {
+        if (currentUser.type != UserType.ADMIN) {
+            throw PlanMateException.UserActionNotAllowedException(
+                "User ${currentUser.id} is not authorized to create projects"
+            )
         }
 
+        if (projectEntity.name.isBlank()) {
+            throw PlanMateException.ValidationException(
+                "Project name cannot be blank"
+            )
+        }
+
+        return projectRepository.addProject(projectEntity)
     }
 }
