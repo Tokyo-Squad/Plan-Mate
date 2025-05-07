@@ -1,5 +1,6 @@
 package org.example.logic.usecase.task
 
+import org.example.entity.AuditedEntityType
 import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import java.util.UUID
@@ -9,6 +10,7 @@ class UpdateTaskUseCase(
 ) {
     operator fun invoke(
         task: TaskEntity,
+        auditedType: AuditedEntityType,
         currentUserId: UUID
     ): Result<Unit> {
         if (task.title.isBlank()) {
