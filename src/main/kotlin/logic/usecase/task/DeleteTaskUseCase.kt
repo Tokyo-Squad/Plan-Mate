@@ -6,6 +6,7 @@ import java.util.UUID
 class DeleteTaskUseCase(
     private val taskRepository: TaskRepository,
 ) {
-    operator fun invoke(id: UUID, currentUserId: UUID): Result<Unit> =
-        runCatching { taskRepository.delete(id, currentUserId).getOrThrow() }
+    operator fun invoke(id: UUID, currentUserId: UUID): Result<Unit> {
+        return Result.failure(Exception("DeleteTaskUseCase"))
+    }
 }
