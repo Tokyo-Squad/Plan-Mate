@@ -2,6 +2,7 @@ package org.example
 
 import logic.usecase.auth.CreateDefaultAdminUseCase
 import org.example.di.appModule
+import org.example.di.mongoModule
 import org.example.di.uiModule
 import org.example.di.useCaseModule
 import org.example.presentation.PlanMateConsoleUI
@@ -15,7 +16,8 @@ fun main() {
         modules(
             appModule,
             useCaseModule,
-            uiModule
+            uiModule,
+            mongoModule
         )
     }
     CreateDefaultAdminUseCase(getKoin().get(named("userDataProvider")))
