@@ -14,7 +14,7 @@ class TaskCsvImpl(
 
     private val file: File = File(fileName)
 
-    override fun add(item: TaskEntity) {
+    override suspend fun add(item: TaskEntity) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -24,11 +24,11 @@ class TaskCsvImpl(
         }
     }
 
-    override fun get(): List<TaskEntity> = loadFromCsv()
+    override suspend fun get(): List<TaskEntity> = loadFromCsv()
 
-    override fun getById(id: UUID): TaskEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): TaskEntity? = loadFromCsv().find { it.id == id }
 
-    override fun update(item: TaskEntity) {
+    override suspend fun update(item: TaskEntity) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -44,7 +44,7 @@ class TaskCsvImpl(
         }
     }
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         val items = loadFromCsv().toMutableList()
         val taskToDelete = items.find { it.id == id }
 
@@ -59,6 +59,7 @@ class TaskCsvImpl(
             throw PlanMateException.FileWriteException("Error deleting task: ${e.message}")
         }
     }
+
     private fun loadFromCsv(): List<TaskEntity> {
         ensureFileExists()
         return readAndParseFile()
@@ -78,6 +79,7 @@ class TaskCsvImpl(
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
+
     private fun saveToCsv(data: List<TaskEntity>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }

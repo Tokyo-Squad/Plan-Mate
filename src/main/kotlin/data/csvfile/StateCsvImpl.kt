@@ -13,7 +13,7 @@ class StateCsvImpl(
 
     private val file: File = File(fileName)
 
-    override fun add(item: StateEntity) {
+    override suspend fun add(item: StateEntity) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -23,11 +23,11 @@ class StateCsvImpl(
         }
     }
 
-    override fun get(): List<StateEntity> = loadFromCsv()
+    override suspend fun get(): List<StateEntity> = loadFromCsv()
 
-    override fun getById(id: UUID): StateEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): StateEntity? = loadFromCsv().find { it.id == id }
 
-    override fun update(item: StateEntity) {
+    override suspend fun update(item: StateEntity) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -43,7 +43,7 @@ class StateCsvImpl(
         }
     }
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         val items = loadFromCsv().toMutableList()
         val stateToDelete = items.find { it.id == id }
 

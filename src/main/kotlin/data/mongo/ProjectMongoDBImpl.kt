@@ -20,7 +20,7 @@ class ProjectMongoDBImpl(
         mongoClient.getDatabase().getCollection("projects")
     }
 
-    override  fun add(item: ProjectEntity) {
+    override suspend fun add(item: ProjectEntity) {
         try {
             collection.insertOne(item.toDocument())
         } catch (e: Exception) {
@@ -29,7 +29,7 @@ class ProjectMongoDBImpl(
 
     }
 
-    override  fun get(): List<ProjectEntity> {
+    override suspend fun get(): List<ProjectEntity> {
         return try {
             collection.find()
                 .map { it.toProjectEntity() }
@@ -39,7 +39,7 @@ class ProjectMongoDBImpl(
         }
     }
 
-    override  fun getById(id: UUID): ProjectEntity? {
+    override suspend fun getById(id: UUID): ProjectEntity? {
         return try {
             collection.find(Document("_id", id)).firstOrNull()?.toProjectEntity()
         } catch (e: Exception) {
@@ -47,7 +47,7 @@ class ProjectMongoDBImpl(
         }
     }
 
-    override  fun update(item: ProjectEntity) {
+    override suspend fun update(item: ProjectEntity) {
         try {
             val result = collection.replaceOne(
                 Document("_id", item.id),
@@ -62,7 +62,7 @@ class ProjectMongoDBImpl(
         }
     }
 
-    override  fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         try {
             val result = collection.deleteOne(Document("_id", id))
 

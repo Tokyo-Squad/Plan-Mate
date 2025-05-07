@@ -20,6 +20,8 @@ dependencies {
     testImplementation("io.mockk:mockk:1.14.0")
     //Kotlin coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+
     //MongoDB
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.1")
 

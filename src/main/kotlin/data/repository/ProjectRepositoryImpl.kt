@@ -17,9 +17,10 @@ class ProjectRepositoryImpl(
     private val auditDataProvider: DataProvider<AuditLogEntity>
 ) : ProjectRepository {
 
-    override fun addProject(project: ProjectEntity): Result<ProjectEntity> {
-        return try {
-            require(project.name.isNotBlank()) { "Project name cannot be blank" }
+    override suspend fun addProject(project: ProjectEntity): ProjectEntity {
+        require(project.name.isNotBlank()) { "Project name cannot be blank" }
+
+        try {
             projectDataProvider.add(project)
 
             auditDataProvider.add(
@@ -32,14 +33,18 @@ class ProjectRepositoryImpl(
                     timestamp = Clock.System.now().toLocalDateTime(UTC)
                 )
             )
-            Result.success(project)
-        } catch (e: PlanMateException) {
-            Result.failure(e)
+
+            return project
+        } catch (e: Exception) {
+            throw when (e) {
+                is PlanMateException -> e
+                else -> PlanMateException.DatabaseException("Failed to add project: ${e.message}")
+            }
         }
     }
 
-    override fun updateProject(project: ProjectEntity, currentUserId: UUID): Result<ProjectEntity> {
-        return try {
+    override suspend fun updateProject(project: ProjectEntity, currentUserId: UUID): ProjectEntity {
+        try {
             projectDataProvider.update(project)
 
             auditDataProvider.add(
@@ -52,16 +57,22 @@ class ProjectRepositoryImpl(
                     timestamp = Clock.System.now().toLocalDateTime(UTC)
                 )
             )
-            Result.success(project)
+
+            return project
         } catch (e: Exception) {
-            Result.failure(e)
+            throw when (e) {
+                is PlanMateException -> e
+                is NoSuchElementException -> e
+                else -> PlanMateException.DatabaseException("Failed to update project: ${e.message}")
+            }
         }
     }
 
-    override fun deleteProject(projectId: UUID, currentUserId: UUID): Result<Unit> {
-        return try {
-            val project = projectDataProvider.getById(projectId) ?: throw NoSuchElementException("Project not found")
+    override suspend fun deleteProject(projectId: UUID, currentUserId: UUID) {
+        val project = projectDataProvider.getById(projectId)
+            ?: throw NoSuchElementException("Project not found")
 
+        try {
             projectDataProvider.delete(projectId)
 
             auditDataProvider.add(
@@ -74,27 +85,30 @@ class ProjectRepositoryImpl(
                     timestamp = Clock.System.now().toLocalDateTime(UTC)
                 )
             )
-            Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            throw when (e) {
+                is PlanMateException -> e
+                else -> PlanMateException.DatabaseException("Failed to delete project: ${e.message}")
+            }
         }
     }
 
-    override fun getAllProjects(): Result<List<ProjectEntity>> {
+    override suspend fun getAllProjects(): List<ProjectEntity> {
         return try {
-            Result.success(projectDataProvider.get())
+            projectDataProvider.get()
         } catch (e: Exception) {
-            Result.failure(e)
+            throw PlanMateException.DatabaseException("Failed to get projects: ${e.message}")
         }
     }
 
-    override fun getProjectById(projectId: String): Result<ProjectEntity> {
-        return try {
-            val uuid = UUID.fromString(projectId)
-            val project = projectDataProvider.getById(uuid) ?: throw NoSuchElementException("Project not found")
-            Result.success(project)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun getProjectById(projectId: String): ProjectEntity {
+        val uuid = try {
+            UUID.fromString(projectId)
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException("Invalid project ID format")
         }
+
+        return projectDataProvider.getById(uuid)
+            ?: throw NoSuchElementException("Project not found")
     }
 }

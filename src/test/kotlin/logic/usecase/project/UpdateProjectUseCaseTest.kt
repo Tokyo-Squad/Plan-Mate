@@ -4,12 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import fakeData.fakeAdminEntity
 import fakeData.fakeProjectEntity
 import fakeData.fakeRegularUserEntity
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.UpdateProjectUseCase
 import org.example.utils.PlanMateException
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 
 class UpdateProjectUseCaseTest {
@@ -21,80 +21,68 @@ class UpdateProjectUseCaseTest {
     private val testProject = fakeProjectEntity()
 
     @Test
-    fun `should fail with UserActionNotAllowedException when user is not admin`() {
-        val result = useCase(testProject, regularUser)
+    fun `should throw UserActionNotAllowedException when user is not admin`() = runTest {
+        val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
+            useCase(testProject, regularUser)
+        }
 
-        assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMateException.UserActionNotAllowedException::class.java)
+        assertThat(exception).hasMessageThat().contains("not authorized")
     }
 
     @Test
-    fun `should fail with ValidationException when project name is blank`() {
+    fun `should throw ValidationException when project name is blank`() = runTest {
         val blankProject = testProject.copy(name = "")
-        val result = useCase(blankProject, adminUser)
 
-        assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMateException.ValidationException::class.java)
+        val exception = assertThrows<PlanMateException.ValidationException> {
+            useCase(blankProject, adminUser)
+        }
+
+        assertThat(exception).hasMessageThat().contains("cannot be blank")
     }
 
     @Test
-    fun `should succeed when user is admin and project valid`() {
-        every { mockRepo.updateProject(any(), any()) } returns Result.success(testProject)
+    fun `should return updated project when user is admin and project valid`() = runTest {
+        coEvery { mockRepo.updateProject(any(), any()) } returns testProject
 
         val result = useCase(testProject, adminUser)
 
-        assertThat(result.isSuccess).isTrue()
+        assertThat(result).isEqualTo(testProject)
     }
 
     @Test
-    fun `should return updated project when update succeeds`() {
-        every { mockRepo.updateProject(any(), any()) } returns Result.success(testProject)
-
-        val result = useCase(testProject, adminUser)
-
-        assertThat(result.getOrNull()).isEqualTo(testProject)
-    }
-
-    @Test
-    fun `should call repository with correct project and user ID`() {
-        every { mockRepo.updateProject(any(), any()) } returns Result.success(testProject)
+    fun `should call repository with correct project and user ID`() = runTest {
+        coEvery { mockRepo.updateProject(any(), any()) } returns testProject
 
         useCase(testProject, adminUser)
 
-        verify {
+        coVerify(exactly = 1) {
             mockRepo.updateProject(
                 match { it.id == testProject.id && it.name == testProject.name },
-                match { it == adminUser.id }
+                adminUser.id
             )
         }
     }
 
     @Test
-    fun `should propagate repository failure`() {
+    fun `should propagate repository exceptions`() = runTest {
         val expectedError = RuntimeException("Database error")
-        every { mockRepo.updateProject(any(), any()) } returns Result.failure(expectedError)
+        coEvery { mockRepo.updateProject(any(), any()) } throws expectedError
 
-        val result = useCase(testProject, adminUser)
+        val exception = assertThrows<RuntimeException> {
+            useCase(testProject, adminUser)
+        }
 
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
+        assertThat(exception).isSameInstanceAs(expectedError)
     }
 
     @Test
-    fun `should fail with ValidationException when project name is whitespace only`() {
+    fun `should throw ValidationException when project name is whitespace only`() = runTest {
         val whitespaceProject = testProject.copy(name = "   ")
-        val result = useCase(whitespaceProject, adminUser)
 
-        assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMateException.ValidationException::class.java)
-    }
+        val exception = assertThrows<PlanMateException.ValidationException> {
+            useCase(whitespaceProject, adminUser)
+        }
 
-    @Test
-    fun `should include validation message when name is blank`() {
-        val blankProject = testProject.copy(name = "")
-        val result = useCase(blankProject, adminUser)
-
-        assertThat(result.exceptionOrNull())
-            .hasMessageThat()
-            .contains("Validation failed")
+        assertThat(exception).hasMessageThat().contains("cannot be blank")
     }
 }
