@@ -1,9 +1,9 @@
 package logic.usecase.task
 
-import com.google.common.truth.Truth.assertThat
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -12,82 +12,78 @@ import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.CreateTaskUseCase
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 class CreateTaskUseCaseTest {
- private lateinit var repository: TaskRepository
- private lateinit var useCase: CreateTaskUseCase
+    private lateinit var repository: TaskRepository
+    private lateinit var useCase: CreateTaskUseCase
 
- @BeforeEach
- fun setUp() {
-  repository = mockk(relaxed = true)
-  useCase = CreateTaskUseCase(repository)
- }
+    @BeforeEach
+    fun setUp() {
+        repository = mockk(relaxed = true)
+        useCase = CreateTaskUseCase(repository)
+    }
 
- @Test
- fun `should succeed when repository create succeeds`() {
-  // Given
-  val userId = UUID.randomUUID()
-  val task = TaskEntity(
-   title = "Title",
-   description = "Desc",
-   stateId = UUID.randomUUID(),
-   projectId = UUID.randomUUID(),
-   createdByUserId = userId,
-   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-  )
-  every { repository.create(task, userId) } returns Result.success(Unit)
+    @Test
+    fun `should succeed when repository create succeeds`() = runBlocking {
+        // Given
+        val userId = UUID.randomUUID()
+        val task = TaskEntity(
+            title = "Title",
+            description = "Desc",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = userId,
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        )
 
-  // When
-  val result = useCase(task, userId)
+        // When & Then
+        assertDoesNotThrow {
+            runBlocking { useCase(task, userId) }
+        }
+        coVerify { repository.create(task, userId) }
+    }
 
-  // Then
-  assertThat(result.isSuccess).isTrue()
-  verify { repository.create(task, userId) }
- }
+    @Test
+    fun `should propagate exception when repository throws`() = runBlocking {
+        // Given
+        val userId = UUID.randomUUID()
+        val task = TaskEntity(
+            title = "Title",
+            description = "Desc",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = userId,
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        )
+        coEvery { repository.create(task, userId) } throws RuntimeException("Create failed")
 
- @Test
- fun `should fail when repository create fails`() {
-  // Given
-  val userId = UUID.randomUUID()
-  val task = TaskEntity(
-   title = "Title",
-   description = "Desc",
-   stateId = UUID.randomUUID(),
-   projectId = UUID.randomUUID(),
-   createdByUserId = userId,
-   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-  )
-  val ex = RuntimeException("Create failed")
-  every { repository.create(task, userId) } returns Result.failure(ex)
+        // When & Then
+        assertThrows<RuntimeException> {
+            runBlocking { useCase(task, userId) }
+        }
+        coVerify { repository.create(task, userId) }
+    }
 
-  // When
-  val result = useCase(task, userId)
+    @Test
+    fun `should fail when title is blank`() = runBlocking {
+        // Given
+        val userId = UUID.randomUUID()
+        val taskWithBlankTitle = TaskEntity(
+            title = "",
+            description = "Desc",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = userId,
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        )
 
-  // Then
-  assertThat(result.isFailure).isTrue()
-  verify { repository.create(task, userId) }
- }
-
- @Test
- fun `should fail when title is blank`() {
-  // Given
-  val userId = UUID.randomUUID()
-  val taskWithBlankTitle = TaskEntity(
-   title = "",
-   description = "Desc",
-   stateId = UUID.randomUUID(),
-   projectId = UUID.randomUUID(),
-   createdByUserId = userId,
-   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-  )
-
-  // When
-  val result = useCase(taskWithBlankTitle, userId)
-
-  // Then
-  assertThat(result.isFailure).isTrue()
-  verify(exactly = 0) { repository.create(any(), any()) }
- }
-
+        // When & Then
+        assertThrows<IllegalArgumentException> {
+            runBlocking { useCase(taskWithBlankTitle, userId) }
+        }
+        coVerify(exactly = 0) { repository.create(any(), any()) }
+    }
 }

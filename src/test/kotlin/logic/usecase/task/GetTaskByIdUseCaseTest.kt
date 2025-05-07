@@ -1,9 +1,10 @@
 package logic.usecase.task
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -12,54 +13,52 @@ import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.GetTaskByIdUseCase
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 
 class GetTaskByIdUseCaseTest {
- private lateinit var repository: TaskRepository
- private lateinit var useCase: GetTaskByIdUseCase
- private lateinit var id: UUID
+    private lateinit var repository: TaskRepository
+    private lateinit var useCase: GetTaskByIdUseCase
+    private lateinit var id: UUID
 
+    @BeforeEach
+    fun setUp() {
+        id = UUID.randomUUID()
+        repository = mockk(relaxed = true)
+        useCase = GetTaskByIdUseCase(repository)
+    }
 
- @BeforeEach
- fun setUp() {
-  id = UUID.randomUUID()
-  repository = mockk(relaxed = true)
-  useCase = GetTaskByIdUseCase(repository)
- }
+    @Test
+    fun `should return task when repository finds by id`() = runBlocking {
+        // Given
+        val task = TaskEntity(
+            title = "Title",
+            description = "Desc",
+            stateId = UUID.randomUUID(),
+            projectId = UUID.randomUUID(),
+            createdByUserId = UUID.randomUUID(),
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        )
+        coEvery { repository.getTaskById(id) } returns task
 
- @Test
- fun `should return task when repository finds by id`() {
-  // Given
-  val task = TaskEntity(
-   title = "Title",
-   description = "Desc",
-   stateId = UUID.randomUUID(),
-   projectId = UUID.randomUUID(),
-   createdByUserId = UUID.randomUUID(),
-   createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-  )
-  every { repository.getTaskById(id) } returns Result.success(task)
+        // When
+        val result = useCase(id)
 
-  // When
-  val result = useCase(id)
+        // Then
+        assertThat(result).isEqualTo(task)
+        coVerify { repository.getTaskById(id) }
+    }
 
-  // Then
-  assertThat(result.getOrThrow()).isEqualTo(task)
-  verify { repository.getTaskById(id) }
- }
+    @Test
+    fun `should propagate exception when repository throws`() = runBlocking {
+        // Given
+        coEvery { repository.getTaskById(id) } throws RuntimeException("Fetch failed")
 
- @Test
- fun `should fail when repository getById fails`() {
-  // Given
-  val ex = RuntimeException("Fetch failed")
-  every { repository.getTaskById(id) } returns Result.failure(ex)
-
-  // When
-  val result = useCase(id)
-
-  // Then
-  assertThat(result.isFailure)
-  verify { repository.getTaskById(id) }
- }
+        // When & Then
+        assertThrows<RuntimeException> {
+            runBlocking { useCase(id) }
+        }
+        coVerify { repository.getTaskById(id) }
+    }
 }

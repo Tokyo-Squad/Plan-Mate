@@ -1,9 +1,9 @@
 package logic.usecase.task
 
-import com.google.common.truth.Truth.assertThat
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -11,7 +11,8 @@ import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.UpdateTaskUseCase
 import org.junit.jupiter.api.BeforeEach
-import org.example.entity.AuditedEntityType
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 import kotlin.test.Test
 
@@ -26,7 +27,7 @@ class UpdateTaskUseCaseTest {
     }
 
     @Test
-    fun `should succeed when repository update succeeds`() {
+    fun `should succeed when repository update succeeds`() = runBlocking {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -37,22 +38,17 @@ class UpdateTaskUseCaseTest {
             createdByUserId = userId,
             createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
         )
-        every { repository.update(task, userId) } returns Result.success(Unit)
 
-        // When
-        val result = useCase(task, userId)
-
-        // Then
-        assertThat(result.isSuccess).isTrue()
-        verify { repository.update(task, userId) }
+        // When & Then
+        assertDoesNotThrow { runBlocking { useCase(task, userId) } }
+        coVerify { repository.update(task, userId) }
     }
 
     @Test
-    fun `should fail when title is blank`() {
+    fun `should throw IllegalArgumentException when title is blank`() = runBlocking {
         // Given
         val userId = UUID.randomUUID()
-        val auditedType = AuditedEntityType.TASK
-        val task = TaskEntity(
+        val taskWithBlankTitle = TaskEntity(
             title = "",
             description = "Desc",
             stateId = UUID.randomUUID(),
@@ -61,16 +57,13 @@ class UpdateTaskUseCaseTest {
             createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
         )
 
-        // When
-        val result = useCase(task, userId)
-
-        // Then
-        assertThat(result.isFailure).isTrue()
-        verify(exactly = 0) { repository.update(any(), any()) }
+        // When & Then
+        assertThrows<IllegalArgumentException> { runBlocking { useCase(taskWithBlankTitle, userId) } }
+        coVerify(exactly = 0) { repository.update(any(), any()) }
     }
 
     @Test
-    fun `should fail when repository update fails`() {
+    fun `should propagate exception when repository throws`() = runBlocking {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -81,14 +74,11 @@ class UpdateTaskUseCaseTest {
             createdByUserId = userId,
             createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
         )
-        val ex = RuntimeException("Update failed")
-        every { repository.update(task, userId) } returns Result.failure(ex)
 
-        // When
-        val result = useCase(task, userId)
+        coEvery { repository.update(task, userId) } throws RuntimeException("Update failed")
 
-        // Then
-        assertThat(result.isFailure).isTrue()
-        verify { repository.update(task, userId) }
+        // When & Then
+        assertThrows<RuntimeException> { runBlocking { useCase(task, userId) } }
+        coVerify { repository.update(task, userId) }
     }
 }
