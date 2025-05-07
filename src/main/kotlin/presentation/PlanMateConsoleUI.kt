@@ -20,7 +20,7 @@ class PlanMateConsoleUI(
 ) {
     private var currentUser: UserEntity? = null
 
-    fun start() {
+    suspend fun start() {
         currentUser = getCurrentUserUseCase.invoke().getOrNull()
 
 
@@ -74,7 +74,7 @@ class PlanMateConsoleUI(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun handleLogin() {
+    private suspend fun handleLogin() {
         if (currentUser != null) {
             routeToUserScreen(currentUser!!)
             return
@@ -137,7 +137,7 @@ class PlanMateConsoleUI(
         return username to password
     }
 
-    private fun routeToUserScreen(user: UserEntity) {
+    private suspend fun routeToUserScreen(user: UserEntity) {
         try {
             when (user.type) {
                 UserType.ADMIN -> adminScreen.show()

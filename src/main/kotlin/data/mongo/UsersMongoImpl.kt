@@ -18,14 +18,14 @@ class UsersMongoImpl(
 ) : DataProvider<UserEntity> {
     private val usersCollection = db.getDatabase().getCollection<Document>("users")
 
-    override fun add(item: UserEntity) {
+    override suspend fun add(item: UserEntity) {
         MongoExceptionHandler.handleOperation("adding user") {
             val document = toDocument(item)
             usersCollection.insertOne(document)
         }
     }
 
-    override fun get(): List<UserEntity> {
+    override suspend fun get(): List<UserEntity> {
         return MongoExceptionHandler.handleOperation("fetching all users") {
             usersCollection.find()
                 .map { doc -> fromDocument(doc) }
@@ -33,7 +33,7 @@ class UsersMongoImpl(
         }
     }
 
-    override fun getById(id: UUID): UserEntity? {
+    override suspend fun getById(id: UUID): UserEntity? {
         return MongoExceptionHandler.handleOperation("fetching user by ID") {
             val filter = Filters.eq("_id", id.toString())
             val document = usersCollection.find(filter).first()
@@ -42,7 +42,7 @@ class UsersMongoImpl(
         }
     }
 
-    override fun update(item: UserEntity) {
+    override suspend fun update(item: UserEntity) {
         MongoExceptionHandler.handleOperation("updating user") {
             val filter = Filters.eq("_id", item.id.toString())
             val update = Updates.combine(
@@ -59,7 +59,7 @@ class UsersMongoImpl(
         }
     }
 
-    override fun delete(id: UUID) {
+    override suspend fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting user") {
             val filter = Filters.eq("_id", id.toString())
             val result = usersCollection.deleteOne(filter)

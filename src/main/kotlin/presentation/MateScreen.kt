@@ -1,7 +1,10 @@
+import org.example.entity.ProjectEntity
 import org.example.logic.usecase.project.ListProjectsUseCase
 import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
+import kotlin.coroutines.cancellation.CancellationException
 
 class MateScreen(
     private val console: ConsoleIO,
@@ -9,65 +12,93 @@ class MateScreen(
     private val projectScreen: ProjectScreen,
     private val auditScreen: AuditScreen
 ) {
-    fun show() {
+    private enum class MainMenuOption {
+        VIEW_PROJECTS, VIEW_AUDIT_LOGS, LOGOUT, INVALID
+    }
+
+    suspend fun show() {
         while (true) {
             try {
-                console.write("\n=== Mate Dashboard ===")
-                when (showMainMenu()) {
-                    1 -> handleProjects()
-                    2 -> auditScreen.show()
-                    3 -> return
-                    else -> console.writeError("Invalid option. Please try again.")
+                displayMainMenu()
+                when (getMenuSelection()) {
+                    MainMenuOption.VIEW_PROJECTS -> handleProjects()
+                    MainMenuOption.VIEW_AUDIT_LOGS -> auditScreen.show()
+                    MainMenuOption.LOGOUT -> return
+                    MainMenuOption.INVALID -> console.writeError("Invalid option. Please try again.")
                 }
+            } catch (e: CancellationException) {
+                return
+            } catch (e: PlanMateException) {
+                console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
-                console.writeError("Error: ${e.message}")
+                console.writeError("An unexpected error occurred: ${e.message}")
             }
         }
     }
 
-    private fun showMainMenu(): Int {
+    private fun displayMainMenu() {
+        console.write("\n=== Mate Dashboard ===")
         console.write("1. View Projects")
         console.write("2. View Audit Logs")
         console.write("3. Logout")
-        console.write("\nSelect an option: ")
-        return console.read().toIntOrNull() ?: 0
     }
 
-    private fun handleProjects() {
-        try {
-            val projectsResult = getProjectsUseCase()
-            val projects = projectsResult.getOrElse { exception ->
-                console.writeError("Failed to load projects: ${exception.message}")
-                return
-            }
-
-            if (projects.isEmpty()) {
-                console.writeError("\nNo projects available.")
-                return
-            }
-
-            while (true) {
-                console.write("\n=== Available Projects ===")
-                projects.forEach { project ->
-                    console.write("${project.id}: ${project.name}")
-                }
-
-                console.write("\nEnter project ID to view details (or 'back' to return): ")
-                val input = console.read()
-
-                if (input.equals("back", ignoreCase = true)) {
-                    return
-                }
-
-                try {
-                    projectScreen.show(input)
-                } catch (e: Exception) {
-                    console.writeError("Invalid project ID")
-                }
-            }
-        } catch (e: Exception) {
-            console.writeError("Failed to load projects: ${e.message}")
+    private fun getMenuSelection(): MainMenuOption {
+        console.write("\nSelect an option: ")
+        return when (console.read().toIntOrNull()) {
+            1 -> MainMenuOption.VIEW_PROJECTS
+            2 -> MainMenuOption.VIEW_AUDIT_LOGS
+            3 -> MainMenuOption.LOGOUT
+            else -> MainMenuOption.INVALID
         }
     }
 
+    private suspend fun handleProjects() {
+        val projects = try {
+            getProjectsUseCase()
+        } catch (e: Exception) {
+            console.writeError("Failed to load projects: ${e.message}")
+            return
+        }
+
+        if (projects.isEmpty()) {
+            console.write("\nNo projects available.")
+            return
+        }
+
+        while (true) {
+            displayProjects(projects)
+            when (val input = promptForProjectSelection()) {
+                "back" -> return
+                else -> handleSelectedProject(input, projects)
+            }
+        }
+    }
+
+    private fun displayProjects(projects: List<ProjectEntity>) {
+        console.write("\n=== Available Projects ===")
+        projects.forEachIndexed { index, project ->
+            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+        }
+    }
+
+    private fun promptForProjectSelection(): String {
+        console.write("\nEnter project number to view details (or 'back' to return): ")
+        return console.read().trim()
+    }
+
+    private suspend fun handleSelectedProject(input: String, projects: List<ProjectEntity>) {
+        try {
+            val projectIndex = input.toInt() - 1
+            if (projectIndex in projects.indices) {
+                projectScreen.show(projects[projectIndex].id.toString())
+            } else {
+                console.writeError("Please enter a number between 1 and ${projects.size}")
+            }
+        } catch (e: NumberFormatException) {
+            console.writeError("Invalid input. Please enter a number or 'back'")
+        } catch (e: Exception) {
+            console.writeError("Failed to view project: ${e.message}")
+        }
+    }
 }

@@ -24,12 +24,9 @@ class ProjectEditScreen(
     private val addStateUseCase: AddStateUseCase,
     private val deleteStateUseCase: DeleteStateUseCase
 ) {
-    fun show(projectId: String) {
+    suspend fun show(projectId: String) {
         try {
-            val project = getProjectUseCase(UUID.fromString(projectId)).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
+            val project = getProjectUseCase(UUID.fromString(projectId))
 
             while (true) {
                 console.write("\n=== Edit Project: ${project.name} ===")
@@ -232,7 +229,7 @@ class ProjectEditScreen(
             }
     }
 
-    private fun handleProjectDeletion(project: ProjectEntity) {
+    private suspend fun handleProjectDeletion(project: ProjectEntity) {
         console.write("\n=== Delete Project ===")
         console.write("WARNING: This action cannot be undone!")
         console.write("Are you sure you want to delete this project? (yes/no): ")
@@ -250,14 +247,7 @@ class ProjectEditScreen(
                 return
             }
 
-            deleteProjectUseCase(
-                projectId = project.id,
-                currentUser = currentUser!!.id
-            ).onSuccess {
-                console.write("Project deleted successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to delete project: ${e.message}")
-            }
+            deleteProjectUseCase(projectId = project.id, currentUser = currentUser!!.id)
         } catch (e: Exception) {
             console.writeError("Failed to delete project: ${e.message}")
         }
