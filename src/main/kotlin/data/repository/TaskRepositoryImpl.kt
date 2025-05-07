@@ -22,7 +22,7 @@ class TaskRepositoryImpl(
     private val stateRepository: StateRepository
 ) : TaskRepository {
 
-    override fun create(task: TaskEntity, currentUserId: UUID): Result<Unit> = runCatching {
+    override suspend fun create(task: TaskEntity, currentUserId: UUID) {
         dataProvider.add(task)
         audit(
             currentUserId,
@@ -32,10 +32,10 @@ class TaskRepositoryImpl(
         )
     }
 
-    override fun update(
+    override suspend fun update(
         task: TaskEntity,
         currentUserId: UUID
-    ): Result<Unit> = runCatching {
+    ) {
         val old = dataProvider.getById(task.id)
             ?: throw PlanMateException.ItemNotFoundException("Task ${task.id} not found")
         dataProvider.update(task)
@@ -43,7 +43,7 @@ class TaskRepositoryImpl(
         audit(currentUserId, task.id, AuditAction.UPDATE, details)
     }
 
-    override fun delete(id: UUID, currentUserId: UUID): Result<Unit> = runCatching {
+    override suspend fun delete(id: UUID, currentUserId: UUID) {
         if (dataProvider.getById(id) == null) throw PlanMateException.ItemNotFoundException("Task $id not found")
         dataProvider.delete(id)
         audit(
@@ -54,15 +54,15 @@ class TaskRepositoryImpl(
         )
     }
 
-    override fun getTaskById(id: UUID): Result<TaskEntity> = runCatching {
+    override suspend fun getTaskById(id: UUID): TaskEntity =
         dataProvider.getById(id) ?: throw PlanMateException.ItemNotFoundException("Task $id not found")
-    }
 
-    override fun getTasksByProjectId(projectId: UUID): Result<List<TaskEntity>> = runCatching {
+
+    override suspend fun getTasksByProjectId(projectId: UUID): List<TaskEntity> =
         dataProvider.get().filter { it.projectId == projectId }
             .takeIf { it.isNotEmpty() }
             ?: throw PlanMateException.ItemNotFoundException("Project $projectId not found")
-    }
+
 
     private fun generateUpdateDetails(
         old: TaskEntity,
