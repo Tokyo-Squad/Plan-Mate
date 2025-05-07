@@ -1,14 +1,15 @@
 package logic.usecase.user
 
-import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUsersUseCase
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 
 class GetUsersUseCaseTest {
@@ -17,52 +18,75 @@ class GetUsersUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        repository = mockk(relaxed = true)
+        repository = mockk()
         useCase = GetUsersUseCase(repository)
     }
 
     @Test
-    fun `should return empty list when repository returns empty`() {
+    fun `should return empty list when repository returns empty`() = runTest {
         // Given
         val emptyList = emptyList<UserEntity>()
-        every { repository.getUsers() } returns Result.success(emptyList)
+        coEvery { repository.getUsers() } returns emptyList
 
         // When
         val result = useCase()
 
         // Then
-        assertThat(result.getOrThrow()).isEmpty()
-        verify { repository.getUsers() }
+        assertTrue(result.isEmpty())
+        coVerify { repository.getUsers() }
     }
 
     @Test
-    fun `should return list of users when repository returns data`() {
+    fun `should return list of users when repository returns data`() = runTest {
         // Given
-        val list = listOf(
-            UserEntity(username = "username1", password = "password", type = UserType.MATE),
-            UserEntity(username = "username2", password = "password", type = UserType.MATE)
+        val users = listOf(
+            UserEntity(
+                username = "username1",
+                password = "password1",
+                type = UserType.MATE
+            ),
+            UserEntity(
+                username = "username2",
+                password = "password2",
+                type = UserType.MATE
+            )
         )
-        every { repository.getUsers() } returns Result.success(list)
+        coEvery { repository.getUsers() } returns users
 
         // When
         val result = useCase()
 
         // Then
-        assertThat(result.getOrThrow()).isEqualTo(list)
-        verify { repository.getUsers() }
+        assertEquals(users, result)
+        assertEquals(2, result.size)
+        coVerify { repository.getUsers() }
     }
 
     @Test
-    fun `should fail when repository getUsers fails`() {
+    fun `should throw exception when repository operation fails`() = runTest {
         // Given
-        val exception = RuntimeException("Fetch error")
-        every { repository.getUsers() } returns Result.failure(exception)
+        val exception = RuntimeException("Database error")
+        coEvery { repository.getUsers() } throws exception
+
+        // When/Then
+        val thrown = assertThrows<RuntimeException> {
+            useCase()
+        }
+
+        assertEquals("Database error", thrown.message)
+        coVerify { repository.getUsers() }
+    }
+
+    @Test
+    fun `should handle empty result properly`() = runTest {
+        // Given
+        coEvery { repository.getUsers() } returns emptyList()
 
         // When
         val result = useCase()
 
         // Then
-        assertThat(result.isFailure)
-        verify { repository.getUsers() }
+        assertTrue(result.isEmpty())
+        coVerify { repository.getUsers() }
     }
 }
