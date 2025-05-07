@@ -1,6 +1,7 @@
 package org.example.presentation
 
 import SwimlaneRenderer
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -10,7 +11,7 @@ import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.task.*
 import org.example.presentation.io.ConsoleIO
-import java.util.*
+import java.util.UUID
 
 class TaskEditScreen(
     private val console: ConsoleIO,
@@ -18,40 +19,39 @@ class TaskEditScreen(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
-    // Add these new dependencies
     private val getTasksByProjectUseCase: GetTasksByProjectIdUseCase,
     private val createTaskUseCase: CreateTaskUseCase,
     private val getStatesByProjectId: GetStatesByProjectId,
     private val getProjectUseCase: GetProjectUseCase,
     private val swimlaneRenderer: SwimlaneRenderer
 ) {
-    // Existing show method for editing a specific task
-    fun show(taskId: String) {
-        while (true) {
+    private val currentUser by lazy { runBlocking { getCurrentUserUseCase() } }
+
+    fun displayTaskEditor(taskId: String) = runBlocking {
+        loop@ while (true) {
             try {
                 console.write("\n=== Edit Task ===")
                 when (showMenu()) {
                     1 -> editTaskTitle(taskId)
                     2 -> editTaskDescription(taskId)
                     3 -> handleTaskDeletion(taskId)
-                    4 -> return
+                    4 -> break@loop
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             } catch (e: Exception) {
-                console.writeError("Error: ${e.message}")
+                handleException(e)
             }
         }
     }
 
-    // New method to show tasks for a project and manage them
-    fun showTasksForProject(projectId: UUID) {
+    fun manageProjectTasks(projectId: UUID) = runBlocking {
         try {
-            val project = getProjectUseCase(projectId).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
+            val project = getProjectUseCase(projectId) ?: run {
+                console.writeError("Project not found")
+                return@runBlocking
             }
 
-            while (true) {
+            loop@ while (true) {
                 console.write("\n=== Tasks for Project: ${project.name} ===")
                 when (showProjectTasksMenu()) {
                     1 -> viewTasks(projectId)
@@ -59,354 +59,175 @@ class TaskEditScreen(
                     3 -> editSpecificTask()
                     4 -> updateTaskStatus(projectId)
                     5 -> deleteTaskFromProject(projectId)
-                    6 -> return
+                    6 -> break@loop
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
         } catch (e: Exception) {
-            console.writeError("Failed to manage tasks: ${e.message}")
+            handleException(e)
         }
+    }
+
+    private suspend fun editTaskTitle(taskId: String) = modifyTask(taskId) { task ->
+        task.copy(title = readNonEmptyInput("Enter new title: "))
+    }
+
+    private suspend fun editTaskDescription(taskId: String) = modifyTask(taskId) { task ->
+        task.copy(description = readNonEmptyInput("Enter new description: "))
+    }
+
+    private suspend fun handleTaskDeletion(taskId: String) {
+        if (!confirmAction("Are you sure you want to delete this task?")) {
+            console.write("Deletion cancelled")
+            return
+        }
+
+        deleteTaskUseCase(taskId.toUUID(), currentUserId())
+        console.write("Task deleted successfully!")
+    }
+
+    private suspend fun createTask(projectId: UUID) {
+        console.write("\n=== Create New Task ===")
+        val title = readNonEmptyInput("Enter task title: ")
+        val description = readNonEmptyInput("Enter task description: ")
+
+        val newTask = TaskEntity(
+            title = title,
+            description = description,
+            stateId = getInitialState(projectId),
+            projectId = projectId,
+            createdByUserId = currentUserId(),
+            createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        )
+
+        createTaskUseCase(newTask, currentUserId())
+        console.write("Task created successfully!")
+    }
+
+    private suspend fun updateTaskStatus(projectId: UUID) {
+        viewTasks(projectId)
+        val taskId = readUUIDInput("\nEnter task ID to update: ")
+        val newStateId = selectState(projectId)
+
+        modifyTask(taskId.toString()) { it.copy(stateId = newStateId) }
+        console.write("Task status updated successfully!")
+    }
+
+    private suspend fun deleteTaskFromProject(projectId: UUID) {
+        viewTasks(projectId)
+        val taskId = readUUIDInput("\nEnter task ID to delete: ")
+
+        if (confirmAction("Confirm deletion?")) {
+            deleteTaskUseCase(taskId, currentUserId())
+            console.write("Task deleted successfully!")
+        } else {
+            console.write("Deletion cancelled")
+        }
+    }
+
+    private suspend fun modifyTask(
+        taskId: String,
+        update: suspend (TaskEntity) -> TaskEntity
+    ) {
+        val task = getTaskUseCase(taskId.toUUID())
+        val updatedTask = update(task)
+        updateTaskUseCase(updatedTask, currentUserId())
+    }
+
+    private fun getInitialState(projectId: UUID): UUID {
+        return getStatesByProjectId(projectId).firstOrNull()?.id
+            ?: throw IllegalStateException("No states available for this project")
+    }
+
+    private fun selectState(projectId: UUID): UUID {
+        val states = getStatesByProjectId(projectId)
+        states.forEachIndexed { i, st -> console.write("${i + 1}. ${st.name}") }
+        val index = readValidIndex("Select new state: ", states.size)
+        return states[index].id
     }
 
     private fun showProjectTasksMenu(): Int {
-        console.write("1. View Tasks")
-        console.write("2. Create Task")
-        console.write("3. Edit Task")
-        console.write("4. Update Status")
-        console.write("5. Delete Task")
-        console.write("6. Back")
-        console.write("\nSelect an option: ")
-        return console.read().toIntOrNull() ?: 0
+        return readMenuSelection(
+            """
+            1. View Tasks
+            2. Create Task
+            3. Edit Task
+            4. Update Status
+            5. Delete Task
+            6. Back
+            
+            Select an option: 
+            """.trimIndent()
+        )
     }
 
-    // Existing methods
     private fun showMenu(): Int {
-        console.write("1. Edit Title")
-        console.write("2. Edit Description")
-        console.write("3. Delete Task")
-        console.write("4. Back")
-        console.write("\nSelect an option: ")
-        return console.read().toIntOrNull() ?: 0
+        return readMenuSelection(
+            """
+            1. Edit Title
+            2. Edit Description
+            3. Delete Task
+            4. Back
+            
+            Select an option: 
+            """.trimIndent()
+        )
     }
 
-    private fun editTaskTitle(taskId: String) {
-        console.write("Enter new title: ")
-        val newTitle = console.read().trim()
-
-        if (newTitle.isBlank()) {
-            console.writeError("Title cannot be empty")
-            return
-        }
-
-        try {
-            val taskUUID = UUID.fromString(taskId)
-
-            // Get current task
-            val currentTask = getTaskUseCase(taskUUID).getOrElse { e ->
-                console.writeError("Failed to get task: ${e.message}")
-                return
-            }
-
-            // Get current user
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
-
-            // Create updated task
-            val updatedTask = currentTask.copy(
-                title = newTitle
-            )
-
-            // Update task
-            updateTaskUseCase(
-                task = updatedTask,
-                currentUserId = currentUser!!.id
-            ).onSuccess {
-                console.write("Task title updated successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to update task title: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            console.writeError("Failed to update task title: ${e.message}")
-        }
+    private fun readNonEmptyInput(prompt: String): String {
+        return readInput(prompt) { it.isNotBlank() }
+            ?: throw IllegalArgumentException("Input cannot be empty")
     }
 
-    private fun editTaskDescription(taskId: String) {
-        console.write("Enter new description: ")
-        val newDescription = console.read().trim()
-
-        if (newDescription.isBlank()) {
-            console.writeError("Description cannot be empty")
-            return
-        }
-
-        try {
-            val taskUUID = UUID.fromString(taskId)
-
-            // Get current task
-            val currentTask = getTaskUseCase(taskUUID).getOrElse { e ->
-                console.writeError("Failed to get task: ${e.message}")
-                return
-            }
-
-            // Get current user
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
-
-            // Create updated task
-            val updatedTask = currentTask.copy(
-                description = newDescription
-            )
-
-            // Update task
-            updateTaskUseCase(
-                task = updatedTask,
-                currentUserId = currentUser!!.id
-            ).onSuccess {
-                console.write("Task description updated successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to update task description: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            console.writeError("Failed to update task description: ${e.message}")
-        }
+    private fun readUUIDInput(prompt: String): UUID {
+        return readInput(prompt) { it.isValidUUID() }?.toUUID()
+            ?: throw IllegalArgumentException("Invalid UUID format")
     }
 
-    private fun handleTaskDeletion(taskId: String) {
-        console.write("Are you sure you want to delete this task? (yes/no): ")
-        val confirmation = console.read().trim().lowercase()
-
-        if (confirmation != "yes") {
-            console.write("Task deletion cancelled")
-            return
-        }
-
-        try {
-            val taskUUID = UUID.fromString(taskId)
-
-            // Get current user
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
-
-            // Delete task
-            deleteTaskUseCase(
-                id = taskUUID,
-                currentUserId = currentUser!!.id
-            ).onSuccess {
-                console.write("Task deleted successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to delete task: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            console.writeError("Failed to delete task: ${e.message}")
-        }
+    private fun readValidIndex(prompt: String, max: Int): Int {
+        val input = readInput(prompt) { it.isValidIndex(max) }
+        return input?.toInt()?.minus(1)
+            ?: throw IllegalArgumentException("Invalid selection")
     }
 
-    // New methods moved from ProjectScreen
-    private fun viewTasks(projectId: UUID) {
-        try {
-            val tasks = getTasksByProjectUseCase(projectId).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
-            val project = getProjectUseCase(projectId).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
-            val states = getStatesByProjectId(project.id)
-                .getOrElse { exception ->
-                    console.writeError("Failed to load states: ${exception.message}")
-                    return
-                }
-            val stateMap = states.associateBy({ it.id }, { it.name })
-            swimlaneRenderer.render(tasks, stateMap)
-        } catch (e: Exception) {
-            console.writeError("Failed to load tasks: ${e.message}")
-        }
+    private fun readMenuSelection(menuText: String): Int {
+        console.write(menuText)
+        return readInput("") { it.isValidMenuOption() }?.toInt()
+            ?: throw IllegalArgumentException("Invalid menu selection")
     }
 
-    private fun createTask(projectId: UUID) {
-        console.write("\n=== Create New Task ===")
+    private inline fun readInput(
+        prompt: String,
+        validation: (String) -> Boolean
+    ): String? {
+        console.write(prompt)
+        return console.read().trim().takeIf(validation)
+    }
 
-        console.write("Enter task title: ")
-        val title = console.read().trim()
+    private fun confirmAction(prompt: String): Boolean {
+        return readInput("$prompt (yes/no): ") { it.equals("yes", true) } != null
+    }
 
-        if (title.isBlank()) {
-            console.writeError("Task title cannot be empty")
-            return
-        }
+    private fun String.isValidUUID() = runCatching { UUID.fromString(this) }.isSuccess
+    private fun String.isValidIndex(max: Int) = toIntOrNull()?.let { it in 1..max } ?: false
+    private fun String.isValidMenuOption() = toIntOrNull()?.let { it > 0 } ?: false
 
-        console.write("Enter task description: ")
-        val description = console.read().trim()
+    private fun currentUserId() = currentUser?.id
+        ?: throw IllegalStateException("User not authenticated")
 
-        if (description.isBlank()) {
-            console.writeError("Task description cannot be empty")
-            return
-        }
-
-        try {
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get Current User: $e")
-                return
-            }
-
-            // Get initial state for the project
-            val states = getStatesByProjectId(projectId).getOrElse { e ->
-                console.writeError("Failed to get states: $e")
-                return
-            }
-
-            // Assuming the first state is the initial state
-            val initialState = states.firstOrNull()?.id ?: run {
-                console.writeError("No states found for this project")
-                return
-            }
-
-            val newTask = TaskEntity(
-                title = title,
-                description = description,
-                stateId = initialState,
-                projectId = projectId,
-                createdByUserId = currentUser!!.id,
-                createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-            )
-
-            createTaskUseCase(newTask, currentUser.id).onSuccess {
-                console.write("Task created successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to create task: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            console.writeError("Failed to create task: ${e.message}")
-        }
+    private suspend fun viewTasks(projectId: UUID) {
+        val tasks = getTasksByProjectUseCase(projectId)
+        val states = getStatesByProjectId(projectId).associate { it.id to it.name }
+        swimlaneRenderer.render(tasks, states)
     }
 
     private fun editSpecificTask() {
-        console.write("Enter task ID: ")
-        val taskId = console.read().trim()
-
-        if (taskId.isBlank()) {
-            console.writeError("Task ID cannot be empty")
-            return
-        }
-
-        try {
-            show(taskId)
-        } catch (e: Exception) {
-            console.writeError("Failed to edit task: ${e.message}")
-        }
+        displayTaskEditor(readUUIDInput("Enter task ID: ").toString())
     }
 
-    private fun updateTaskStatus(projectId: UUID) {
-        try {
-            viewTasks(projectId)
-
-            console.write("\nEnter task ID to update: ")
-            val taskId = console.read().trim()
-
-            if (taskId.isBlank()) {
-                console.writeError("Task ID cannot be empty")
-                return
-            }
-
-            // Get current task
-            val task = getTaskUseCase(UUID.fromString(taskId)).getOrElse { e ->
-                console.writeError("Failed to get task: ${e.message}")
-                return
-            }
-
-            // Get states and handle the Result
-            val states = getStatesByProjectId(projectId).getOrElse { e ->
-                console.writeError("Failed to get states: ${e.message}")
-                return
-            }
-
-            if (states.isEmpty()) {
-                console.writeError("No states available for this project")
-                return
-            }
-
-            console.write("\nAvailable states:")
-            states.forEachIndexed { index, state ->
-                console.write("${index + 1}. ${state.name}")
-            }
-
-            console.write("\nSelect new state (enter number): ")
-            val stateIndex = console.read().toIntOrNull()?.minus(1)
-
-            if (stateIndex == null || stateIndex !in states.indices) {
-                console.writeError("Invalid state selection")
-                return
-            }
-
-            // Get current user
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
-
-            // Create updated task with new state
-            val updatedTask = task.copy(
-                stateId = states[stateIndex].id
-            )
-
-            // Update the task
-            updateTaskUseCase(
-                task = updatedTask,
-                currentUserId = currentUser!!.id
-            ).onSuccess {
-                console.write("Task status updated successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to update task state: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            console.writeError("Failed to update task status: ${e.message}")
-        }
+    private fun handleException(e: Exception) {
+        console.writeError("Error: ${e.message ?: "Unknown error"}")
     }
 
-    private fun deleteTaskFromProject(projectId: UUID) {
-        try {
-            viewTasks(projectId)
-
-            console.write("\nEnter task ID to delete: ")
-            val taskId = console.read().trim()
-
-            if (taskId.isBlank()) {
-                console.writeError("Task ID cannot be empty")
-                return
-            }
-
-            console.write("Are you sure you want to delete this task? (yes/no): ")
-            val confirmation = console.read().trim().lowercase()
-
-            if (confirmation != "yes") {
-                console.write("Task deletion cancelled")
-                return
-            }
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
-            deleteTaskUseCase(
-                UUID.fromString(taskId),
-                currentUser!!.id
-            ).onSuccess {
-                console.write("Task deleted successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to delete task: ${e.message}")
-            }
-        } catch (e: Exception) {
-            console.writeError("Failed to delete task: ${e.message}")
-        }
-    }
+    private fun String.toUUID() = UUID.fromString(this)
 }
