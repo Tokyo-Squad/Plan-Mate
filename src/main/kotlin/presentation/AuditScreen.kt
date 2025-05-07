@@ -7,11 +7,11 @@ import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
 import java.util.*
 
-class AuditScreen(
+class AuditScreen (
     private val console: ConsoleIO,
     private val getAuditLogUseCase: GetAuditLogUseCase,
 ) {
-    fun show() {
+    suspend fun show() {
         while (true) {
             try {
                 console.write("\n=== Audit Log ===")
@@ -35,7 +35,7 @@ class AuditScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun viewProjectAudit() {
+    private suspend fun viewProjectAudit() {
         console.write("\nEnter Project ID (UUID format): ")
         val projectId = console.read().trim()
 
@@ -58,7 +58,7 @@ class AuditScreen(
         }
     }
 
-    private fun viewTaskAudit() {
+    private suspend fun viewTaskAudit() {
         console.write("\nEnter Task ID (UUID format): ")
         val taskId = console.read().trim()
 
