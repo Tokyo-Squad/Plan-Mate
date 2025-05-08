@@ -25,7 +25,6 @@ dependencies {
     //MongoDB
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.1")
 
-
 }
 
 tasks.test {

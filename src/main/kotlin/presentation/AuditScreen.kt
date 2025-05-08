@@ -7,11 +7,11 @@ import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
 import java.util.*
 
-class AuditScreen(
+class AuditScreen (
     private val console: ConsoleIO,
     private val getAuditLogUseCase: GetAuditLogUseCase,
 ) {
-    fun show() {
+    suspend fun show() {
         while (true) {
             try {
                 console.write("\n=== Audit Log ===")
@@ -35,7 +35,7 @@ class AuditScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun viewProjectAudit() {
+    private suspend fun viewProjectAudit() {
         console.write("\nEnter Project ID (UUID format): ")
         val projectId = console.read().trim()
 
@@ -45,27 +45,20 @@ class AuditScreen(
         }
 
         try {
-            val uuid = try {
-                UUID.fromString(projectId)
-            } catch (e: IllegalArgumentException) {
-                console.writeError("Invalid UUID format. Please enter a valid UUID.")
-                return
+            val uuid = parseUUID(projectId) ?: return
+
+            val result = getAuditLogUseCase(uuid, AuditedEntityType.PROJECT)
+            if (result.isNotEmpty()) {
+                displayAuditLogs(result)
+            } else {
+                console.write("No audit logs found for this project.")
             }
-
-
-            getAuditLogUseCase(uuid, AuditedEntityType.PROJECT)
-                .onSuccess { logs ->
-                    displayAuditLogs(logs)
-                }
-                .onFailure { e ->
-                    console.writeError("Failed to fetch project audit logs: ${e.message}")
-                }
         } catch (e: Exception) {
             console.writeError("Failed to fetch project audit logs: ${e.message}")
         }
     }
 
-    private fun viewTaskAudit() {
+    private suspend fun viewTaskAudit() {
         console.write("\nEnter Task ID (UUID format): ")
         val taskId = console.read().trim()
 
@@ -75,22 +68,25 @@ class AuditScreen(
         }
 
         try {
-            val uuid = try {
-                UUID.fromString(taskId)
-            } catch (e: IllegalArgumentException) {
-                console.writeError("Invalid UUID format. Please enter a valid UUID.")
-                return
-            }
+            val uuid = parseUUID(taskId) ?: return
 
-            getAuditLogUseCase(uuid, AuditedEntityType.TASK)
-                .onSuccess { logs ->
-                    displayAuditLogs(logs)
-                }
-                .onFailure { e ->
-                    console.writeError("Failed to fetch task audit logs: ${e.message}")
-                }
+            val result = getAuditLogUseCase(uuid, AuditedEntityType.TASK)
+            if (result.isNotEmpty()) {
+                displayAuditLogs(result)
+            } else {
+                console.write("No audit logs found for this task.")
+            }
         } catch (e: Exception) {
             console.writeError("Failed to fetch task audit logs: ${e.message}")
+        }
+    }
+
+    private fun parseUUID(input: String): UUID? {
+        return try {
+            UUID.fromString(input)
+        } catch (e: IllegalArgumentException) {
+            console.writeError("Invalid UUID format. Please enter a valid UUID.")
+            null
         }
     }
 
