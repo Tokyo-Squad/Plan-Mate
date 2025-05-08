@@ -2,9 +2,8 @@ package logic.usecase.state
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.StateFakeData
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.DeleteStateUseCase
 import org.example.utils.PlanMateException
@@ -17,40 +16,35 @@ class DeleteStateUseCaseTest {
     private lateinit var useCase: DeleteStateUseCase
     private val fake = StateFakeData()
 
-    @BeforeEach fun setUp() {
-        repo = mockk(relaxed = true)
+    @BeforeEach
+    fun setUp() {
+        repo = mockk()
         useCase = DeleteStateUseCase(repo)
     }
 
-    @Test fun `invoke returns success when deletion succeeds`() {
-        //Given
+    @Test
+    fun `invoke returns true when deletion succeeds`() = runTest {
+        // Given
         val state = fake.createState()
-        every { repo.deleteState(state) } returns Result.success(true)
+        coEvery { repo.deleteState(state.id) } returns true
 
-        //When
-        val outer = useCase(state)
+        // When
+        val result = useCase(state)
 
-        //Then
-        assertThat(outer.isSuccess).isTrue()
-        val inner = outer.getOrNull()
-        assertThat(inner).isNotNull()
-        assertThat(inner!!.isSuccess).isTrue()
-        assertThat(inner.getOrNull()).isTrue()
-        verify(exactly = 1) { repo.deleteState(state) }
+        // Then
+        assertThat(result).isTrue()
+        coVerify(exactly = 1) { repo.deleteState(state.id) }
     }
 
-    @Test fun `invoke returns failure when repository throws ItemNotFoundException`() {
-        //Given
+    @Test
+    fun `invoke throws when repository throws ItemNotFoundException`() = runTest {
+        // Given
         val state = fake.createState()
         val ex = PlanMateException.ItemNotFoundException("not found")
-        every { repo.deleteState(state) } throws ex
+        coEvery { repo.deleteState(state.id) } throws ex
 
-        //When
-        val outer = useCase(state)
-
-        //Then
-        assertThat(outer.isFailure).isTrue()
-        assertThat(outer.exceptionOrNull()).isSameInstanceAs(ex)
+        // When / Then
+        val thrown = runCatching { useCase(state) }.exceptionOrNull()
+        assertThat(thrown).isSameInstanceAs(ex)
     }
-  
 }

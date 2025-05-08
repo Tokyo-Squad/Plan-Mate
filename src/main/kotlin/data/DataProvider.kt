@@ -3,9 +3,9 @@ package org.example.data
 import java.util.UUID
 
 interface DataProvider<Entity> {
-    fun add(item: Entity)
-    fun get(): List<Entity>
-    fun getById(id: UUID): Entity?
-    fun update(item: Entity)
-    fun delete(id: UUID)
+    suspend fun add(item: Entity)
+    suspend fun get(): List<Entity>
+    suspend fun getById(id: UUID): Entity?
+    suspend fun update(item: Entity)
+    suspend fun delete(id: UUID)
 }
