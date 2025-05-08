@@ -1,6 +1,5 @@
 package org.example.data.repository
 
-
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -22,7 +21,7 @@ class TaskRepositoryImpl(
     private val stateRepository: StateRepository
 ) : TaskRepository {
 
-    override suspend fun create(task: TaskEntity, currentUserId: UUID) {
+    override suspend fun add(task: TaskEntity, currentUserId: UUID) {
         dataProvider.add(task)
         audit(
             currentUserId,
@@ -64,7 +63,7 @@ class TaskRepositoryImpl(
             ?: throw PlanMateException.ItemNotFoundException("Project $projectId not found")
 
 
-    private fun generateUpdateDetails(
+    private suspend fun generateUpdateDetails(
         old: TaskEntity,
         new: TaskEntity,
         currentUserId: UUID,
@@ -101,7 +100,7 @@ class TaskRepositoryImpl(
     }
 
 
-    private fun audit(
+    private suspend fun audit(
         userId: UUID,
         entityId: UUID,
         action: AuditAction,

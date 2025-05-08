@@ -10,21 +10,21 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
-import org.example.logic.usecase.task.CreateTaskUseCase
+import org.example.logic.usecase.task.AddTaskUseCase
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-class CreateTaskUseCaseTest {
+class AddTaskUseCaseTest {
     private lateinit var repository: TaskRepository
-    private lateinit var useCase: CreateTaskUseCase
+    private lateinit var useCase: AddTaskUseCase
 
     @BeforeEach
     fun setUp() {
         repository = mockk(relaxed = true)
-        useCase = CreateTaskUseCase(repository)
+        useCase = AddTaskUseCase(repository)
     }
 
     @Test
@@ -42,7 +42,7 @@ class CreateTaskUseCaseTest {
 
         // When & Then
         assertDoesNotThrow { useCase(task, userId) }
-        coVerify { repository.create(task, userId) }
+        coVerify { repository.add(task, userId) }
     }
 
     @Test
@@ -57,11 +57,11 @@ class CreateTaskUseCaseTest {
             createdByUserId = userId,
             createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
         )
-        coEvery { repository.create(task, userId) } throws RuntimeException("Create failed")
+        coEvery { repository.add(task, userId) } throws RuntimeException("Create failed")
 
         // When & Then
         assertThrows<RuntimeException> { useCase(task, userId) }
-        coVerify { repository.create(task, userId) }
+        coVerify { repository.add(task, userId) }
     }
 
     @Test
@@ -79,6 +79,6 @@ class CreateTaskUseCaseTest {
 
         // When & Then
         assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }
-        coVerify(exactly = 0) { repository.create(any(), any()) }
+        coVerify(exactly = 0) { repository.add(any(), any()) }
     }
 }
