@@ -2,15 +2,14 @@ package org.example.logic.usecase.task
 
 import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
-import org.example.utils.PlanMateException
-import java.util.UUID
+import java.util.*
 
 class UpdateTaskUseCase(
     private val taskRepository: TaskRepository,
 ) {
     suspend operator fun invoke(task: TaskEntity, currentUserId: UUID) {
         if (task.title.isBlank())
-            throw PlanMateException.ValidationException("title cannot be empty")
+            throw IllegalArgumentException("title cannot be empty")
         taskRepository.update(task, currentUserId)
     }
 }

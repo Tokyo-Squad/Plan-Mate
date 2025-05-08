@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.AddTaskUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -54,7 +55,7 @@ class AddTaskUseCaseTest {
         val taskWithBlankTitle = createTaskEntityTest(title = "")
 
         // When & Then
-        assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }
+        assertThrows<PlanMateException.ValidationException> { useCase(taskWithBlankTitle, userId) }
         coVerify(exactly = 0) { repository.add(any(), any()) }
     }
 }
