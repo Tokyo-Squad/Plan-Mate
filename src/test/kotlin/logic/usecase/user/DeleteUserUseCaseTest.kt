@@ -1,16 +1,18 @@
 package logic.usecase.user
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.DeleteUserUseCase
+import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import java.util.*
 import kotlin.test.Test
-import java.util.UUID
 
 class DeleteUserUseCaseTest {
     private lateinit var repository: UserRepository
@@ -23,7 +25,7 @@ class DeleteUserUseCaseTest {
     }
 
     @Test
-    fun `should succeed when non-MATE user deletes user`() {
+    fun `should succeed when non-MATE user deletes user`() = runTest {
         // Given
         val id = UUID.randomUUID()
         val adminUser = UserEntity(
@@ -31,18 +33,16 @@ class DeleteUserUseCaseTest {
             password = "pwd",
             type = UserType.ADMIN
         )
-        every { repository.delete(id) } returns Result.success(Unit)
 
         // When
-        val result = useCase(id, adminUser)
+        useCase(id, adminUser)
 
         // Then
-        assertThat(result.isSuccess)
-        verify { repository.delete(id) }
+        coVerify { repository.delete(id) }
     }
 
     @Test
-    fun `should fail when MATE user deletes user`() {
+    fun `should throw exception when MATE user deletes user`() = runTest {
         // Given
         val id = UUID.randomUUID()
         val mateUser = UserEntity(
@@ -51,16 +51,17 @@ class DeleteUserUseCaseTest {
             type = UserType.MATE
         )
 
-        // When
-        val result = useCase(id, mateUser)
+        // When/Then
+        val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
+            useCase(id, mateUser)
+        }
 
-        // Then
-        assertThat(result.isFailure)
-        verify(exactly = 0) { repository.delete(any()) }
+        assert(exception.message?.contains("MATE users are not allowed") == true)
+        coVerify(exactly = 0) { repository.delete(any()) }
     }
 
     @Test
-    fun `should fail when repository delete fails`() {
+    fun `should throw exception when repository delete fails`() = runTest {
         // Given
         val id = UUID.randomUUID()
         val adminUser = UserEntity(
@@ -69,13 +70,14 @@ class DeleteUserUseCaseTest {
             type = UserType.ADMIN
         )
         val exception = RuntimeException("Deletion error")
-        every { repository.delete(id) } returns Result.failure(exception)
+        coEvery { repository.delete(id) } throws exception
 
-        // When
-        val result = useCase(id, adminUser)
+        // When/Then
+        val thrown = assertThrows<RuntimeException> {
+            useCase(id, adminUser)
+        }
 
-        // Then
-        assertThat(result.isFailure)
-        verify { repository.delete(id) }
+        assert(thrown.message == "Deletion error")
+        coVerify { repository.delete(id) }
     }
 }

@@ -2,7 +2,9 @@ package logic.usecase.state
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.StateFakeData
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.DeleteStateUseCase

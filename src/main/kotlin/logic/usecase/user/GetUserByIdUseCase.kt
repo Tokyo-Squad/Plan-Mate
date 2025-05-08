@@ -7,5 +7,7 @@ import java.util.*
 class GetUserByIdUseCase(
     private val userRepository: UserRepository
 ) {
-    operator fun invoke(id: UUID): Result<UserEntity> = runCatching { userRepository.getUserById(id).getOrThrow() }
+    suspend operator fun invoke(id: UUID): UserEntity {
+        return userRepository.getUserById(id)
+    }
 }

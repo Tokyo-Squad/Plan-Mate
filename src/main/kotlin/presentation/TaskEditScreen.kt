@@ -5,9 +5,9 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.example.entity.TaskEntity
-import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
+import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.task.*
 import org.example.presentation.io.ConsoleIO
 import java.util.*

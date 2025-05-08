@@ -6,5 +6,7 @@ import org.example.logic.repository.UserRepository
 class GetUsersUseCase(
     private val userRepository: UserRepository
 ) {
-    operator fun invoke(): Result<List<UserEntity>> = runCatching { userRepository.getUsers().getOrThrow() }
+    suspend operator fun invoke(): List<UserEntity> {
+        return userRepository.getUsers()
+    }
 }
