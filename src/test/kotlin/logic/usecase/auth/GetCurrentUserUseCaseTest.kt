@@ -1,80 +1,65 @@
 package logic.usecase.auth
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.utils.PlanMateException
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-
+import org.junit.jupiter.api.assertThrows
 
 class GetCurrentUserUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val getCurrentUserUseCase = GetCurrentUserUseCase(authRepository)
 
     @Test
-    fun `should return authenticated user when session is valid`() {
-        val expectedUser = UserEntity(
+    fun `should return user when user is authenticated`() = runTest {
+        // arrange
+        val currentUser = UserEntity(
             username = "testUser",
             password = "password123",
             type = UserType.MATE
         )
-        every { authRepository.getCurrentUser() } returns Result.success(expectedUser)
+        coEvery { authRepository.getCurrentUser() } returns currentUser
 
+        // act
         val result = getCurrentUserUseCase()
 
-        assertThat(result.getOrNull()).isEqualTo(expectedUser)
+        // assert
+        assertEquals(currentUser, result)
+        coVerify { authRepository.getCurrentUser() }
     }
 
     @Test
-    fun `should return null when no user is authenticated`() {
-        every { authRepository.getCurrentUser() } returns Result.success(null)
+    fun `should return null when no user is authenticated`() = runTest {
+        // arrange
+        coEvery { authRepository.getCurrentUser() } returns null
 
+        // act
         val result = getCurrentUserUseCase()
 
-        assertThat(result.getOrNull()).isNull()
+        // assert
+        assertNull(result)
+        coVerify { authRepository.getCurrentUser() }
     }
 
     @Test
-    fun `should propagate RuntimeException when repository fails`() {
+    fun `should throw exception when repository operation fails`() = runTest {
+        // arrange
         val expectedError = RuntimeException("Failed to get current user")
-        every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
+        coEvery { authRepository.getCurrentUser() } throws expectedError
 
-        val result = getCurrentUserUseCase()
+        // act/assert
+        val thrown = assertThrows<RuntimeException> {
+            getCurrentUserUseCase()
+        }
 
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
-    }
-
-    @Test
-    fun `should propagate ValidationException when session is invalid`() {
-        val expectedError = PlanMateException.ValidationException("Invalid session")
-        every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
-
-        val result = getCurrentUserUseCase()
-
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
-    }
-
-    @Test
-    fun `should call authRepository exactly once`() {
-        every { authRepository.getCurrentUser() } returns Result.success(null)
-
-        getCurrentUserUseCase()
-
-        verify(exactly = 1) { authRepository.getCurrentUser() }
-    }
-
-    @Test
-    fun `should propagate ItemNotFoundException when user not found`() {
-        val expectedError = PlanMateException.ItemNotFoundException("User not found")
-        every { authRepository.getCurrentUser() } returns Result.failure(expectedError)
-
-        val result = getCurrentUserUseCase()
-
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
+        assertEquals("Failed to get current user", thrown.message)
+        coVerify { authRepository.getCurrentUser() }
     }
 }

@@ -8,13 +8,15 @@ import org.example.utils.PlanMateException
 class RegisterUseCase(
     private val authRepository: AuthenticationRepository
 ) {
-
-    operator fun invoke(newUser: UserEntity, currentUser: UserEntity): Result<Unit> {
+    suspend operator fun invoke(newUser: UserEntity, currentUser: UserEntity) {
         if (currentUser.type == UserType.MATE) {
-            return Result.failure(
-                PlanMateException.UserActionNotAllowedException("MATE users cannot create new users.")
-            )
+            throw PlanMateException.UserActionNotAllowedException("MATE users cannot create new users.")
         }
-        return authRepository.register(newUser, currentUser)
+
+        if (newUser.username.isBlank()) {
+            throw PlanMateException.ValidationException("Username cannot be empty")
+        }
+
+        authRepository.register(newUser, currentUser)
     }
 }
