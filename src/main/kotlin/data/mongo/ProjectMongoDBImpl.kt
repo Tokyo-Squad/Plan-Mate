@@ -60,7 +60,7 @@ class ProjectMongoDBImpl(
 
     private fun ProjectEntity.toDocument(): Document {
         return Document().apply {
-            put("_id", id)
+            put("id", id)
             put("name", name)
             put("createdByAdminId", createdByAdminId)
             put("createdAt", createdAt.toString())
@@ -69,7 +69,7 @@ class ProjectMongoDBImpl(
 
     private fun Document.toProjectEntity(): ProjectEntity {
         return ProjectEntity(
-            id = UUID.fromString("_id"),
+            id = get("id", UUID::class.java),
             name = getString("name"),
             createdByAdminId = UUID.fromString("createdByAdminId"),
             createdAt = LocalDateTime.parse(getString("createdAt"))

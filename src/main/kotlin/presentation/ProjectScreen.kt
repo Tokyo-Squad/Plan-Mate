@@ -1,8 +1,12 @@
 package org.example.presentation
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 import java.util.*
+
 
 class ProjectScreen(
     private val console: ConsoleIO,
@@ -11,18 +15,25 @@ class ProjectScreen(
 ) {
     suspend fun show(projectId: String) {
         try {
-            val projectResult = getProjectUseCase.invoke(projectId = UUID.fromString(projectId))
+            val project = withContext(Dispatchers.IO) {
+                getProjectUseCase.invoke(UUID.fromString(projectId))
+            }
 
             while (true) {
-                console.write("\n=== Project: ${projectResult.name} ===")
+                console.write("\n=== Project: ${project.name} ===")
                 when (showProjectMenu()) {
-                    1 -> taskEditScreen.showTasksForProject(projectResult.id)
+                    1 -> withContext(Dispatchers.IO) {
+                        taskEditScreen.showTasksForProject(project.id)
+                    }
                     2 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: PlanMateException) {
             console.writeError("Failed to load project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error loading project: ${e.message}")
+            e.printStackTrace()
         }
     }
 

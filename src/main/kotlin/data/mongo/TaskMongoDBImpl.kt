@@ -3,13 +3,13 @@ package org.example.data.mongo
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.datetime.toLocalDateTime
 import org.bson.Document
 import org.example.data.DataProvider
 import org.example.entity.TaskEntity
-import org.example.utils.PlanMateException
-import kotlinx.datetime.toLocalDateTime
 import org.example.utils.MongoExceptionHandler
-import java.util.UUID
+import org.example.utils.PlanMateException
+import java.util.*
 
 class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<TaskEntity> {
     private val collection: MongoCollection<Document> by lazy {
@@ -54,7 +54,7 @@ class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<Tas
 
 
     private fun TaskEntity.toDocument() = Document().apply {
-        append("_id", id)
+        append("id", id)
         append("title", title)
         append("description", description)
         append("stateId", stateId)
@@ -64,7 +64,7 @@ class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<Tas
     }
 
     private fun Document.toTaskEntity() = TaskEntity(
-        id = get("_id", UUID::class.java),
+        id = get("id", UUID::class.java),
         title = getString("title"),
         description = getString("description"),
         stateId = get("stateId", UUID::class.java),

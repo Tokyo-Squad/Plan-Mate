@@ -1,3 +1,5 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.entity.ProjectEntity
 import org.example.logic.usecase.project.ListProjectsUseCase
 import org.example.presentation.AuditScreen
@@ -5,6 +7,7 @@ import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
 import kotlin.coroutines.cancellation.CancellationException
+
 
 class MateScreen(
     private val console: ConsoleIO,
@@ -22,7 +25,9 @@ class MateScreen(
                 displayMainMenu()
                 when (getMenuSelection()) {
                     MainMenuOption.VIEW_PROJECTS -> handleProjects()
-                    MainMenuOption.VIEW_AUDIT_LOGS -> auditScreen.show()
+                    MainMenuOption.VIEW_AUDIT_LOGS -> withContext(Dispatchers.IO) {
+                        auditScreen.show()
+                    }
                     MainMenuOption.LOGOUT -> return
                     MainMenuOption.INVALID -> console.writeError("Invalid option. Please try again.")
                 }
@@ -32,6 +37,7 @@ class MateScreen(
                 console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
                 console.writeError("An unexpected error occurred: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -55,9 +61,15 @@ class MateScreen(
 
     private suspend fun handleProjects() {
         val projects = try {
-            getProjectsUseCase()
-        } catch (e: Exception) {
+            withContext(Dispatchers.IO) {
+                getProjectsUseCase.invoke()
+            }
+        } catch (e: PlanMateException) {
             console.writeError("Failed to load projects: ${e.message}")
+            return
+        } catch (e: Exception) {
+            console.writeError("Unexpected error loading projects: ${e.message}")
+            e.printStackTrace()
             return
         }
 
@@ -91,14 +103,19 @@ class MateScreen(
         try {
             val projectIndex = input.toInt() - 1
             if (projectIndex in projects.indices) {
-                projectScreen.show(projects[projectIndex].id.toString())
+                withContext(Dispatchers.IO) {
+                    projectScreen.show(projects[projectIndex].id.toString())
+                }
             } else {
                 console.writeError("Please enter a number between 1 and ${projects.size}")
             }
         } catch (e: NumberFormatException) {
             console.writeError("Invalid input. Please enter a number or 'back'")
-        } catch (e: Exception) {
+        } catch (e: PlanMateException) {
             console.writeError("Failed to view project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error viewing project: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

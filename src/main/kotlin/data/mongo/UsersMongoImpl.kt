@@ -72,7 +72,7 @@ class UsersMongoImpl(
 
     private fun toDocument(item: UserEntity): Document {
         return Document()
-            .append("_id", item.id.toString())
+            .append("id", item.id)
             .append("username", item.username)
             .append("password", item.password)
             .append("type", item.type.name)
@@ -81,7 +81,7 @@ class UsersMongoImpl(
     private fun fromDocument(doc: Document): UserEntity {
         return try {
             UserEntity(
-                id = UUID.fromString(doc.getString("_id")),
+                id = doc.get("id", UUID::class.java),
                 username = doc.getString("username"),
                 password = doc.getString("password"),
                 type = UserType.valueOf(doc.getString("type"))

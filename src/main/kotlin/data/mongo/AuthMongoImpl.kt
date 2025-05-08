@@ -40,7 +40,7 @@ class AuthMongoImpl(
 
     private fun toDocument(user: UserEntity): Document {
         return Document()
-            .append("_id", user.id.toString())
+            .append("id", user.id)
             .append("username", user.username)
             .append("password", user.password)
             .append("type", user.type.name)
@@ -49,7 +49,8 @@ class AuthMongoImpl(
     private fun fromDocument(doc: Document): UserEntity {
         return try {
             UserEntity(
-                id = UUID.fromString(doc.getString("_id")),
+                id = doc.get("id", UUID::class.java),
+
                 username = doc.getString("username"),
                 password = doc.getString("password"),
                 type = UserType.valueOf(doc.getString("type"))

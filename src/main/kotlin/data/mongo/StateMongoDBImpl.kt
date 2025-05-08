@@ -67,7 +67,7 @@ class StateMongoDBImpl(
 
     private fun toDocument(item: StateEntity): Document {
         return Document()
-            .append("_id", item.id.toString())
+            .append("id", item.id)
             .append("name", item.name)
             .append("projectId", item.projectId.toString())
     }
@@ -75,7 +75,7 @@ class StateMongoDBImpl(
     private fun fromDocument(doc: Document): StateEntity {
         return try {
             StateEntity(
-                id = UUID.fromString(doc.getString("_id")),
+                id = doc.get("id", UUID::class.java),
                 name = doc.getString("name"),
                 projectId = UUID.fromString(doc.getString("projectId"))
             )

@@ -1,18 +1,18 @@
 package org.example.data.mongo
 
 
-import org.example.data.DataProvider
-import org.example.entity.AuditLogEntity
-import org.example.utils.MongoExceptionHandler
 import com.mongodb.client.model.Filters
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
+import org.example.data.DataProvider
 import org.example.entity.AuditAction
+import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
-import java.util.UUID
+import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
+import java.util.*
 
 class AuditLogMongoDbImpl(
     private val mongoDBClient: MongoDBClient
@@ -60,7 +60,7 @@ class AuditLogMongoDbImpl(
 
     private fun toDocument(auditLog: AuditLogEntity): Document {
         return Document()
-            .append("_id", auditLog.id.toString())
+            .append("id", auditLog.id)
             .append("userId", auditLog.userId.toString())
             .append("entityType", auditLog.entityType.toString())
             .append("entityId", auditLog.entityId.toString())
@@ -72,7 +72,7 @@ class AuditLogMongoDbImpl(
     private fun fromDocument(document: Document): AuditLogEntity {
         return try {
             AuditLogEntity(
-                id = UUID.fromString(document.getString("_id")),
+                id = document.get("id", UUID::class.java),
                 userId = UUID.fromString(document.getString("userId")),
                 entityType = AuditedEntityType.valueOf(document.getString("entityType")),
                 entityId = UUID.fromString(document.getString("entityId")),

@@ -1,5 +1,7 @@
 package org.example.presentation
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.entity.ProjectEntity
 import org.example.entity.StateEntity
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
@@ -11,7 +13,9 @@ import org.example.logic.usecase.state.DeleteStateUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.state.UpdateStateUseCase
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 import java.util.*
+
 
 class ProjectEditScreen(
     private val console: ConsoleIO,
@@ -26,7 +30,9 @@ class ProjectEditScreen(
 ) {
     suspend fun show(projectId: String) {
         try {
-            val project = getProjectUseCase(UUID.fromString(projectId))
+            val project = withContext(Dispatchers.IO) {
+                getProjectUseCase.invoke(UUID.fromString(projectId))
+            }
 
             while (true) {
                 console.write("\n=== Edit Project: ${project.name} ===")
@@ -38,8 +44,11 @@ class ProjectEditScreen(
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: PlanMateException) {
             console.writeError("Failed to load project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error loading project: ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -52,7 +61,7 @@ class ProjectEditScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun editProjectName(project: ProjectEntity) {
+    private suspend fun editProjectName(project: ProjectEntity) {
         console.write("\n=== Edit Project Name ===")
         console.write("Enter new project name: ")
         val newName = console.read().trim()
@@ -63,34 +72,32 @@ class ProjectEditScreen(
         }
 
         try {
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
-            }
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
 
             val updatedProject = project.copy(name = newName)
 
-            updateProjectUseCase(
-                projectEntity = updatedProject,
-                currentUser = currentUser!!
-            ).onSuccess {
-                console.write("Project name updated successfully!")
-            }.onFailure { e ->
-                console.writeError("Failed to update project name: ${e.message}")
+            withContext(Dispatchers.IO) {
+                updateProjectUseCase.invoke(updatedProject, currentUser)
             }
-        } catch (e: Exception) {
+
+            console.write("Project name updated successfully!")
+        } catch (e: PlanMateException) {
             console.writeError("Failed to update project name: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error updating project name: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    private fun editProjectStates(project: ProjectEntity) {
+    private suspend fun editProjectStates(project: ProjectEntity) {
         while (true) {
             console.write("\n=== Edit Project States ===")
 
             try {
-                val states = getStatesByProjectId(project.id).getOrElse { e ->
-                    console.writeError("Failed to get states: ${e.message}")
-                    return
+                val states = withContext(Dispatchers.IO) {
+                    getStatesByProjectId.invoke(project.id)
                 }
 
                 console.write("Current states:")
@@ -118,7 +125,6 @@ class ProjectEditScreen(
                         }
                         editExistingState(states)
                     }
-
                     3 -> {
                         if (states.isEmpty()) {
                             console.writeError("No states to delete")
@@ -126,18 +132,21 @@ class ProjectEditScreen(
                         }
                         deleteState(states)
                     }
-
                     4 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
-            } catch (e: Exception) {
+            } catch (e: PlanMateException) {
                 console.writeError("Failed to manage project states: ${e.message}")
+                return
+            } catch (e: Exception) {
+                console.writeError("Unexpected error managing project states: ${e.message}")
+                e.printStackTrace()
                 return
             }
         }
     }
 
-    private fun addNewState(project: ProjectEntity) {
+    private suspend fun addNewState(project: ProjectEntity) {
         console.write("\n=== Add New State ===")
         console.write("Enter state name: ")
         val stateName = console.read().trim()
@@ -152,19 +161,21 @@ class ProjectEditScreen(
             name = stateName,
             projectId = project.id
         )
-        addStateUseCase(newState)
-            .onSuccess { result ->
-                result.onSuccess {
-                    console.write("State added successfully!")
-                }.onFailure { e ->
-                    console.writeError("Failed to add state: ${e.message}")
-                }
-            }.onFailure { e ->
-                console.writeError("Failed to add state: ${e.message}")
+
+        try {
+            withContext(Dispatchers.IO) {
+                addStateUseCase.invoke(newState)
             }
+            console.write("State added successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to add state: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error adding state: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
-    private fun editExistingState(states: List<StateEntity>) {
+    private suspend fun editExistingState(states: List<StateEntity>) {
         console.write("\n=== Edit Existing State ===")
         console.write("Select a state to edit (1-${states.size}): ")
         val stateIndex = console.read().toIntOrNull()?.minus(1) ?: -1
@@ -186,19 +197,20 @@ class ProjectEditScreen(
 
         val updatedState = selectedState.copy(name = newName)
 
-        updateStateUseCase(selectedState, updatedState)
-            .onSuccess { result ->
-                result.onSuccess {
-                    console.write("State updated successfully!")
-                }.onFailure { e ->
-                    console.writeError("Failed to update state: ${e.message}")
-                }
-            }.onFailure { e ->
-                console.writeError("Failed to update state: ${e.message}")
+        try {
+            withContext(Dispatchers.IO) {
+                updateStateUseCase.invoke(selectedState, updatedState)
             }
+            console.write("State updated successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to update state: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error updating state: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
-    private fun deleteState(states: List<StateEntity>) {
+    private suspend fun deleteState(states: List<StateEntity>) {
         console.write("\n=== Delete State ===")
         console.write("Select a state to delete (1-${states.size}): ")
         val stateIndex = console.read().toIntOrNull()?.minus(1) ?: -1
@@ -217,16 +229,17 @@ class ProjectEditScreen(
             return
         }
 
-        deleteStateUseCase(selectedState)
-            .onSuccess { result ->
-                result.onSuccess {
-                    console.write("State deleted successfully!")
-                }.onFailure { e ->
-                    console.writeError("Failed to delete state: ${e.message}")
-                }
-            }.onFailure { e ->
-                console.writeError("Failed to delete state: ${e.message}")
+        try {
+            withContext(Dispatchers.IO) {
+                deleteStateUseCase.invoke(selectedState)
             }
+            console.write("State deleted successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to delete state: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error deleting state: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     private suspend fun handleProjectDeletion(project: ProjectEntity) {
@@ -242,14 +255,20 @@ class ProjectEditScreen(
         }
 
         try {
-            val currentUser = getCurrentUserUseCase().getOrElse { e ->
-                console.writeError("Failed to get current user: ${e.message}")
-                return
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            withContext(Dispatchers.IO) {
+                deleteProjectUseCase.invoke(project.id, currentUser.id)
             }
 
-            deleteProjectUseCase(projectId = project.id, currentUser = currentUser!!.id)
-        } catch (e: Exception) {
+            console.write("Project deleted successfully!")
+        } catch (e: PlanMateException) {
             console.writeError("Failed to delete project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error deleting project: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

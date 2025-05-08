@@ -1,13 +1,17 @@
 package org.example.presentation
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 import java.util.*
 
-class AuditScreen (
+
+class AuditScreen(
     private val console: ConsoleIO,
     private val getAuditLogUseCase: GetAuditLogUseCase,
 ) {
@@ -21,8 +25,11 @@ class AuditScreen (
                     3 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
+            } catch (e: PlanMateException) {
+                console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
-                console.writeError("Error: ${e.message}")
+                console.writeError("Unexpected error: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -47,14 +54,20 @@ class AuditScreen (
         try {
             val uuid = parseUUID(projectId) ?: return
 
-            val result = getAuditLogUseCase(uuid, AuditedEntityType.PROJECT)
-            if (result.isNotEmpty()) {
-                displayAuditLogs(result)
+            val logs = withContext(Dispatchers.IO) {
+                getAuditLogUseCase.invoke(uuid, AuditedEntityType.PROJECT)
+            }
+
+            if (logs.isNotEmpty()) {
+                displayAuditLogs(logs)
             } else {
                 console.write("No audit logs found for this project.")
             }
-        } catch (e: Exception) {
+        } catch (e: PlanMateException) {
             console.writeError("Failed to fetch project audit logs: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error fetching project audit logs: ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -70,14 +83,20 @@ class AuditScreen (
         try {
             val uuid = parseUUID(taskId) ?: return
 
-            val result = getAuditLogUseCase(uuid, AuditedEntityType.TASK)
-            if (result.isNotEmpty()) {
-                displayAuditLogs(result)
+            val logs = withContext(Dispatchers.IO) {
+                getAuditLogUseCase.invoke(uuid, AuditedEntityType.TASK)
+            }
+
+            if (logs.isNotEmpty()) {
+                displayAuditLogs(logs)
             } else {
                 console.write("No audit logs found for this task.")
             }
-        } catch (e: Exception) {
+        } catch (e: PlanMateException) {
             console.writeError("Failed to fetch task audit logs: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error fetching task audit logs: ${e.message}")
+            e.printStackTrace()
         }
     }
 
