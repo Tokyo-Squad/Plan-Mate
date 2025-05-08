@@ -6,7 +6,7 @@ import org.example.logic.repository.ProjectRepository
 class ListProjectsUseCase(
     private val projectRepository: ProjectRepository
 ) {
-    operator fun invoke(): Result<List<ProjectEntity>> {
+    suspend operator fun invoke(): List<ProjectEntity> {
         return projectRepository.getAllProjects()
     }
 }

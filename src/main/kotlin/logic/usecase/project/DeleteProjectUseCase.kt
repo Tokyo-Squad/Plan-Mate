@@ -6,13 +6,11 @@ import java.util.*
 class DeleteProjectUseCase(
     private val projectRepository: ProjectRepository,
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         projectId: UUID,
         currentUser: UUID
-    ): Result<Unit> {
-        return projectRepository.getProjectById(projectId.toString())
-            .mapCatching {
-                projectRepository.deleteProject(projectId, currentUser)
-            }
+    ) {
+        projectRepository.getProjectById(projectId.toString())
+        projectRepository.deleteProject(projectId, currentUser)
     }
 }

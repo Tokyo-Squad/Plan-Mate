@@ -59,6 +59,7 @@ class TaskCsvImpl(
             throw PlanMateException.FileWriteException("Error deleting task: ${e.message}")
         }
     }
+
     private fun loadFromCsv(): List<TaskEntity> {
         ensureFileExists()
         return readAndParseFile()
@@ -78,6 +79,7 @@ class TaskCsvImpl(
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
+
     private fun saveToCsv(data: List<TaskEntity>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }

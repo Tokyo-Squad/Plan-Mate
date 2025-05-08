@@ -12,6 +12,7 @@ import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectEditScreen
 import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 
 class AdminScreen(
     private val console: ConsoleIO,
@@ -23,8 +24,8 @@ class AdminScreen(
     private val projectEditScreen: ProjectEditScreen,
     private val auditScreen: AuditScreen,
 
-) {
-    fun show() {
+    ) {
+    suspend fun show() {
         while (true) {
             try {
                 console.write("\n=== Admin Dashboard ===")
@@ -52,8 +53,10 @@ class AdminScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun handleProjects() {
-        getProjectsUseCase().fold(onSuccess = { projects ->
+    private suspend fun handleProjects() {
+        try {
+            val projects = getProjectsUseCase()
+
             if (projects.isEmpty()) {
                 console.write("\nNo projects found.")
                 return
@@ -69,10 +72,12 @@ class AdminScreen(
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
-        }, onFailure = { error ->
-            console.writeError("Failed to load projects: ${error.message}")
-            console.writeError(error.printStackTrace().toString())
-        })
+        } catch (error: PlanMateException) {
+            console.writeError("Operation failed: ${error.message}")
+        } catch (error: Exception) {
+            console.writeError("Unexpected error: ${error.message}")
+            error.printStackTrace()
+        }
     }
 
     private fun displayProjects(projects: List<ProjectEntity>) {
@@ -90,7 +95,7 @@ class AdminScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun viewProject() {
+    private suspend fun viewProject() {
         console.write("Enter project ID: ")
         val projectId = console.read().trim()
 
@@ -106,7 +111,7 @@ class AdminScreen(
         }
     }
 
-    private fun editProject() {
+    private suspend fun editProject() {
         console.write("Enter project ID: ")
         val projectId = console.read().trim()
 
@@ -123,32 +128,31 @@ class AdminScreen(
     }
 
 
-    private fun createProject() {
-        console.write("\n=== Create New Project ===")
-        console.write("Enter project name: ")
-        val projectName = console.read().trim()
+    private suspend fun createProject() {
+        try {
+            console.write("\n=== Create New Project ===")
+            console.write("Enter project name: ")
+            val projectName = console.read().trim()
 
-        if (projectName.isBlank()) {
-            console.writeError("Project name cannot be empty")
-            return
-        }
-        val currentUser = getCurrentUser().getOrNull()
-        if (currentUser != null) {
-            createProjectUseCase(
-                ProjectEntity(
-                    name = projectName,
-                    createdByAdminId = currentUser.id,
-                    createdAt = Clock.System.now().toLocalDateTime(
-                        TimeZone.currentSystemDefault()
-                    )
-                ), currentUser
-            ).fold(onSuccess = {
-                console.write("Project created successfully!")
-            }, onFailure = { error ->
-                console.writeError("Failed to create project: ${error.message}")
-            })
-        } else {
-            console.writeError("Failed to get current user")
+            if (projectName.isBlank()) {
+                throw PlanMateException.ValidationException("Project name cannot be empty")
+            }
+
+            val currentUser =
+                getCurrentUser() ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            val newProject = ProjectEntity(
+                name = projectName,
+                createdByAdminId = currentUser.id,
+                createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            )
+
+            createProjectUseCase(newProject, currentUser)
+            console.write("Project created successfully!")
+
+        } catch (error: Exception) {
+            console.writeError("Failed to create project: ${error.message}")
+            error.printStackTrace()
         }
     }
 

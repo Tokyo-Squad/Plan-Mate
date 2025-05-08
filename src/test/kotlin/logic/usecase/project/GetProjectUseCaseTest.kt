@@ -1,12 +1,13 @@
 package logic.usecase.project
 
-import io.mockk.every
+import com.google.common.truth.Truth.assertThat
+import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.GetProjectUseCase
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.jupiter.api.assertThrows
 import java.util.*
 import kotlin.test.Test
 
@@ -16,21 +17,35 @@ class GetProjectUseCaseTest {
     private val testProjectId = UUID.randomUUID()
 
     @Test
-    fun `should return project when found`() {
+    fun `should return project when found`() = runTest {
         val expectedProject = mockk<ProjectEntity>()
-        every { mockRepo.getProjectById(any()) } returns Result.success(expectedProject)
+        coEvery { mockRepo.getProjectById(testProjectId.toString()) } returns expectedProject
 
         val result = useCase(testProjectId)
 
-        assertEquals(expectedProject, result.getOrNull())
+        assertThat(result).isEqualTo(expectedProject)
     }
 
     @Test
-    fun `should fail when project not found`() {
-        every { mockRepo.getProjectById(any()) } returns Result.failure(NoSuchElementException())
+    fun `should throw NoSuchElementException when project not found`() = runTest {
+        coEvery { mockRepo.getProjectById(any()) } throws NoSuchElementException("Project not found")
 
-        val result = useCase(testProjectId)
+        val exception = assertThrows<NoSuchElementException> {
+            useCase(testProjectId)
+        }
 
-        assertTrue(result.isFailure)
+        assertThat(exception).hasMessageThat().contains("Project not found")
+    }
+
+    @Test
+    fun `should propagate repository exceptions`() = runTest {
+        val expectedError = RuntimeException("Database error")
+        coEvery { mockRepo.getProjectById(any()) } throws expectedError
+
+        val exception = assertThrows<RuntimeException> {
+            useCase(testProjectId)
+        }
+
+        assertThat(exception).isSameInstanceAs(expectedError)
     }
 }

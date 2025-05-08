@@ -1,11 +1,12 @@
 package logic.usecase.project
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import com.google.common.truth.Truth.assertThat
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
+import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.DeleteProjectUseCase
-import org.junit.Assert.assertTrue
+import org.junit.jupiter.api.assertThrows
 import java.util.*
 import kotlin.test.Test
 
@@ -13,34 +14,42 @@ class DeleteProjectUseCaseTest {
     private val mockRepo = mockk<ProjectRepository>()
     private val useCase = DeleteProjectUseCase(mockRepo)
     private val testProjectId = UUID.randomUUID()
-    private val testUser = UUID.randomUUID()
+    private val testUserId = UUID.randomUUID()
+    private val testProject = mockk<ProjectEntity>()
 
     @Test
-    fun `should return success when deletion succeeds`() {
-        every { mockRepo.getProjectById(any()) } returns Result.success(mockk())
-        every { mockRepo.deleteProject(any(), any()) } returns Result.success(Unit)
+    fun `should delete when project exists`() = runTest {
+        coEvery { mockRepo.getProjectById(any()) } returns testProject
+        coEvery { mockRepo.deleteProject(any(), any()) } just Runs
 
-        val result = useCase(testProjectId, testUser)
+        useCase(testProjectId, testUserId) // Should not throw
 
-        assertTrue(result.isSuccess)
+        coVerify {
+            mockRepo.getProjectById(testProjectId.toString())
+            mockRepo.deleteProject(testProjectId, testUserId)
+        }
     }
 
     @Test
-    fun `should fail when project not found`() {
-        every { mockRepo.getProjectById(any()) } returns Result.failure(NoSuchElementException())
+    fun `should throw NoSuchElementException when project not found`() = runTest {
+        coEvery { mockRepo.getProjectById(any()) } throws
+                NoSuchElementException("Project not found")
 
-        val result = useCase(testProjectId, testUser)
-
-        assertTrue(result.isFailure)
+        assertThrows<NoSuchElementException> {
+            useCase(testProjectId, testUserId)
+        }
     }
 
     @Test
-    fun `should call delete with correct project ID`() {
-        every { mockRepo.getProjectById(any()) } returns Result.success(mockk())
-        every { mockRepo.deleteProject(any(), any()) } returns Result.success(Unit)
+    fun `should propagate delete exceptions`() = runTest {
+        val expectedError = RuntimeException("DB error")
+        coEvery { mockRepo.getProjectById(any()) } returns testProject
+        coEvery { mockRepo.deleteProject(any(), any()) } throws expectedError
 
-        useCase(testProjectId, testUser)
-
-        verify { mockRepo.deleteProject(testProjectId, any()) }
+        assertThrows<RuntimeException> {
+            useCase(testProjectId, testUserId)
+        }.also { exception ->
+            assertThat(exception).isSameInstanceAs(expectedError)
+        }
     }
 }
