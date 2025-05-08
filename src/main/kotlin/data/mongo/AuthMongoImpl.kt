@@ -34,8 +34,6 @@ class AuthMongoImpl(
     override suspend fun getCurrentUser(): UserEntity {
         return MongoExceptionHandler.handleOperation("fetching current user") {
             val document = currentUserCollection.find().first()
-                ?: throw PlanMateException.ItemNotFoundException("No current user found.")
-
             fromDocument(document)
         }
     }
