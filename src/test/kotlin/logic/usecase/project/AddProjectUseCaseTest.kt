@@ -4,11 +4,14 @@ import com.google.common.truth.Truth.assertThat
 import fakeData.fakeAdminEntity
 import fakeData.fakeProjectEntity
 import fakeData.fakeRegularUserEntity
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.AddProjectUseCase
 import org.example.utils.PlanMateException
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 
 class AddProjectUseCaseTest {
@@ -20,47 +23,52 @@ class AddProjectUseCaseTest {
     private val testProject = fakeProjectEntity()
 
     @Test
-    fun `should fail when user is not admin`() {
-        val result = useCase(testProject, regularUser)
+    fun `should throw UserActionNotAllowedException when user is not admin`() {
+        val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
+            runTest { useCase(testProject, regularUser) }
+        }
 
-        assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMateException.UserActionNotAllowedException::class.java)
+        assertThat(exception).hasMessageThat().contains("not authorized")
     }
 
     @Test
-    fun `should fail when project name is blank`() {
+    fun `should throw ValidationException when project name is blank`() {
         val blankProject = testProject.copy(name = "")
-        val result = useCase(blankProject, adminUser)
 
-        assertThat(result.exceptionOrNull())
-            .isInstanceOf(PlanMateException.ValidationException::class.java)
+        val exception = assertThrows<PlanMateException.ValidationException> {
+            runTest { useCase(blankProject, adminUser) }
+        }
+
+        assertThat(exception).hasMessageThat().contains("cannot be blank")
     }
 
     @Test
-    fun `should succeed when user is admin and project valid`() {
-        every { mockRepo.addProject(any()) } returns Result.success(testProject)
+    fun `should return project when user is admin and project valid`() = runTest {
+        coEvery { mockRepo.addProject(any()) } returns testProject
 
         val result = useCase(testProject, adminUser)
 
-        assertThat(result.isSuccess).isTrue()
+        assertThat(result).isEqualTo(testProject)
     }
 
     @Test
-    fun `should return project when creation succeeds`() {
-        every { mockRepo.addProject(any()) } returns Result.success(testProject)
-
-        val result = useCase(testProject, adminUser)
-
-        assertThat(result.getOrNull()).isEqualTo(testProject)
-    }
-
-    @Test
-    fun `should propagate repository failure`() {
+    fun `should propagate repository exceptions`() = runTest {
         val error = RuntimeException("DB error")
-        every { mockRepo.addProject(any()) } returns Result.failure(error)
+        coEvery { mockRepo.addProject(any()) } throws error
 
-        val result = useCase(testProject, adminUser)
+        val exception = assertThrows<RuntimeException> {
+            useCase(testProject, adminUser)
+        }
 
-        assertThat(result.exceptionOrNull()).isEqualTo(error)
+        assertThat(exception).isEqualTo(error)
+    }
+
+    @Test
+    fun `should call repository exactly once`() = runTest {
+        coEvery { mockRepo.addProject(any()) } returns testProject
+
+        useCase(testProject, adminUser)
+
+        coVerify(exactly = 1) { mockRepo.addProject(any()) }
     }
 }

@@ -9,7 +9,6 @@ import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.entity.ProjectEntity
 import org.example.logic.repository.ProjectRepository
-import org.example.utils.PlanMateException
 import java.util.*
 
 class ProjectRepositoryImpl(
@@ -17,84 +16,61 @@ class ProjectRepositoryImpl(
     private val auditDataProvider: DataProvider<AuditLogEntity>
 ) : ProjectRepository {
 
-    override fun addProject(project: ProjectEntity): Result<ProjectEntity> {
-        return try {
-            require(project.name.isNotBlank()) { "Project name cannot be blank" }
-            projectDataProvider.add(project)
+    override suspend fun addProject(project: ProjectEntity): ProjectEntity {
+        require(project.name.isNotBlank()) { "Project name cannot be blank" }
 
-            auditDataProvider.add(
-                AuditLogEntity(
-                    userId = project.createdByAdminId,
-                    entityType = AuditedEntityType.PROJECT,
-                    entityId = project.id,
-                    action = AuditAction.CREATE,
-                    changeDetails = "Created project: ${project.name}",
-                    timestamp = Clock.System.now().toLocalDateTime(UTC)
-                )
+        projectDataProvider.add(project)
+        auditDataProvider.add(
+            AuditLogEntity(
+                userId = project.createdByAdminId,
+                entityType = AuditedEntityType.PROJECT,
+                entityId = project.id,
+                action = AuditAction.CREATE,
+                changeDetails = "Created project: ${project.name}",
+                timestamp = Clock.System.now().toLocalDateTime(UTC)
             )
-            Result.success(project)
-        } catch (e: PlanMateException) {
-            Result.failure(e)
-        }
+        )
+        return project
     }
 
-    override fun updateProject(project: ProjectEntity, currentUserId: UUID): Result<ProjectEntity> {
-        return try {
-            projectDataProvider.update(project)
+    override suspend fun updateProject(project: ProjectEntity, currentUserId: UUID): ProjectEntity {
+        projectDataProvider.update(project)
 
-            auditDataProvider.add(
-                AuditLogEntity(
-                    userId = currentUserId,
-                    entityType = AuditedEntityType.PROJECT,
-                    entityId = project.id,
-                    action = AuditAction.UPDATE,
-                    changeDetails = "Updated project: ${project.name}",
-                    timestamp = Clock.System.now().toLocalDateTime(UTC)
-                )
+        auditDataProvider.add(
+            AuditLogEntity(
+                userId = currentUserId,
+                entityType = AuditedEntityType.PROJECT,
+                entityId = project.id,
+                action = AuditAction.UPDATE,
+                changeDetails = "Updated project: ${project.name}",
+                timestamp = Clock.System.now().toLocalDateTime(UTC)
             )
-            Result.success(project)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        )
+        return project
     }
 
-    override fun deleteProject(projectId: UUID, currentUserId: UUID): Result<Unit> {
-        return try {
-            val project = projectDataProvider.getById(projectId) ?: throw NoSuchElementException("Project not found")
 
-            projectDataProvider.delete(projectId)
+    override suspend fun deleteProject(projectId: UUID, currentUserId: UUID) {
+        val project = projectDataProvider.getById(projectId)
+            ?: throw NoSuchElementException("Project not found")
+        projectDataProvider.delete(projectId)
 
-            auditDataProvider.add(
-                AuditLogEntity(
-                    userId = currentUserId,
-                    entityType = AuditedEntityType.PROJECT,
-                    entityId = projectId,
-                    action = AuditAction.DELETE,
-                    changeDetails = "Deleted project: ${project.name}",
-                    timestamp = Clock.System.now().toLocalDateTime(UTC)
-                )
+        auditDataProvider.add(
+            AuditLogEntity(
+                userId = currentUserId,
+                entityType = AuditedEntityType.PROJECT,
+                entityId = projectId,
+                action = AuditAction.DELETE,
+                changeDetails = "Deleted project: ${project.name}",
+                timestamp = Clock.System.now().toLocalDateTime(UTC)
             )
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        )
     }
 
-    override fun getAllProjects(): Result<List<ProjectEntity>> {
-        return try {
-            Result.success(projectDataProvider.get())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    override suspend fun getAllProjects(): List<ProjectEntity> = projectDataProvider.get()
 
-    override fun getProjectById(projectId: String): Result<ProjectEntity> {
-        return try {
-            val uuid = UUID.fromString(projectId)
-            val project = projectDataProvider.getById(uuid) ?: throw NoSuchElementException("Project not found")
-            Result.success(project)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun getProjectById(projectId: String): ProjectEntity {
+        return projectDataProvider.getById(UUID.fromString(projectId))
+            ?: throw NoSuchElementException("Project not found")
     }
 }

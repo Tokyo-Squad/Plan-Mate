@@ -26,7 +26,7 @@ class TaskEditScreen(
     private val swimlaneRenderer: SwimlaneRenderer
 ) {
     // Existing show method for editing a specific task
-    fun show(taskId: String) {
+    private fun show(taskId: String) {
         while (true) {
             try {
                 console.write("\n=== Edit Task ===")
@@ -44,12 +44,9 @@ class TaskEditScreen(
     }
 
     // New method to show tasks for a project and manage them
-    fun showTasksForProject(projectId: UUID) {
+    suspend fun showTasksForProject(projectId: UUID) {
         try {
-            val project = getProjectUseCase(projectId).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
+            val project = getProjectUseCase(projectId)
 
             while (true) {
                 console.write("\n=== Tasks for Project: ${project.name} ===")
@@ -211,16 +208,13 @@ class TaskEditScreen(
     }
 
     // New methods moved from ProjectScreen
-    private fun viewTasks(projectId: UUID) {
+    private suspend fun viewTasks(projectId: UUID) {
         try {
             val tasks = getTasksByProjectUseCase(projectId).getOrElse { e ->
                 console.writeError("Failed to load project: ${e.message}")
                 return
             }
-            val project = getProjectUseCase(projectId).getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
+            val project = getProjectUseCase(projectId)
             val states = getStatesByProjectId(project.id)
                 .getOrElse { exception ->
                     console.writeError("Failed to load states: ${exception.message}")
@@ -306,7 +300,7 @@ class TaskEditScreen(
         }
     }
 
-    private fun updateTaskStatus(projectId: UUID) {
+    private suspend fun updateTaskStatus(projectId: UUID) {
         try {
             viewTasks(projectId)
 
@@ -374,7 +368,7 @@ class TaskEditScreen(
         }
     }
 
-    private fun deleteTaskFromProject(projectId: UUID) {
+    private suspend fun deleteTaskFromProject(projectId: UUID) {
         try {
             viewTasks(projectId)
 

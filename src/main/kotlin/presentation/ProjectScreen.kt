@@ -9,18 +9,14 @@ class ProjectScreen(
     private val getProjectUseCase: GetProjectUseCase,
     private val taskEditScreen: TaskEditScreen
 ) {
-    fun show(projectId: String) {
+    suspend fun show(projectId: String) {
         try {
             val projectResult = getProjectUseCase.invoke(projectId = UUID.fromString(projectId))
-            val project = projectResult.getOrElse { e ->
-                console.writeError("Failed to load project: ${e.message}")
-                return
-            }
 
             while (true) {
-                console.write("\n=== Project: ${project.name} ===")
+                console.write("\n=== Project: ${projectResult.name} ===")
                 when (showProjectMenu()) {
-                    1 -> taskEditScreen.showTasksForProject(project.id)
+                    1 -> taskEditScreen.showTasksForProject(projectResult.id)
                     2 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
