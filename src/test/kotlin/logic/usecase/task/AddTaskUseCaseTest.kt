@@ -1,14 +1,11 @@
 package logic.usecase.task
 
+import fakeData.createTaskEntityTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.AddTaskUseCase
 import org.junit.jupiter.api.BeforeEach
@@ -31,14 +28,7 @@ class AddTaskUseCaseTest {
     fun `should succeed when repository create succeeds`() = runTest {
         // Given
         val userId = UUID.randomUUID()
-        val task = TaskEntity(
-            title = "Title",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
+        val task = createTaskEntityTest()
 
         // When & Then
         assertDoesNotThrow { useCase(task, userId) }
@@ -49,14 +39,7 @@ class AddTaskUseCaseTest {
     fun `should propagate exception when repository throws`() = runTest {
         // Given
         val userId = UUID.randomUUID()
-        val task = TaskEntity(
-            title = "Title",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
+        val task = createTaskEntityTest()
         coEvery { repository.add(task, userId) } throws RuntimeException("Create failed")
 
         // When & Then
@@ -68,14 +51,7 @@ class AddTaskUseCaseTest {
     fun `should fail when title is blank`() = runBlocking {
         // Given
         val userId = UUID.randomUUID()
-        val taskWithBlankTitle = TaskEntity(
-            title = "",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
+        val taskWithBlankTitle = createTaskEntityTest(title = "")
 
         // When & Then
         assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }

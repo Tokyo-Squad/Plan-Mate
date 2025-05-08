@@ -1,15 +1,12 @@
 package logic.usecase.task
 
 import com.google.common.truth.Truth.assertThat
+import fakeData.createTaskEntityTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.GetTasksByProjectIdUseCase
 import org.junit.jupiter.api.BeforeEach
@@ -32,16 +29,7 @@ class GetTasksByProjectIdUseCaseTest {
     @Test
     fun `should return list when repository returns data`() = runTest  {
         // Given
-        val list = listOf(
-            TaskEntity(
-                title = "Title",
-                description = "Desc",
-                stateId = UUID.randomUUID(),
-                projectId = UUID.randomUUID(),
-                createdByUserId = UUID.randomUUID(),
-                createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-            )
-        )
+        val list = listOf(createTaskEntityTest())
         coEvery { repository.getTasksByProjectId(projectId) } returns list
 
         // When

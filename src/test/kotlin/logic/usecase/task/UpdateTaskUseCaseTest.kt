@@ -1,14 +1,10 @@
 package logic.usecase.task
 
+import fakeData.createTaskEntityTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import org.example.entity.TaskEntity
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.UpdateTaskUseCase
 import org.junit.jupiter.api.BeforeEach
@@ -31,15 +27,7 @@ class UpdateTaskUseCaseTest {
     fun `should succeed when repository update succeeds`() = runTest {
         // Given
         val userId = UUID.randomUUID()
-        val task = TaskEntity(
-            title = "Title",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
-
+        val task = createTaskEntityTest()
         // When & Then
         assertDoesNotThrow { useCase(task, userId) }
         coVerify { repository.update(task, userId) }
@@ -49,15 +37,7 @@ class UpdateTaskUseCaseTest {
     fun `should throw IllegalArgumentException when title is blank`() = runTest {
         // Given
         val userId = UUID.randomUUID()
-        val taskWithBlankTitle = TaskEntity(
-            title = "",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
-
+        val taskWithBlankTitle = createTaskEntityTest(title = "")
         // When & Then
         assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }
         coVerify(exactly = 0) { repository.update(any(), any()) }
@@ -67,15 +47,7 @@ class UpdateTaskUseCaseTest {
     fun `should propagate exception when repository throws`() = runTest {
         // Given
         val userId = UUID.randomUUID()
-        val task = TaskEntity(
-            title = "Title",
-            description = "Desc",
-            stateId = UUID.randomUUID(),
-            projectId = UUID.randomUUID(),
-            createdByUserId = userId,
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        )
-
+        val task = createTaskEntityTest()
         coEvery { repository.update(task, userId) } throws RuntimeException("Update failed")
 
         // When & Then
