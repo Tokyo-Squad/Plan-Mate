@@ -23,7 +23,7 @@ class AddProjectUseCaseTest {
     private val testProject = fakeProjectEntity()
 
     @Test
-    fun `should throw UserActionNotAllowedException when user is not admin`() {
+    fun `should throw UserActionNotAllowedException when user is not admin`() = runTest {
         val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
             runTest { useCase(testProject, regularUser) }
         }
@@ -32,7 +32,7 @@ class AddProjectUseCaseTest {
     }
 
     @Test
-    fun `should throw ValidationException when project name is blank`() {
+    fun `should throw ValidationException when project name is blank`() = runTest {
         val blankProject = testProject.copy(name = "")
 
         val exception = assertThrows<PlanMateException.ValidationException> {

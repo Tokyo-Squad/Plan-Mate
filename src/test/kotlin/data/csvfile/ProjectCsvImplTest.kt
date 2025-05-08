@@ -1,6 +1,7 @@
 package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.entity.ProjectEntity
 import org.example.utils.PlanMateException
@@ -33,7 +34,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEntity_whenAddProject() {
+    fun shouldReturnEntity_whenAddProject() = runTest {
         // When
         projectCsv.add(project)
 
@@ -43,7 +44,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEntityById_whenExists() {
+    fun shouldReturnEntityById_whenExists() = runTest {
         // Given
         projectCsv.add(project)
 
@@ -55,7 +56,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() = runTest {
         // Given
         file.writeText("")
 
@@ -67,7 +68,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNull_whenEntityNotFound() {
+    fun shouldReturnNull_whenEntityNotFound() = runTest {
         // Given
 
         // When
@@ -78,7 +79,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldUpdateEntity_whenIdExists() {
+    fun shouldUpdateEntity_whenIdExists() = runTest {
         // Given
         projectCsv.add(project)
         val updated = project.copy(name = "Updated Project Name")
@@ -92,7 +93,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() {
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() = runTest {
         // Given
         val nonExistent = project.copy(id = UUID.randomUUID())
 
@@ -106,7 +107,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldDeleteEntity_whenIdExists() {
+    fun shouldDeleteEntity_whenIdExists() = runTest {
         // Given
         projectCsv.add(project)
 
@@ -118,7 +119,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() = runTest {
         // Given
         file.createNewFile()
         assertThat(file.exists()).isTrue()
@@ -133,7 +134,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEmptyList_whenFileIsEmpty() {
+    fun shouldReturnEmptyList_whenFileIsEmpty() = runTest {
         // Given
         file.writeText("")
 
@@ -145,7 +146,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenFileCreationFails() {
+    fun shouldThrowFileWriteException_whenFileCreationFails() = runTest {
         // Given
         val nonExistentDir = File(tempDir, "non_existent_dir")
         val failingFile = File(nonExistentDir, "projects.csv")
@@ -161,7 +162,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowException_whenCsvLineIsMalformed() {
+    fun shouldThrowException_whenCsvLineIsMalformed() = runTest {
         // Given
         file.writeText("invalid,line,also-invalid")
 
@@ -173,7 +174,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenWriteFails() {
+    fun shouldThrowFileWriteException_whenWriteFails() = runTest {
         // Given
         val readOnlyFile = File(tempDir, "projects.csv")
         readOnlyFile.createNewFile()
@@ -192,7 +193,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+    fun shouldThrowFileReadException_whenFileContentIsMalformed() = runTest {
         // Given
         file.writeText("invalid,line,malformed,content")
 
@@ -204,7 +205,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldSuccessfullyParseFile_whenValidContent() {
+    fun shouldSuccessfullyParseFile_whenValidContent() = runTest {
         // Given
         val validProject = ProjectEntity(
             id = UUID.randomUUID(),
@@ -222,7 +223,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() = runTest {
         // Given
         val validProject = ProjectEntity(
             id = UUID.randomUUID(),
@@ -241,7 +242,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() = runTest {
         // Given
         val nonExistentProject = project.copy(id = UUID.randomUUID())
 
@@ -255,7 +256,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenUpdatingNonExistentProject() {
+    fun shouldThrowItemNotFound_whenUpdatingNonExistentProject() = runTest {
         // Given
         val nonExistentProject = project.copy(id = UUID.randomUUID())
 
@@ -269,7 +270,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
+    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() = runTest {
         // Given
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
 
@@ -281,7 +282,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenDeleteFails() {
+    fun shouldThrowFileWriteException_whenDeleteFails() = runTest {
         // Given
         projectCsv.add(project)
         val readOnlyFile = File(tempDir, "projects.csv")
@@ -301,7 +302,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenUpdateFails() {
+    fun shouldThrowFileWriteException_whenUpdateFails() = runTest {
         // Given
         projectCsv.add(project)
         val readOnlyFile = File(tempDir, "projects.csv")
@@ -323,7 +324,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() = runTest {
         // Given
         projectCsv.add(project)
 
@@ -336,7 +337,7 @@ class ProjectCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() = runTest {
         // Given
         projectCsv.add(project)
 

@@ -1,6 +1,6 @@
 package org.example.di
 
-import AdminScreen
+import org.example.presentation.AdminScreen
 import MateScreen
 import SwimlaneRenderer
 import org.example.presentation.*
