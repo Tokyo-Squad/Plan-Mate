@@ -1,7 +1,8 @@
 package org.example.presentation
 
 import SwimlaneRenderer
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -12,7 +13,8 @@ import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.task.*
 import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
-import java.util.UUID
+import java.util.*
+
 
 class TaskEditScreen(
     private val console: ConsoleIO,
@@ -26,30 +28,35 @@ class TaskEditScreen(
     private val getProjectUseCase: GetProjectUseCase,
     private val swimlaneRenderer: SwimlaneRenderer
 ) {
-    private val currentUser by lazy { runBlocking { getCurrentUserUseCase() } }
-
-    fun displayTaskEditor(taskId: String) = runBlocking {
-        loop@ while (true) {
+    // Existing show method for editing a specific task, now with suspend modifier
+    private suspend fun show(taskId: String) {
+        while (true) {
             try {
                 console.write("\n=== Edit Task ===")
                 when (showMenu()) {
                     1 -> editTaskTitle(taskId)
                     2 -> editTaskDescription(taskId)
                     3 -> handleTaskDeletion(taskId)
-                    4 -> break@loop
+                    4 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
+            } catch (e: PlanMateException) {
+                console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
-                handleException(e)
+                console.writeError("Unexpected error: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
 
-    fun manageProjectTasks(projectId: UUID) = runBlocking {
+    // New method to show tasks for a project and manage them
+    suspend fun showTasksForProject(projectId: UUID) {
         try {
-            val project = getProjectUseCase(projectId)
+            val project = withContext(Dispatchers.IO) {
+                getProjectUseCase.invoke(projectId)
+            }
 
-            loop@ while (true) {
+            while (true) {
                 console.write("\n=== Tasks for Project: ${project.name} ===")
                 when (showProjectTasksMenu()) {
                     1 -> viewTasks(projectId)
@@ -57,175 +64,351 @@ class TaskEditScreen(
                     3 -> editSpecificTask()
                     4 -> updateTaskStatus(projectId)
                     5 -> deleteTaskFromProject(projectId)
-                    6 -> break@loop
+                    6 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
+        } catch (e: PlanMateException) {
+            console.writeError("Operation failed: ${e.message}")
         } catch (e: Exception) {
-            handleException(e)
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    private suspend fun editTaskTitle(taskId: String) = modifyTask(taskId) { task ->
-        task.copy(title = readNonEmptyInput("Enter new title: "))
+    private fun showProjectTasksMenu(): Int {
+        console.write("1. View Tasks")
+        console.write("2. Create Task")
+        console.write("3. Edit Task")
+        console.write("4. Update Status")
+        console.write("5. Delete Task")
+        console.write("6. Back")
+        console.write("\nSelect an option: ")
+        return console.read().toIntOrNull() ?: 0
     }
 
-    private suspend fun editTaskDescription(taskId: String) = modifyTask(taskId) { task ->
-        task.copy(description = readNonEmptyInput("Enter new description: "))
+    // Existing methods
+    private fun showMenu(): Int {
+        console.write("1. Edit Title")
+        console.write("2. Edit Description")
+        console.write("3. Delete Task")
+        console.write("4. Back")
+        console.write("\nSelect an option: ")
+        return console.read().toIntOrNull() ?: 0
     }
 
-    private suspend fun handleTaskDeletion(taskId: String) {
-        if (!confirmAction("Are you sure you want to delete this task?")) {
-            console.write("Deletion cancelled")
+    private suspend fun editTaskTitle(taskId: String) {
+        console.write("Enter new title: ")
+        val newTitle = console.read().trim()
+
+        if (newTitle.isBlank()) {
+            console.writeError("Title cannot be empty")
             return
         }
 
-        deleteTaskUseCase(taskId.toUUID(), currentUserId())
-        console.write("Task deleted successfully!")
+        try {
+            val taskUUID = UUID.fromString(taskId)
+
+            // Get current task
+            val currentTask = withContext(Dispatchers.IO) {
+                getTaskUseCase.invoke(taskUUID)
+            }
+
+            // Get current user
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            // Create updated task
+            val updatedTask = currentTask.copy(
+                title = newTitle
+            )
+
+            // Update task
+            withContext(Dispatchers.IO) {
+                updateTaskUseCase.invoke(updatedTask, currentUser.id)
+            }
+
+            console.write("Task title updated successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to update task title: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error updating task title: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun editTaskDescription(taskId: String) {
+        console.write("Enter new description: ")
+        val newDescription = console.read().trim()
+
+        if (newDescription.isBlank()) {
+            console.writeError("Description cannot be empty")
+            return
+        }
+
+        try {
+            val taskUUID = UUID.fromString(taskId)
+
+            // Get current task
+            val currentTask = withContext(Dispatchers.IO) {
+                getTaskUseCase.invoke(taskUUID)
+            }
+
+            // Get current user
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            // Create updated task
+            val updatedTask = currentTask.copy(
+                description = newDescription
+            )
+
+            // Update task
+            withContext(Dispatchers.IO) {
+                updateTaskUseCase.invoke(updatedTask, currentUser.id)
+            }
+
+            console.write("Task description updated successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to update task description: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error updating task description: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun handleTaskDeletion(taskId: String) {
+        console.write("Are you sure you want to delete this task? (yes/no): ")
+        val confirmation = console.read().trim().lowercase()
+
+        if (confirmation != "yes") {
+            console.write("Task deletion cancelled")
+            return
+        }
+
+        try {
+            val taskUUID = UUID.fromString(taskId)
+
+            // Get current user
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            // Delete task
+            withContext(Dispatchers.IO) {
+                deleteTaskUseCase.invoke(taskUUID, currentUser.id)
+            }
+
+            console.write("Task deleted successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to delete task: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error deleting task: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    // New methods moved from ProjectScreen
+    private suspend fun viewTasks(projectId: UUID) {
+        try {
+            val tasks = withContext(Dispatchers.IO) {
+                getTasksByProjectUseCase.invoke(projectId)
+            }
+
+            val project = withContext(Dispatchers.IO) {
+                getProjectUseCase.invoke(projectId)
+            }
+
+            val states = withContext(Dispatchers.IO) {
+                getStatesByProjectId.invoke(project.id)
+            }
+
+            val stateMap = states.associateBy({ it.id }, { it.name })
+            swimlaneRenderer.render(tasks, stateMap)
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to load tasks: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error loading tasks: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     private suspend fun createTask(projectId: UUID) {
         console.write("\n=== Create New Task ===")
-        val title = readNonEmptyInput("Enter task title: ")
-        val description = readNonEmptyInput("Enter task description: ")
 
-        val newTask = TaskEntity(
-            title = title,
-            description = description,
-            stateId = getInitialState(projectId),
-            projectId = projectId,
-            createdByUserId = currentUserId(),
-            createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        )
+        console.write("Enter task title: ")
+        val title = console.read().trim()
 
-        createTaskUseCase(newTask, currentUserId())
-        console.write("Task created successfully!")
-    }
+        if (title.isBlank()) {
+            console.writeError("Task title cannot be empty")
+            return
+        }
 
-    private suspend fun updateTaskStatus(projectId: UUID) {
-        viewTasks(projectId)
-        val taskId = readUUIDInput("\nEnter task ID to update: ")
-        val newStateId = selectState(projectId)
+        console.write("Enter task description: ")
+        val description = console.read().trim()
 
-        modifyTask(taskId.toString()) { it.copy(stateId = newStateId) }
-        console.write("Task status updated successfully!")
-    }
+        if (description.isBlank()) {
+            console.writeError("Task description cannot be empty")
+            return
+        }
 
-    private suspend fun deleteTaskFromProject(projectId: UUID) {
-        viewTasks(projectId)
-        val taskId = readUUIDInput("\nEnter task ID to delete: ")
+        try {
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
 
-        if (confirmAction("Confirm deletion?")) {
-            deleteTaskUseCase(taskId, currentUserId())
-            console.write("Task deleted successfully!")
-        } else {
-            console.write("Deletion cancelled")
+            // Get initial state for the project
+            val states = withContext(Dispatchers.IO) {
+                getStatesByProjectId.invoke(projectId)
+            }
+
+            // Assuming the first state is the initial state
+            val initialState = states.firstOrNull()?.id ?: run {
+                console.writeError("No states found for this project")
+                return
+            }
+
+            val newTask = TaskEntity(
+                title = title,
+                description = description,
+                stateId = initialState,
+                projectId = projectId,
+                createdByUserId = currentUser.id,
+                createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            )
+
+            withContext(Dispatchers.IO) {
+                createTaskUseCase.invoke(newTask, currentUser.id)
+            }
+
+            console.write("Task created successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to create task: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error creating task: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    private suspend fun modifyTask(
-        taskId: String,
-        update: suspend (TaskEntity) -> TaskEntity
-    ) {
-        val task = getTaskUseCase(taskId.toUUID())
-        val updatedTask = update(task)
-        updateTaskUseCase(updatedTask, currentUserId())
+    private suspend fun editSpecificTask() {
+        console.write("Enter task ID: ")
+        val taskId = console.read().trim()
+
+        if (taskId.isBlank()) {
+            console.writeError("Task ID cannot be empty")
+            return
+        }
+
+        try {
+            show(taskId)
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to edit task: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error editing task: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
-    private suspend fun getInitialState(projectId: UUID): UUID {
-        return getStatesByProjectId(projectId).firstOrNull()?.id
-            ?: throw PlanMateException.InvalidStateIdException("No states available for project $projectId")
+    private suspend fun updateTaskStatus(projectId: UUID) {
+        try {
+            viewTasks(projectId)
+
+            console.write("\nEnter task ID to update: ")
+            val taskId = console.read().trim()
+
+            if (taskId.isBlank()) {
+                console.writeError("Task ID cannot be empty")
+                return
+            }
+
+            // Get current task
+            val task = withContext(Dispatchers.IO) {
+                getTaskUseCase.invoke(UUID.fromString(taskId))
+            }
+
+            // Get states
+            val states = withContext(Dispatchers.IO) {
+                getStatesByProjectId.invoke(projectId)
+            }
+
+            if (states.isEmpty()) {
+                console.writeError("No states available for this project")
+                return
+            }
+
+            console.write("\nAvailable states:")
+            states.forEachIndexed { index, state ->
+                console.write("${index + 1}. ${state.name}")
+            }
+
+            console.write("\nSelect new state (enter number): ")
+            val stateIndex = console.read().toIntOrNull()?.minus(1)
+
+            if (stateIndex == null || stateIndex !in states.indices) {
+                console.writeError("Invalid state selection")
+                return
+            }
+
+            // Get current user
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            // Create updated task with new state
+            val updatedTask = task.copy(
+                stateId = states[stateIndex].id
+            )
+
+            // Update the task
+            withContext(Dispatchers.IO) {
+                updateTaskUseCase.invoke(updatedTask, currentUser.id)
+            }
+
+            console.write("Task status updated successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to update task status: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error updating task status: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
-    private suspend fun selectState(projectId: UUID): UUID {
-        val states = getStatesByProjectId(projectId)
-        states.forEachIndexed { i, st -> console.write("${i + 1}. ${st.name}") }
-        val index = readValidIndex("Select new state: ", states.size)
-        return states[index].id
+    private suspend fun deleteTaskFromProject(projectId: UUID) {
+        try {
+            viewTasks(projectId)
+
+            console.write("\nEnter task ID to delete: ")
+            val taskId = console.read().trim()
+
+            if (taskId.isBlank()) {
+                console.writeError("Task ID cannot be empty")
+                return
+            }
+
+            console.write("Are you sure you want to delete this task? (yes/no): ")
+            val confirmation = console.read().trim().lowercase()
+
+            if (confirmation != "yes") {
+                console.write("Task deletion cancelled")
+                return
+            }
+
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUserUseCase.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            withContext(Dispatchers.IO) {
+                deleteTaskUseCase.invoke(UUID.fromString(taskId), currentUser.id)
+            }
+
+            console.write("Task deleted successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to delete task: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error deleting task: ${e.message}")
+            e.printStackTrace()
+        }
     }
-
-    private fun showProjectTasksMenu(): Int {
-        return readMenuSelection(
-            """
-            1. View Tasks
-            2. Create Task
-            3. Edit Task
-            4. Update Status
-            5. Delete Task
-            6. Back
-            
-            Select an option: 
-            """.trimIndent()
-        )
-    }
-
-    private fun showMenu(): Int {
-        return readMenuSelection(
-            """
-            1. Edit Title
-            2. Edit Description
-            3. Delete Task
-            4. Back
-            
-            Select an option: 
-            """.trimIndent()
-        )
-    }
-
-    private fun readNonEmptyInput(prompt: String): String {
-        return readInput(prompt) { it.isNotBlank() }
-            ?: throw PlanMateException.ValidationException("Input cannot be empty.")
-    }
-
-    private fun readUUIDInput(prompt: String): UUID {
-        return readInput(prompt) { it.isValidUUID() }?.toUUID()
-            ?: throw PlanMateException.InvalidFormatException("Invalid UUID format.")
-    }
-
-    private fun readValidIndex(prompt: String, max: Int): Int {
-        val input = readInput(prompt) { it.isValidIndex(max) }
-        return input?.toInt()?.minus(1)
-            ?: throw PlanMateException.ValidationException("Invalid selection.")
-    }
-
-    private fun readMenuSelection(menuText: String): Int {
-        console.write(menuText)
-        return readInput("") { it.isValidMenuOption() }?.toInt()
-            ?: throw PlanMateException.ValidationException("Invalid menu selection.")
-    }
-
-    private inline fun readInput(
-        prompt: String,
-        validation: (String) -> Boolean
-    ): String? {
-        console.write(prompt)
-        return console.read().trim().takeIf(validation)
-    }
-
-    private fun confirmAction(prompt: String): Boolean {
-        return readInput("$prompt (yes/no): ") { it.equals("yes", true) } != null
-    }
-
-    private fun String.isValidUUID() = runCatching { UUID.fromString(this) }.isSuccess
-    private fun String.isValidIndex(max: Int) = toIntOrNull()?.let { it in 1..max } ?: false
-    private fun String.isValidMenuOption() = toIntOrNull()?.let { it > 0 } ?: false
-
-    private fun currentUserId() = currentUser?.id
-        ?: throw PlanMateException.AuthenticationException("User not authenticated.")
-
-    private suspend fun viewTasks(projectId: UUID) {
-        val tasks = getTasksByProjectUseCase(projectId)
-        val states = getStatesByProjectId(projectId).associate { it.id to it.name }
-        swimlaneRenderer.render(tasks, states)
-    }
-
-    private fun editSpecificTask() {
-        displayTaskEditor(readUUIDInput("Enter task ID: ").toString())
-    }
-
-    private fun handleException(e: Exception) {
-        console.writeError("Error: ${e.message ?: "Unknown error"}")
-    }
-
-    private fun String.toUUID() = UUID.fromString(this)
 }

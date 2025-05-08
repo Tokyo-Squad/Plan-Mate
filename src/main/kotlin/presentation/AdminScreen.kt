@@ -1,3 +1,5 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -23,8 +25,7 @@ class AdminScreen(
     private val projectScreen: ProjectScreen,
     private val projectEditScreen: ProjectEditScreen,
     private val auditScreen: AuditScreen,
-
-    ) {
+) {
     suspend fun show() {
         while (true) {
             try {
@@ -37,8 +38,11 @@ class AdminScreen(
                     5 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
+            } catch (e: PlanMateException) {
+                console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
-                console.writeError("Error: ${e.message}")
+                console.writeError("Unexpected error: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
@@ -55,7 +59,9 @@ class AdminScreen(
 
     private suspend fun handleProjects() {
         try {
-            val projects = getProjectsUseCase()
+            val projects = withContext(Dispatchers.IO) {
+                getProjectsUseCase.invoke()
+            }
 
             if (projects.isEmpty()) {
                 console.write("\nNo projects found.")
@@ -105,9 +111,14 @@ class AdminScreen(
         }
 
         try {
-            projectScreen.show(projectId)
-        } catch (e: Exception) {
+            withContext(Dispatchers.IO) {
+                projectScreen.show(projectId)
+            }
+        } catch (e: PlanMateException) {
             console.writeError("Failed to open project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -121,12 +132,16 @@ class AdminScreen(
         }
 
         try {
-            projectEditScreen.show(projectId)
-        } catch (e: Exception) {
+            withContext(Dispatchers.IO) {
+                projectEditScreen.show(projectId)
+            }
+        } catch (e: PlanMateException) {
             console.writeError("Failed to edit project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
         }
     }
-
 
     private suspend fun createProject() {
         try {
@@ -138,8 +153,9 @@ class AdminScreen(
                 throw PlanMateException.ValidationException("Project name cannot be empty")
             }
 
-            val currentUser =
-                getCurrentUser() ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUser.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
 
             val newProject = ProjectEntity(
                 name = projectName,
@@ -147,46 +163,57 @@ class AdminScreen(
                 createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
             )
 
-            createProjectUseCase(newProject, currentUser)
-            console.write("Project created successfully!")
+            withContext(Dispatchers.IO) {
+                createProjectUseCase.invoke(newProject, currentUser)
+            }
 
-        } catch (error: Exception) {
-            console.writeError("Failed to create project: ${error.message}")
-            error.printStackTrace()
+            console.write("Project created successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to create project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
         }
     }
 
-    private fun createMateUser() {
-        console.write("\n=== Create Mate User ===")
+    private suspend fun createMateUser() {
+        try {
+            console.write("\n=== Create Mate User ===")
 
-        console.write("Enter username: ")
-        val username = console.read().trim()
+            console.write("Enter username: ")
+            val username = console.read().trim()
 
-        if (username.isBlank()) {
-            console.writeError("Username cannot be empty")
-            return
+            if (username.isBlank()) {
+                throw PlanMateException.ValidationException("Username cannot be empty")
+            }
+
+            console.write("Enter password: ")
+            val password = console.read().trim()
+
+            if (password.isBlank()) {
+                throw PlanMateException.ValidationException("Password cannot be empty")
+            }
+
+            val currentUser = withContext(Dispatchers.IO) {
+                getCurrentUser.invoke()
+            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
+
+            val newUser = UserEntity(
+                username = username,
+                password = password,
+                type = UserType.MATE
+            )
+
+            withContext(Dispatchers.IO) {
+                createUserUseCase.invoke(newUser, currentUser)
+            }
+
+            console.write("Mate user created successfully!")
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to create user: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
         }
-
-        console.write("Enter password: ")
-        val password = console.read().trim()
-
-        if (password.isBlank()) {
-            console.writeError("Password cannot be empty")
-            return
-        }
-
-        getCurrentUser().fold(onSuccess = { currentUser ->
-            createUserUseCase(
-                newUser = UserEntity(
-                    username = username, password = password, type = UserType.MATE
-                ), currentUser = currentUser!!
-            ).fold(onSuccess = {
-                console.write("Mate user created successfully!")
-            }, onFailure = { error ->
-                console.writeError("Failed to create user: ${error.message}")
-            })
-        }, onFailure = { error ->
-            console.writeError("Failed to get current user: ${error.message}")
-        })
     }
 }

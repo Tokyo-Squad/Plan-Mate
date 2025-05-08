@@ -1,16 +1,14 @@
 package logic.usecase.auth
 
-import data.csvfile.UserCsvImpl
 import org.example.data.DataProvider
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import java.util.*
 
-class CreateDefaultAdminUseCase(private val userRepository: DataProvider<UserEntity>) {
-    operator fun invoke() {
-        if (userRepository !is UserCsvImpl) {
-            throw IllegalArgumentException("Expected UserCsvImpl, got ${userRepository.javaClass.name}")
-        }
+class CreateDefaultAdminUseCase(
+    private val userRepository: DataProvider<UserEntity>
+) {
+    suspend operator fun invoke() {
         try {
             // Check if admin already exists
             val existingAdmin = userRepository.get().find { it.type == UserType.ADMIN }

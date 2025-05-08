@@ -4,8 +4,7 @@ import data.csvfile.*
 import org.example.data.AuthProvider
 import org.example.data.DataProvider
 import org.example.data.csvfile.AuthProviderImpl
-import org.example.data.mongo.ProjectMongoDBImpl
-import org.example.data.mongo.AuditLogMongoDbImpl
+import org.example.data.mongo.*
 import org.example.data.repository.*
 import org.example.entity.*
 import org.example.logic.repository.*
@@ -21,53 +20,55 @@ val appModule = module {
     single(named("auth")) { "auth.csv" }
 
     single<DataProvider<ProjectEntity>>(named("projectDataProvider")) { ProjectCsvImpl(get(named("projects"))) }
+    single<DataProvider<ProjectEntity>>(named("projectDataProviderMongo")) { ProjectMongoDBImpl(get()) }
     single<DataProvider<StateEntity>>(named("stateDataProvider")) { StateCsvImpl(get(named("states"))) }
+    single<DataProvider<StateEntity>>(named("stateDataProviderMongo")) { StateMongoDBImpl(get()) }
     single<DataProvider<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
+    single<DataProvider<TaskEntity>>(named("taskDataProviderMongo")) { TaskMongoDBImpl(get()) }
     single<DataProvider<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
+    single<DataProvider<UserEntity>>(named("userDataProviderMongo")) { UsersMongoImpl(get()) }
     single<DataProvider<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
-    single<DataProvider<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get(named("auditLogs"))) }
-
+    single<DataProvider<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get()) }
     single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
+    single<AuthProvider>(named("authProviderMongo")) { AuthMongoImpl(get()) }
 
 
-    //MongoDB
-    single<DataProvider<ProjectEntity>>(named("projectMongoDBDataProvider")){ ProjectMongoDBImpl(get()) }
 
-    single<AuditLogRepository> { AuditLogRepositoryImpl(get(qualifier = named("auditDataProvider"))) }
+    single<AuditLogRepository> { AuditLogRepositoryImpl(get(qualifier = named("auditDataProviderMongo"))) }
     single<AuthenticationRepository> {
         AuthenticationRepositoryImpl(
+            get(named("authProviderMongo")),
             get(),
-            get(),
-            get(qualifier = named("userDataProvider"))
+            get(qualifier = named("userDataProviderMongo"))
         )
     }
     single<ProjectRepository> {
         ProjectRepositoryImpl(
             get(
-                qualifier = named("projectMongoDBDataProvider")
+                qualifier = named("projectDataProviderMongo")
             ), get(
-                qualifier = named("auditDataProvider")
+                qualifier = named("auditDataProviderMongo")
             )
         )
     }
     single<StateRepository> {
         StateRepositoryImpl(
             get(
-                qualifier = named("stateDataProvider")
+                qualifier = named("stateDataProviderMongo")
             )
         )
     }
     single<TaskRepository> {
         TaskRepositoryImpl(
             get(), get(
-                qualifier = named("taskDataProvider")
+                qualifier = named("taskDataProviderMongo")
             ), get()
         )
     }
     single<UserRepository> {
         UserRepositoryImpl(
             get(
-                qualifier = named("userDataProvider")
+                qualifier = named("userDataProviderMongo")
             )
         )
     }

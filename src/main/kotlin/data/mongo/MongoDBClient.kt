@@ -10,7 +10,7 @@ class MongoDBClient(
     private val username: String,
     private val password: String,
     private val clusterUrl: String = "cluster0.watzb0c.mongodb.net",
-    private val databaseName: String = "planMate"
+    private val databaseName: String = "PlanMate"
 ) {
 
     private val client: MongoClient

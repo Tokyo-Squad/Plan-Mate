@@ -2,12 +2,15 @@ package org.example.presentation
 
 import AdminScreen
 import MateScreen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.LoginUseCase
 import org.example.logic.usecase.auth.LogoutUseCase
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 import kotlin.system.exitProcess
 
 class PlanMateConsoleUI(
@@ -21,8 +24,12 @@ class PlanMateConsoleUI(
     private var currentUser: UserEntity? = null
 
     suspend fun start() {
-        currentUser = getCurrentUserUseCase.invoke().getOrNull()
-
+        // Initialize current user asynchronously
+        try {
+            currentUser = getCurrentUserUseCase()
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to get current user: ${e.message}")
+        }
 
         while (true) {
             try {
@@ -50,28 +57,37 @@ class PlanMateConsoleUI(
         }
     }
 
-    private fun showWelcome() {
-        console.write("\n=== Welcome to PlanMate v${VERSION} ===")
-        console.write("A Simple Task Management System")
-        console.write("------------------------------")
-        getCurrentUserUseCase.invoke().getOrElse {
-            console.writeError("Failed To get Current User ${it.message}")
-        }
-        currentUser?.let {
-            console.write("Logged in as: ${it.username} (${it.type})")
+    private suspend fun showWelcome() {
+        withContext(Dispatchers.IO) {
+            console.write("\n=== Welcome to PlanMate v${VERSION} ===")
+            console.write("A Simple Task Management System")
+            console.write("------------------------------")
+
+            // Refresh current user status
+            try {
+                currentUser = getCurrentUserUseCase()
+            } catch (e: PlanMateException) {
+                console.writeError("Failed to get Current User: ${e.message}")
+            }
+
+            currentUser?.let {
+                console.write("Logged in as: ${it.username} (${it.type})")
+            }
         }
     }
 
-    private fun showMainMenu(): Int {
-        if (currentUser != null) {
-            console.write("\n1. Continue to Dashboard")
-            console.write("2. Logout")
-        } else {
-            console.write("\n1. Login")
-            console.write("2. Exit")
+    private suspend fun showMainMenu(): Int {
+        return withContext(Dispatchers.IO) {
+            if (currentUser != null) {
+                console.write("\n1. Continue to Dashboard")
+                console.write("2. Logout")
+            } else {
+                console.write("\n1. Login")
+                console.write("2. Exit")
+            }
+            console.write("\nSelect an option: ")
+            console.read().toIntOrNull() ?: 0
         }
-        console.write("\nSelect an option: ")
-        return console.read().toIntOrNull() ?: 0
     }
 
     private suspend fun handleLogin() {
@@ -87,54 +103,65 @@ class PlanMateConsoleUI(
             console.write("\n=== Login ===")
             val credentials = getCredentials() ?: continue
 
-            loginUseCase(credentials.first, credentials.second).fold(
-                onSuccess = { user ->
-                    currentUser = user
-                    console.write("\nWelcome, ${user.username}!")
-                    console.write("Press Enter to continue...")
-                    console.read()
-                    routeToUserScreen(user)
-                    return
-                },
-                onFailure = { error ->
-                    attempts++
-                    val remainingAttempts = maxAttempts - attempts
-                    console.writeError("Login failed: ${error.message}")
-                    if (remainingAttempts > 0) {
-                        console.write("Remaining attempts: $remainingAttempts")
-                    } else {
-                        console.write("\nMaximum login attempts reached. Please try again later.")
+            try {
+                // Call login use case (doesn't return a user)
+                loginUseCase(credentials.first, credentials.second)
+
+                // After successful login, fetch the current user
+                try {
+                    currentUser = getCurrentUserUseCase()
+                    if (currentUser != null) {
+                        console.write("\nWelcome, ${currentUser!!.username}!")
                         console.write("Press Enter to continue...")
                         console.read()
+                        routeToUserScreen(currentUser!!)
                         return
+                    } else {
+                        console.writeError("Login succeeded but couldn't retrieve user information.")
                     }
+                } catch (e: PlanMateException) {
+                    console.writeError("Login succeeded but couldn't retrieve user information: ${e.message}")
                 }
-            )
+            } catch (e: PlanMateException) {
+                attempts++
+                val remainingAttempts = maxAttempts - attempts
+                console.writeError("Login failed: ${e.message}")
+                if (remainingAttempts > 0) {
+                    console.write("Remaining attempts: $remainingAttempts")
+                } else {
+                    console.write("\nMaximum login attempts reached. Please try again later.")
+                    console.write("Press Enter to continue...")
+                    console.read()
+                    return
+                }
+            }
         }
     }
 
-    private fun getCredentials(): Pair<String, String>? {
-        console.write("Username (or 'back' to return): ")
-        val username = console.read().trim()
+    private suspend fun getCredentials(): Pair<String, String>? {
+        return withContext(Dispatchers.IO) {
+            console.write("Username (or 'back' to return): ")
+            val username = console.read().trim()
 
-        if (username.equals("back", ignoreCase = true)) {
-            return null
+            if (username.equals("back", ignoreCase = true)) {
+                return@withContext null
+            }
+
+            if (username.isBlank()) {
+                console.writeError("Username cannot be empty")
+                return@withContext null
+            }
+
+            console.write("Password: ")
+            val password = console.read().trim()
+
+            if (password.isBlank()) {
+                console.writeError("Password cannot be empty")
+                return@withContext null
+            }
+
+            username to password
         }
-
-        if (username.isBlank()) {
-            console.writeError("Username cannot be empty")
-            return null
-        }
-
-        console.write("Password: ")
-        val password = console.read().trim()
-
-        if (password.isBlank()) {
-            console.writeError("Password cannot be empty")
-            return null
-        }
-
-        return username to password
     }
 
     private suspend fun routeToUserScreen(user: UserEntity) {
@@ -150,25 +177,25 @@ class PlanMateConsoleUI(
         }
     }
 
-    private fun exit() {
-        console.write("\nThank you for using PlanMate!")
-        console.write("Goodbye!")
-        exitProcess(0)
+    private suspend fun exit() {
+        withContext(Dispatchers.IO) {
+            console.write("\nThank you for using PlanMate!")
+            console.write("Goodbye!")
+            exitProcess(0)
+        }
+    }
+
+    private suspend fun logout() {
+        try {
+            logoutUseCase()
+            console.write("\nYou have been logged out successfully.")
+            currentUser = null
+        } catch (e: PlanMateException) {
+            console.writeError("Logout failed: ${e.message}")
+        }
     }
 
     companion object {
         const val VERSION = "1.0.0"
-    }
-
-    private fun logout() {
-        logoutUseCase().fold(
-            onSuccess = {
-                console.write("\nYou have been logged out successfully.")
-                currentUser = null
-            },
-            onFailure = { error ->
-                console.writeError("Logout failed: ${error.message}")
-            }
-        )
     }
 }
