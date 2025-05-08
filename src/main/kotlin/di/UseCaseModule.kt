@@ -1,7 +1,7 @@
 package org.example.di
 
 import logic.usecase.auth.CreateDefaultAdminUseCase
-import org.example.logic.usecase.GetStatesByProjectId
+import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.audit.AddAuditLogUseCase
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
