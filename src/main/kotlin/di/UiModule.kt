@@ -43,13 +43,13 @@ val uiModule = module {
         )
     }
 
-//    single {
-//        ProjectScreen(
-//            console = get(),
-//            getProjectUseCase = get(),
-//            taskEditScreen = get(),
-//        )
-//    }
+    single {
+        ProjectScreen(
+            console = get(),
+            getProjectUseCase = get(),
+            taskEditScreen = get(),
+        )
+    }
 
     single {
         ProjectEditScreen(
@@ -65,20 +65,20 @@ val uiModule = module {
         )
     }
 
-//    single {
-//        TaskEditScreen(
-//            console = get(),
-//            updateTaskUseCase = get(),
-//            deleteTaskUseCase = get(),
-//            getTaskUseCase = get(),
-//            getCurrentUserUseCase = get(),
-//            createTaskUseCase = get(),
-//            getStatesByProjectId = get(),
-//            getProjectUseCase = get(),
-//            getTasksByProjectUseCase = get(),
-//            swimlaneRenderer = get()
-//        )
-//    }
+    single {
+        TaskEditScreen(
+            console = get(),
+            updateTaskUseCase = get(),
+            deleteTaskUseCase = get(),
+            getTaskUseCase = get(),
+            getCurrentUserUseCase = get(),
+            createTaskUseCase = get(),
+            getStatesByProjectId = get(),
+            getProjectUseCase = get(),
+            getTasksByProjectUseCase = get(),
+            swimlaneRenderer = get()
+        )
+    }
 
     single {
         AuditScreen(
