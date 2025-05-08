@@ -1,14 +1,16 @@
 package logic.usecase.user
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUserByIdUseCase
+import org.example.utils.PlanMateException
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 import kotlin.test.Test
 
@@ -18,53 +20,59 @@ class GetUserByIdUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        repository = mockk(relaxed = true)
+        repository = mockk()
         useCase = GetUserByIdUseCase(repository)
     }
 
     @Test
-    fun `should return UserEntity when repository finds by id`() {
+    fun `should return UserEntity when repository finds by id`() = runTest {
         // Given
         val id = UUID.randomUUID()
-        val expected = UserEntity(id, "jane", "jane@example.com", type = UserType.MATE)
-        every { repository.getUserById(id) } returns Result.success(expected)
+        val expected = UserEntity(
+            id = id,
+            username = "jane",
+            password = "jane123",
+            type = UserType.MATE
+        )
+        coEvery { repository.getUserById(id) } returns expected
 
         // When
         val result = useCase(id)
 
         // Then
-        assertThat(result.getOrThrow()).isEqualTo(expected)
-        verify { repository.getUserById(id) }
-    }
-
-
-    @Test
-    fun `should fail when repository not finds by id`() {
-        // Given
-        val id = UUID.randomUUID()
-        every { repository.getUserById(id) } returns Result.failure(Exception())
-
-        // When
-        val result = useCase(id)
-
-        // Then
-        assertThat(result.isFailure)
-        verify { repository.getUserById(id) }
+        assertEquals(expected, result)
+        coVerify { repository.getUserById(id) }
     }
 
     @Test
-    fun `should fail when repository getUserById fails`() {
+    fun `should throw ItemNotFoundException when user not found`() = runTest {
         // Given
         val id = UUID.randomUUID()
+        coEvery { repository.getUserById(id) } throws
+                PlanMateException.ItemNotFoundException("User not found with id: $id")
 
-        val exception = RuntimeException("Fetch error")
-        every { repository.getUserById(id) } returns Result.failure(exception)
+        // When/Then
+        val exception = assertThrows<PlanMateException.ItemNotFoundException> {
+            useCase(id)
+        }
 
-        // When
-        val result = useCase(id)
+        assert(exception.message?.contains("User not found") == true)
+        coVerify { repository.getUserById(id) }
+    }
 
-        // Then
-        assertThat(result.isFailure)
-        verify { repository.getUserById(id) }
+    @Test
+    fun `should throw exception when repository operation fails`() = runTest {
+        // Given
+        val id = UUID.randomUUID()
+        val exception = RuntimeException("Database error")
+        coEvery { repository.getUserById(id) } throws exception
+
+        // When/Then
+        val thrown = assertThrows<RuntimeException> {
+            useCase(id)
+        }
+
+        assertEquals("Database error", thrown.message)
+        coVerify { repository.getUserById(id) }
     }
 }

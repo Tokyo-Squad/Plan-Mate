@@ -2,13 +2,13 @@ package org.example.presentation
 
 import org.example.entity.ProjectEntity
 import org.example.entity.StateEntity
-import org.example.logic.usecase.GetStatesByProjectId
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.DeleteProjectUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.project.UpdateProjectUseCase
 import org.example.logic.usecase.state.AddStateUseCase
 import org.example.logic.usecase.state.DeleteStateUseCase
+import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.state.UpdateStateUseCase
 import org.example.presentation.io.ConsoleIO
 import java.util.*

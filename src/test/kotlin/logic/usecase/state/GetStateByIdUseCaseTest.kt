@@ -3,13 +3,15 @@ package logic.usecase.state
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.StateFakeData
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.GetStateByIdUseCase
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
-import java.util.UUID
+import java.util.*
 import kotlin.test.Test
 
 class GetStateByIdUseCaseTest {
@@ -17,37 +19,36 @@ class GetStateByIdUseCaseTest {
     private lateinit var useCase: GetStateByIdUseCase
     private val fake = StateFakeData()
 
-    @BeforeEach fun setUp() {
+    @BeforeEach
+    fun setUp() {
         repo = mockk()
         useCase = GetStateByIdUseCase(repo)
     }
 
-
-    @Test fun `invoke returns state when valid id is entered`() {
-        //Given
+    @Test
+    fun `invoke returns state when valid id is entered`() = runTest {
+        // Given
         val id = UUID.randomUUID()
         val expected = fake.createState(id = id)
-        every { repo.getStateById(id) } returns Result.success(expected)
+        coEvery { repo.getStateById(id) } returns expected
 
-        //When
+        // When
         val result = useCase(id)
 
-        //Then
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result.getOrNull()).isEqualTo(expected)
+        // Then
+        assertThat(result).isEqualTo(expected)
+        coVerify(exactly = 1) { repo.getStateById(id) }
     }
 
-    @Test fun `invoke returns failure when repository throws ItemNotFoundException`() {
-        //Given
+    @Test
+    fun `invoke throws ItemNotFoundException when state is not found`() = runTest {
+        // Given
         val id = UUID.randomUUID()
         val ex = PlanMateException.ItemNotFoundException("State with ID $id not found")
-        every { repo.getStateById(id) } throws ex
+        coEvery { repo.getStateById(id) } throws ex
 
-        //When
-        val result = useCase(id)
-
-        //Then
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()).isSameInstanceAs(ex)
+        // When / Then
+        val thrown = runCatching { useCase(id) }.exceptionOrNull()
+        assertThat(thrown).isSameInstanceAs(ex)
     }
 }
