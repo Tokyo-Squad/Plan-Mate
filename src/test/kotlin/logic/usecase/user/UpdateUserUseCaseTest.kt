@@ -1,5 +1,6 @@
 package logic.usecase.user
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import java.util.*
 import kotlin.test.Test
 
 class UpdateUserUseCaseTest {
@@ -125,11 +127,13 @@ class UpdateUserUseCaseTest {
     fun `should validate user data before update`() = runTest {
         // Given
         val invalidUser = UserEntity(
-            username = "", // invalid empty username
+            id = UUID.randomUUID(),
+            username = "",
             password = "pwd",
             type = UserType.MATE
         )
         val adminUser = UserEntity(
+            id = UUID.randomUUID(),
             username = "admin",
             password = "pwd",
             type = UserType.ADMIN
@@ -140,7 +144,7 @@ class UpdateUserUseCaseTest {
             updateUseCase(invalidUser, adminUser)
         }
 
-        assert(exception.message?.contains("Username cannot be empty") == true)
+        assertThat(exception.message).contains("Username cannot be empty")
         coVerify(exactly = 0) { repository.update(any()) }
     }
 }

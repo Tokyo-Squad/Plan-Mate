@@ -1,5 +1,6 @@
 package logic.usecase.user
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -52,7 +53,7 @@ class GetUserByUsernameUseCaseTest {
             useCase(emptyUsername)
         }
 
-        assert(exception.message?.contains("Username cannot be empty") == true)
+        assertThat(exception.message).contains("Username cannot be empty")
         coVerify(exactly = 0) { repository.getUserByUsername(any()) }
     }
 
