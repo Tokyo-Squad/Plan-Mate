@@ -5,6 +5,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -30,7 +31,7 @@ class GetTaskByIdUseCaseTest {
     }
 
     @Test
-    fun `should return task when repository finds by id`() = runBlocking {
+    fun `should return task when repository finds by id`() = runTest {
         // Given
         val task = TaskEntity(
             title = "Title",
@@ -51,14 +52,12 @@ class GetTaskByIdUseCaseTest {
     }
 
     @Test
-    fun `should propagate exception when repository throws`() = runBlocking {
+    fun `should propagate exception when repository throws`() = runTest {
         // Given
         coEvery { repository.getTaskById(id) } throws RuntimeException("Fetch failed")
 
         // When & Then
-        assertThrows<RuntimeException> {
-            runBlocking { useCase(id) }
-        }
+        assertThrows<RuntimeException> { useCase(id) }
         coVerify { repository.getTaskById(id) }
     }
 }

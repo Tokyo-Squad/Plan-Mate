@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -27,7 +28,7 @@ class UpdateTaskUseCaseTest {
     }
 
     @Test
-    fun `should succeed when repository update succeeds`() = runBlocking {
+    fun `should succeed when repository update succeeds`() = runTest {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -40,12 +41,12 @@ class UpdateTaskUseCaseTest {
         )
 
         // When & Then
-        assertDoesNotThrow { runBlocking { useCase(task, userId) } }
+        assertDoesNotThrow { useCase(task, userId) }
         coVerify { repository.update(task, userId) }
     }
 
     @Test
-    fun `should throw IllegalArgumentException when title is blank`() = runBlocking {
+    fun `should throw IllegalArgumentException when title is blank`() = runTest {
         // Given
         val userId = UUID.randomUUID()
         val taskWithBlankTitle = TaskEntity(
@@ -58,12 +59,12 @@ class UpdateTaskUseCaseTest {
         )
 
         // When & Then
-        assertThrows<IllegalArgumentException> { runBlocking { useCase(taskWithBlankTitle, userId) } }
+        assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }
         coVerify(exactly = 0) { repository.update(any(), any()) }
     }
 
     @Test
-    fun `should propagate exception when repository throws`() = runBlocking {
+    fun `should propagate exception when repository throws`() = runTest {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -78,7 +79,7 @@ class UpdateTaskUseCaseTest {
         coEvery { repository.update(task, userId) } throws RuntimeException("Update failed")
 
         // When & Then
-        assertThrows<RuntimeException> { runBlocking { useCase(task, userId) } }
+        assertThrows<RuntimeException> { useCase(task, userId) }
         coVerify { repository.update(task, userId) }
     }
 }

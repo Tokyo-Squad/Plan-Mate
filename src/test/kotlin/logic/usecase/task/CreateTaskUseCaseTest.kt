@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -27,7 +28,7 @@ class CreateTaskUseCaseTest {
     }
 
     @Test
-    fun `should succeed when repository create succeeds`() = runBlocking {
+    fun `should succeed when repository create succeeds`() = runTest {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -40,14 +41,12 @@ class CreateTaskUseCaseTest {
         )
 
         // When & Then
-        assertDoesNotThrow {
-            runBlocking { useCase(task, userId) }
-        }
+        assertDoesNotThrow { useCase(task, userId) }
         coVerify { repository.create(task, userId) }
     }
 
     @Test
-    fun `should propagate exception when repository throws`() = runBlocking {
+    fun `should propagate exception when repository throws`() = runTest {
         // Given
         val userId = UUID.randomUUID()
         val task = TaskEntity(
@@ -61,9 +60,7 @@ class CreateTaskUseCaseTest {
         coEvery { repository.create(task, userId) } throws RuntimeException("Create failed")
 
         // When & Then
-        assertThrows<RuntimeException> {
-            runBlocking { useCase(task, userId) }
-        }
+        assertThrows<RuntimeException> { useCase(task, userId) }
         coVerify { repository.create(task, userId) }
     }
 
@@ -81,9 +78,7 @@ class CreateTaskUseCaseTest {
         )
 
         // When & Then
-        assertThrows<IllegalArgumentException> {
-            runBlocking { useCase(taskWithBlankTitle, userId) }
-        }
+        assertThrows<IllegalArgumentException> { useCase(taskWithBlankTitle, userId) }
         coVerify(exactly = 0) { repository.create(any(), any()) }
     }
 }

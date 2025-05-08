@@ -3,7 +3,7 @@ package logic.usecase.task
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.coVerify
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.DeleteTaskUseCase
 import org.junit.jupiter.api.BeforeEach
@@ -27,23 +27,19 @@ class DeleteTaskUseCaseTest {
     }
 
     @Test
-    fun `should succeed when repository delete succeeds`() = runBlocking {
+    fun `should succeed when repository delete succeeds`() = runTest {
         // When & Then
-        assertDoesNotThrow {
-            runBlocking { useCase(id, userId) }
-        }
+        assertDoesNotThrow { useCase(id, userId) }
         coVerify { repository.delete(id, userId) }
     }
 
     @Test
-    fun `should propagate exception when repository throws`() = runBlocking {
+    fun `should propagate exception when repository throws`() = runTest {
         // Given
         coEvery { repository.delete(id, userId) } throws RuntimeException("Delete failed")
 
         // When & Then
-        assertThrows<RuntimeException> {
-            runBlocking { useCase(id, userId) }
-        }
+        assertThrows<RuntimeException> { useCase(id, userId) }
         coVerify { repository.delete(id, userId) }
     }
 }
