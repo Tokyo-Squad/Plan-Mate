@@ -13,55 +13,37 @@ class AuthenticationRepositoryImpl(
     private val dataProvider: DataProvider<UserEntity>
 ) : AuthenticationRepository {
 
-    override fun login(username: String, password: String): Result<UserEntity> {
-        return try {
-            val user = userRepository.getUserByUsername(username)
-                .getOrElse { throw PlanMateException.ItemNotFoundException("User not found.") }
+    override suspend fun login(username: String, password: String) {
+        val user = userRepository.getUserByUsername(username)
 
-            if (user.password != password) {
-                throw PlanMateException.ValidationException("Password is not correct.")
-            }
-
-            authenticationProvider.addCurrentUser(user)
-            Result.success(user)
-        } catch (e: Exception) {
-            Result.failure(e)
+        if (user.password != password) {
+            throw PlanMateException.ValidationException("Password is not correct.")
         }
+
+        authenticationProvider.addCurrentUser(user)
     }
 
-    override fun register(newUser: UserEntity, currentUser: UserEntity): Result<Unit> {
-        return try {
-
-            userRepository.getUserByUsername(newUser.username).onSuccess {
-                throw PlanMateException.ValidationException("A user with that username already exists.")
-            }
-
+    override suspend fun register(newUser: UserEntity, currentUser: UserEntity) {
+        try {
+            userRepository.getUserByUsername(newUser.username)
+            throw PlanMateException.ValidationException("A user with that username already exists.")
+        } catch (e: PlanMateException.ItemNotFoundException) {
+            // User doesn't exist, we can proceed
             dataProvider.add(newUser)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
-    override fun logout(): Result<Unit> {
-        return try {
-            authenticationProvider.deleteCurrentUser()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun logout() {
+        authenticationProvider.deleteCurrentUser()
     }
 
-    override fun getCurrentUser(): Result<UserEntity?> {
+    override suspend fun getCurrentUser(): UserEntity? {
         return try {
-            Result.success(authenticationProvider.getCurrentUser())
-        } catch (e: Exception) {
-            Result.failure(e)
+            authenticationProvider.getCurrentUser()
+        } catch (e: PlanMateException.ItemNotFoundException) {
+            null
         }
     }
 }
-
-
-
 
 

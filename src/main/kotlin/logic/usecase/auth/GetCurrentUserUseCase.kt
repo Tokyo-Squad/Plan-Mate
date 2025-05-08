@@ -6,8 +6,7 @@ import org.example.logic.repository.AuthenticationRepository
 class GetCurrentUserUseCase(
     private val authRepository: AuthenticationRepository
 ) {
-
-    operator fun invoke(): Result<UserEntity?> {
+    suspend operator fun invoke(): UserEntity? {
         return authRepository.getCurrentUser()
     }
 }

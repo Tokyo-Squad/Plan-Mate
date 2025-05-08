@@ -14,7 +14,7 @@ class AuthProviderImpl(
 
     private val file = File(fileName)
 
-    override fun addCurrentUser(user: UserEntity) {
+    override suspend fun addCurrentUser(user: UserEntity) {
         ensureFileExists()
         try {
             // Overwrite the file with the new user's data
@@ -24,7 +24,7 @@ class AuthProviderImpl(
         }
     }
 
-    override fun deleteCurrentUser() {
+    override suspend fun deleteCurrentUser() {
         ensureFileExists()
         try {
             file.writeText("") // clear file content
@@ -34,7 +34,7 @@ class AuthProviderImpl(
         }
     }
 
-    override fun getCurrentUser(): UserEntity {
+    override suspend fun getCurrentUser(): UserEntity {
         ensureFileExists()
         val content = file.readText().trim()
         if (content.isBlank()) {
