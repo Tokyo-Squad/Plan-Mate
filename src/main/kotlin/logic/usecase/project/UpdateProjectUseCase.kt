@@ -18,11 +18,8 @@ class UpdateProjectUseCase(
                 "User ${currentUser.id} is not authorized to update projects"
             )
         }
-
         if (projectEntity.name.isBlank()) {
-            throw PlanMateException.ValidationException(
-                "Project name cannot be blank"
-            )
+            throw PlanMateException.ValidationException("Project name cannot be blank")
         }
 
         return projectRepository.updateProject(projectEntity, currentUser.id)

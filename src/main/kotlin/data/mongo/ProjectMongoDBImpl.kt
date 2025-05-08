@@ -4,11 +4,11 @@ import com.mongodb.kotlin.client.coroutine.MongoCollection
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.DataProvider
-import org.example.data.utils.toDocument
-import org.example.data.utils.toProjectEntity
 import org.example.entity.ProjectEntity
+import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
 
@@ -21,56 +21,58 @@ class ProjectMongoDBImpl(
     }
 
     override suspend fun add(item: ProjectEntity) {
-        try {
-            collection.insertOne(item.toDocument())
-        } catch (e: Exception) {
-            throw PlanMateException.DatabaseException("Error adding project: ${e.message}")
-        }
-
+        return MongoExceptionHandler.handleOperation("project creation") { collection.insertOne(item.toDocument()) }
     }
 
-    override suspend fun get(): List<ProjectEntity> {
-        return try {
-            collection.find()
-                .map { it.toProjectEntity() }
-                .toList()
-        } catch (e: Exception) {
-            throw PlanMateException.DatabaseException("Error reading projects: ${e.message}")
-        }
+    override suspend fun get(): List<ProjectEntity> = MongoExceptionHandler.handleOperation("projects retrieval") {
+        collection.find()
+            .map { it.toProjectEntity() }
+            .toList()
     }
 
-    override suspend fun getById(id: UUID): ProjectEntity? {
-        return try {
-            collection.find(Document("_id", id)).firstOrNull()?.toProjectEntity()
-        } catch (e: Exception) {
-            throw PlanMateException.DatabaseException("Error finding project: ${e.message}")
+    override suspend fun getById(id: UUID): ProjectEntity? =
+        MongoExceptionHandler.handleOperation("project retrieval by ID") {
+            collection.find(Document("_id", id))
+                .firstOrNull()
+                ?.toProjectEntity()
         }
-    }
 
     override suspend fun update(item: ProjectEntity) {
-        try {
+        MongoExceptionHandler.handleOperation("project update") {
             val result = collection.replaceOne(
                 Document("_id", item.id),
                 item.toDocument()
             )
 
             if (result.modifiedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("Project with ID ${item.id} not found.")
+                throw PlanMateException.ItemNotFoundException("Project with ID ${item.id} not found")
             }
-        } catch (e: Exception) {
-            throw PlanMateException.DatabaseException("Error updating project: ${e.message}")
         }
     }
 
-    override suspend fun delete(id: UUID) {
-        try {
-            val result = collection.deleteOne(Document("_id", id))
+    override suspend fun delete(id: UUID) = MongoExceptionHandler.handleOperation("project deletion") {
+        val result = collection.deleteOne(Document("_id", id))
 
-            if (result.deletedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("Project with ID $id not found.")
-            }
-        } catch (e: Exception) {
-            throw PlanMateException.DatabaseException("Error deleting project: ${e.message}")
+        if (result.deletedCount == 0L) {
+            throw PlanMateException.ItemNotFoundException("Project with ID $id not found")
         }
+    }
+
+    private fun ProjectEntity.toDocument(): Document {
+        return Document().apply {
+            put("_id", id)
+            put("name", name)
+            put("createdByAdminId", createdByAdminId)
+            put("createdAt", createdAt.toString())
+        }
+    }
+
+    private fun Document.toProjectEntity(): ProjectEntity {
+        return ProjectEntity(
+            id = UUID.fromString("_id"),
+            name = getString("name"),
+            createdByAdminId = UUID.fromString("createdByAdminId"),
+            createdAt = LocalDateTime.parse(getString("createdAt"))
+        )
     }
 }
