@@ -11,6 +11,7 @@ import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.task.*
 import org.example.presentation.io.ConsoleIO
+import org.example.utils.PlanMateException
 import java.util.UUID
 
 class TaskEditScreen(
@@ -20,7 +21,7 @@ class TaskEditScreen(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
     private val getTasksByProjectUseCase: GetTasksByProjectIdUseCase,
-    private val createTaskUseCase: CreateTaskUseCase,
+    private val createTaskUseCase: AddTaskUseCase,
     private val getStatesByProjectId: GetStatesByProjectId,
     private val getProjectUseCase: GetProjectUseCase,
     private val swimlaneRenderer: SwimlaneRenderer
@@ -46,10 +47,7 @@ class TaskEditScreen(
 
     fun manageProjectTasks(projectId: UUID) = runBlocking {
         try {
-            val project = getProjectUseCase(projectId) ?: run {
-                console.writeError("Project not found")
-                return@runBlocking
-            }
+            val project = getProjectUseCase(projectId)
 
             loop@ while (true) {
                 console.write("\n=== Tasks for Project: ${project.name} ===")
@@ -134,12 +132,12 @@ class TaskEditScreen(
         updateTaskUseCase(updatedTask, currentUserId())
     }
 
-    private fun getInitialState(projectId: UUID): UUID {
+    private suspend fun getInitialState(projectId: UUID): UUID {
         return getStatesByProjectId(projectId).firstOrNull()?.id
-            ?: throw IllegalStateException("No states available for this project")
+            ?: throw PlanMateException.InvalidStateIdException("No states available for project $projectId")
     }
 
-    private fun selectState(projectId: UUID): UUID {
+    private suspend fun selectState(projectId: UUID): UUID {
         val states = getStatesByProjectId(projectId)
         states.forEachIndexed { i, st -> console.write("${i + 1}. ${st.name}") }
         val index = readValidIndex("Select new state: ", states.size)
@@ -176,24 +174,24 @@ class TaskEditScreen(
 
     private fun readNonEmptyInput(prompt: String): String {
         return readInput(prompt) { it.isNotBlank() }
-            ?: throw IllegalArgumentException("Input cannot be empty")
+            ?: throw PlanMateException.ValidationException("Input cannot be empty.")
     }
 
     private fun readUUIDInput(prompt: String): UUID {
         return readInput(prompt) { it.isValidUUID() }?.toUUID()
-            ?: throw IllegalArgumentException("Invalid UUID format")
+            ?: throw PlanMateException.InvalidFormatException("Invalid UUID format.")
     }
 
     private fun readValidIndex(prompt: String, max: Int): Int {
         val input = readInput(prompt) { it.isValidIndex(max) }
         return input?.toInt()?.minus(1)
-            ?: throw IllegalArgumentException("Invalid selection")
+            ?: throw PlanMateException.ValidationException("Invalid selection.")
     }
 
     private fun readMenuSelection(menuText: String): Int {
         console.write(menuText)
         return readInput("") { it.isValidMenuOption() }?.toInt()
-            ?: throw IllegalArgumentException("Invalid menu selection")
+            ?: throw PlanMateException.ValidationException("Invalid menu selection.")
     }
 
     private inline fun readInput(
@@ -213,7 +211,7 @@ class TaskEditScreen(
     private fun String.isValidMenuOption() = toIntOrNull()?.let { it > 0 } ?: false
 
     private fun currentUserId() = currentUser?.id
-        ?: throw IllegalStateException("User not authenticated")
+        ?: throw PlanMateException.AuthenticationException("User not authenticated.")
 
     private suspend fun viewTasks(projectId: UUID) {
         val tasks = getTasksByProjectUseCase(projectId)
