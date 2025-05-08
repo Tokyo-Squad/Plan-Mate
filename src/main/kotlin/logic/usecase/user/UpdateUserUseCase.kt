@@ -8,12 +8,11 @@ import org.example.utils.PlanMateException
 class UpdateUserUseCase(
     private val userRepository: UserRepository
 ) {
-    operator fun invoke(user: UserEntity, currentUser: UserEntity): Result<Unit> {
+    suspend operator fun invoke(user: UserEntity, currentUser: UserEntity) {
         if (currentUser.type == UserType.MATE) {
-            return Result.failure(PlanMateException.UserActionNotAllowedException("MATE users are not allowed to update users"))
+            throw PlanMateException.UserActionNotAllowedException("MATE users are not allowed to update users")
         }
-        return runCatching {
-            userRepository.update(user).getOrThrow()
-        }
+
+        userRepository.update(user)
     }
 }
