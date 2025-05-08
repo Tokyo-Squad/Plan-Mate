@@ -25,7 +25,7 @@ class AddProjectUseCaseTest {
     @Test
     fun `should throw UserActionNotAllowedException when user is not admin`() = runTest {
         val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
-            runTest { useCase(testProject, regularUser) }
+            useCase(testProject, regularUser)
         }
 
         assertThat(exception).hasMessageThat().contains("not authorized")
@@ -36,7 +36,7 @@ class AddProjectUseCaseTest {
         val blankProject = testProject.copy(name = "")
 
         val exception = assertThrows<PlanMateException.ValidationException> {
-            runTest { useCase(blankProject, adminUser) }
+            useCase(blankProject, adminUser)
         }
 
         assertThat(exception).hasMessageThat().contains("cannot be blank")
