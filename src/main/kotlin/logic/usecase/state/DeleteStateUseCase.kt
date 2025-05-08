@@ -6,7 +6,7 @@ import org.example.logic.repository.StateRepository
 class DeleteStateUseCase(
     private val stateRepository: StateRepository
 ) {
-    suspend operator fun invoke(stateEntity: StateEntity) {
-        stateRepository.deleteState(stateEntity.id)
+    suspend operator fun invoke(stateEntity: StateEntity): Boolean {
+        return stateRepository.deleteState(stateEntity.id)
     }
 }
