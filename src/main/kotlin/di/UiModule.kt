@@ -1,6 +1,6 @@
 package org.example.di
 
-import org.example.presentation.AdminScreen
+import AdminScreen
 import MateScreen
 import SwimlaneRenderer
 import org.example.presentation.*
@@ -9,7 +9,7 @@ import org.example.presentation.io.ConsoleIOImpl
 import org.koin.dsl.module
 
 val uiModule = module {
-    // Screens
+
     single {
         PlanMateConsoleUI(
             console = get(),
@@ -87,7 +87,6 @@ val uiModule = module {
         )
     }
 
-    // UI Components
     single<ConsoleIO> { ConsoleIOImpl() }
     single { SwimlaneRenderer(get()) }
 }
