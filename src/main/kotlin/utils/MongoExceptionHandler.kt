@@ -18,8 +18,8 @@ object MongoExceptionHandler {
             is MongoWriteException -> {
                 when (e.error.code) {
                     11000 -> PlanMateException.DuplicateKeyException(
-                    "Duplicate key error during $operation: ${e.message}"
-                        )
+                        "Duplicate key error during $operation: ${e.message}"
+                    )
 
                     else -> PlanMateException.DatabaseOperationException(
                         "Write error during $operation: ${e.message}"
