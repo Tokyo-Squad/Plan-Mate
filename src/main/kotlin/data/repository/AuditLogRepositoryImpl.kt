@@ -10,7 +10,7 @@ import java.util.*
 class AuditLogRepositoryImpl(
     private val dataProvider: DataProvider<AuditLogEntity>
 ) : AuditLogRepository {
-    override fun addAudit(auditLogEntity: AuditLogEntity) {
+    override suspend fun addAudit(auditLogEntity: AuditLogEntity) {
         try {
             dataProvider.add(auditLogEntity)
         }catch (e: PlanMateException.FileWriteException) {
@@ -18,15 +18,15 @@ class AuditLogRepositoryImpl(
         }
     }
 
-    override fun getProjectHistory(projectId: UUID): List<AuditLogEntity> =
+    override suspend fun getProjectHistory(projectId: UUID): List<AuditLogEntity> =
         getEntityHistory(projectId, AuditedEntityType.PROJECT)
 
 
-    override fun getTaskHistory(taskId: UUID): List<AuditLogEntity> =
+    override suspend fun getTaskHistory(taskId: UUID): List<AuditLogEntity> =
         getEntityHistory(taskId, AuditedEntityType.TASK)
 
 
-    private fun getEntityHistory(entityId: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
+    private suspend fun getEntityHistory(entityId: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
         val history = dataProvider.get().filter {
             it.entityType == entityType && it.entityId == entityId
         }

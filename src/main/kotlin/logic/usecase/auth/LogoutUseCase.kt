@@ -5,8 +5,7 @@ import org.example.logic.repository.AuthenticationRepository
 class LogoutUseCase(
     private val authRepository: AuthenticationRepository
 ) {
-
-    operator fun invoke(): Result<Unit> {
-        return authRepository.logout()
+    suspend operator fun invoke() {
+        authRepository.logout()
     }
 }

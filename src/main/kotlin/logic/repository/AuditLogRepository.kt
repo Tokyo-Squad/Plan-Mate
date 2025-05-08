@@ -4,7 +4,7 @@ import org.example.entity.AuditLogEntity
 import java.util.*
 
 interface AuditLogRepository {
-    fun addAudit(auditLogEntity: AuditLogEntity)
-    fun getProjectHistory(projectId: UUID): List<AuditLogEntity>
-    fun getTaskHistory(taskId: UUID): List<AuditLogEntity>
+    suspend fun addAudit(auditLogEntity: AuditLogEntity)
+    suspend fun getProjectHistory(projectId: UUID): List<AuditLogEntity>
+    suspend fun getTaskHistory(taskId: UUID): List<AuditLogEntity>
 }
