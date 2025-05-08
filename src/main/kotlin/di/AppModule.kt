@@ -24,7 +24,7 @@ val appModule = module {
     single<DataProvider<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
     single<DataProvider<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
     single<DataProvider<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
-    single<DataProvider<AuditLogEntity>>(named("auditDataProvider")) { AuditLogMongoDbImpl(get(named("auditLogs"))) }
+    single<DataProvider<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get(named("auditLogs"))) }
 
     single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
 
