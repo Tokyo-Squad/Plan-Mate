@@ -14,9 +14,9 @@ import org.example.utils.PlanMateException
 import java.util.*
 
 class UsersMongoImpl(
-    private val db: MongoDBClient
+    private val mongoDBClient: MongoDBClient
 ) : DataProvider<UserEntity> {
-    private val usersCollection = db.getDatabase().getCollection<Document>("users")
+    private val usersCollection = mongoDBClient.getDatabase().getCollection<Document>("users")
 
     override suspend fun add(item: UserEntity) {
         MongoExceptionHandler.handleOperation("adding user") {

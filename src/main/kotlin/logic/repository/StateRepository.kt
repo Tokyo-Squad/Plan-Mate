@@ -4,9 +4,9 @@ import org.example.entity.StateEntity
 import java.util.*
 
 interface StateRepository {
-    fun addState(state: StateEntity): Result<String>
-    fun updateState(stateId: StateEntity, newState: StateEntity): Result<StateEntity>
-    fun deleteState(stateId: StateEntity): Result<Boolean>
-    fun getStateById(stateId: UUID): Result<StateEntity>
-    fun getByProjectId(projectId: UUID): Result<List<StateEntity>>
+    suspend fun addState(state: StateEntity): String
+    suspend fun updateState(stateId: UUID, newState: StateEntity): StateEntity
+    suspend fun deleteState(stateId: UUID): Boolean
+    suspend fun getStateById(stateId: UUID): StateEntity
+    suspend fun getByProjectId(projectId: UUID): List<StateEntity>
 }

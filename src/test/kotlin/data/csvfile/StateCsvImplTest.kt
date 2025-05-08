@@ -1,6 +1,7 @@
 package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.test.runTest
 import org.example.entity.StateEntity
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +30,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEntity_whenAddState() {
+    fun `should return entity when add state`() = runTest {
         // When
         stateCsv.add(state)
 
@@ -39,7 +40,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEntityById_whenExists() {
+    fun `should return entity by id when exists`() = runTest {
         // Given
         stateCsv.add(state)
 
@@ -51,7 +52,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNull_whenFileIsEmptyAndIdNotFound() {
+    fun `should return null when file is empty and id not found`() = runTest {
         // Given
         file.writeText("")
 
@@ -63,7 +64,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowException_whenCsvLineIsMalformed() {
+    fun `should throw exception when csv line is malformed`() = runTest {
         // Given
         file.writeText("invalid,line,also-invalid")
 
@@ -75,7 +76,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldUpdateEntity_whenIdExists() {
+    fun `should update entity when id exists`() = runTest {
         // Given
         stateCsv.add(state)
         val updated = state.copy(name = "Updated State")
@@ -89,7 +90,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() {
+    fun `should throw item not found when updating non-existent entity`() = runTest {
         // Given
         val nonExistent = state.copy(id = UUID.randomUUID())
 
@@ -103,7 +104,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldDeleteEntity_whenIdExists() {
+    fun `should delete entity when id exists`() = runTest {
         // Given
         stateCsv.add(state)
 
@@ -115,7 +116,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldReturnEmptyList_whenFileIsEmpty() {
+    fun `should return empty list when file is empty`() = runTest {
         // Given
         file.writeText("")
 
@@ -127,7 +128,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenFileCreationFails() {
+    fun `should throw file write exception when file creation fails`() = runTest {
         // Given
         val nonExistentDir = File(tempDir, "non_existent_dir")
         val failingFile = File(nonExistentDir, "states.csv")
@@ -143,7 +144,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenWriteFails() {
+    fun `should throw file write exception when write fails`() = runTest {
         // Given
         val readOnlyFile = File(tempDir, "states.csv")
         readOnlyFile.createNewFile()
@@ -162,7 +163,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun ensureFileExists_shouldReturn_whenFileAlreadyExists() {
+    fun `ensure file exists should return when file already exists`() = runTest {
         // Given
         file.createNewFile()
         assertThat(file.exists()).isTrue()
@@ -177,7 +178,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileReadException_whenFileContentIsMalformed() {
+    fun `should throw file read exception when file content is malformed`() = runTest {
         // Given
         file.writeText("invalid,line,malformed,content")
 
@@ -189,7 +190,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldSuccessfullyParseFile_whenValidContent() {
+    fun `should successfully parse file when valid content`() = runTest {
         // Given
         val validState = StateEntity(
             id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
@@ -204,7 +205,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldReturnNotEmpty_whenFileContainsEmptyLines() {
+    fun `should return not empty when file contains empty lines`() = runTest {
         // Given
         val validState = StateEntity(
             id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
@@ -220,7 +221,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() {
+    fun `should throw item not found exception when updating non-existent entity`() = runTest {
         // Given
         val nonExistentState = state.copy(id = UUID.randomUUID())
 
@@ -234,7 +235,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenUpdatingNonExistentState() {
+    fun `should throw item not found when updating non-existent state`() = runTest {
         // Given
         val nonExistentState = state.copy(id = UUID.randomUUID())
 
@@ -248,7 +249,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() {
+    fun `should throw exception when created by admin id is invalid UUID`() = runTest {
         // Given
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
 
@@ -260,7 +261,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenDeleteFails() {
+    fun `should throw file write exception when delete fails`() = runTest {
         // Given
         stateCsv.add(state)
         val readOnlyFile = File(tempDir, "states.csv")
@@ -280,7 +281,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowFileWriteException_whenUpdateFails() {
+    fun `should throw file write exception when update fails`() = runTest {
         // Given
         stateCsv.add(state)
         val readOnlyFile = File(tempDir, "states.csv")
@@ -302,7 +303,7 @@ class StateCsvImplTest {
     }
 
     @Test
-    fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() {
+    fun `should throw item not found when deleting non-existent entity in non-empty file`() = runTest {
         // Given
         stateCsv.add(state)
 
@@ -310,12 +311,13 @@ class StateCsvImplTest {
         val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             stateCsv.delete(UUID.randomUUID())
         }
+
         // Then
         assertThat(exception).hasMessageThat().contains("not found")
     }
 
     @Test
-    fun shouldReturnNull_whenLookingForNonexistentIdInNonEmptyFile() {
+    fun `should return null when looking for nonexistent id in non-empty file`() = runTest {
         // Given
         stateCsv.add(state)
 

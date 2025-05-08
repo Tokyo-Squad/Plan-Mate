@@ -1,6 +1,8 @@
 package org.example
 
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import logic.usecase.auth.CreateDefaultAdminUseCase
+import org.example.data.mongo.MongoDBClient
 import org.example.di.appModule
 import org.example.di.mongoModule
 import org.example.di.uiModule
@@ -20,7 +22,9 @@ fun main() {
             mongoModule
         )
     }
-    CreateDefaultAdminUseCase(getKoin().get(named("userDataProvider")))
-    val console: PlanMateConsoleUI = getKoin().get()
-    console.start()
+//    CreateDefaultAdminUseCase(getKoin().get(named("userDataProvider")))
+//    val console: PlanMateConsoleUI = getKoin().get()
+//    console.start()
+    val db : MongoDatabase = getKoin().get()
+    db.name
 }

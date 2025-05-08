@@ -1,10 +1,11 @@
 package logic.usecase.state
 
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import fakeData.StateFakeData
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.UpdateStateUseCase
 import org.example.utils.PlanMateException
@@ -18,42 +19,35 @@ class UpdateStateUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        repo = mockk(relaxed = true)
+        repo = mockk()
         useCase = UpdateStateUseCase(repo)
     }
 
     @Test
-    fun `invoke returns nested success on update`() {
-        //Given
+    fun `invoke returns updated state when update is successful`() = runTest {
+        // Given
         val oldState = fake.createState()
         val newState = oldState.copy(name = "Done")
-        every { repo.updateState(oldState, newState) } returns Result.success(newState)
+        coEvery { repo.updateState(oldState.id, newState) } returns newState
 
-        //When
-        val outer = useCase(oldState, newState)
+        // When
+        val result = useCase(oldState, newState)
 
-        //Then
-        Truth.assertThat(outer.isSuccess).isTrue()
-        val inner = outer.getOrNull()
-        Truth.assertThat(inner).isNotNull()
-        Truth.assertThat(inner!!.isSuccess).isTrue()
-        Truth.assertThat(inner.getOrNull()).isEqualTo(newState)
-        verify(exactly = 1) { repo.updateState(oldState, newState) }
+        // Then
+        assertThat(result).isEqualTo(newState)
+        coVerify(exactly = 1) { repo.updateState(oldState.id, newState) }
     }
 
     @Test
-    fun `invoke returns failure when repository throws ItemNotFoundException`() {
-        //Given
+    fun `invoke throws ItemNotFoundException when state is not found`() = runTest {
+        // Given
         val oldState = fake.createState()
         val newState = oldState.copy(name = "Done")
-        val ex = PlanMateException.ItemNotFoundException("not found")
-        every { repo.updateState(oldState, newState) } throws ex
+        val ex = PlanMateException.ItemNotFoundException("State with ID ${oldState.id} not found")
+        coEvery { repo.updateState(oldState.id, newState) } throws ex
 
-        //When
-        val outer = useCase(oldState, newState)
-
-        //Then
-        Truth.assertThat(outer.isFailure).isTrue()
-        Truth.assertThat(outer.exceptionOrNull()).isSameInstanceAs(ex)
+        // When / Then
+        val thrown = runCatching { useCase(oldState, newState) }.exceptionOrNull()
+        assertThat(thrown).isSameInstanceAs(ex)
     }
 }
