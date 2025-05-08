@@ -6,7 +6,7 @@ import org.example.logic.repository.StateRepository
 class AddStateUseCase(
     private val stateRepository: StateRepository
 ) {
-    suspend operator fun invoke(state: StateEntity) {
-        stateRepository.addState(state)
+    suspend operator fun invoke(state: StateEntity): String {
+        return stateRepository.addState(state)
     }
 }
