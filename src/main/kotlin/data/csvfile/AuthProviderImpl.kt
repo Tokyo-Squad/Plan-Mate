@@ -14,27 +14,26 @@ class AuthProviderImpl(
 
     private val file = File(fileName)
 
-    override fun addCurrentUser(user: UserEntity) {
+    override suspend fun addCurrentUser(user: UserEntity) {
         ensureFileExists()
         try {
-            // Overwrite the file with the new user's data
             file.writeText(toCSVLine(user))
         } catch (e: IOException) {
             throw PlanMateException.FileWriteException("Error writing current user to file: ${e.message}")
         }
     }
 
-    override fun deleteCurrentUser() {
+    override suspend fun deleteCurrentUser() {
         ensureFileExists()
         try {
-            file.writeText("") // clear file content
+            file.writeText("")
             file.delete()
         } catch (e: IOException) {
             throw PlanMateException.FileWriteException("Error deleting current user: ${e.message}")
         }
     }
 
-    override fun getCurrentUser(): UserEntity {
+    override suspend fun getCurrentUser(): UserEntity {
         ensureFileExists()
         val content = file.readText().trim()
         if (content.isBlank()) {

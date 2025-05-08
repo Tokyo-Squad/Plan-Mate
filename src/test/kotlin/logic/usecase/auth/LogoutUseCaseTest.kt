@@ -1,53 +1,59 @@
 package logic.usecase.auth
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LogoutUseCase
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class LogoutUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val logoutUseCase = LogoutUseCase(authRepository)
 
     @Test
-    fun `should return Success(Unit) when logout succeeds`() {
-        every { authRepository.logout() } returns Result.success(Unit)
+    fun `should succeed when logout succeeds`() = runTest {
+        // Given
+        coEvery { authRepository.logout() } returns Unit
 
-        val result = logoutUseCase()
-
-        assertThat(result.isSuccess).isTrue()
-    }
-
-    @Test
-    fun `should propagate RuntimeException when repository fails`() {
-        val expectedError = RuntimeException("Failed to logout")
-        every { authRepository.logout() } returns Result.failure(expectedError)
-
-        val result = logoutUseCase()
-
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
-    }
-
-    @Test
-    fun `should propagate ValidationException when session is invalid`() {
-        val expectedError = PlanMateException.ValidationException("Invalid session")
-        every { authRepository.logout() } returns Result.failure(expectedError)
-
-        val result = logoutUseCase()
-
-        assertThat(result.exceptionOrNull()).isEqualTo(expectedError)
-    }
-
-    @Test
-    fun `should call authRepository exactly once when executed`() {
-        every { authRepository.logout() } returns Result.success(Unit)
-
+        // When/Then
         logoutUseCase()
 
-        verify(exactly = 1) { authRepository.logout() }
+        // Then
+        coVerify(exactly = 1) { authRepository.logout() }
+    }
+
+    @Test
+    fun `should throw RuntimeException when repository fails`() = runTest {
+        // Given
+        val expectedError = RuntimeException("Failed to logout")
+        coEvery { authRepository.logout() } throws expectedError
+
+        // When/Then
+        val exception = assertThrows<RuntimeException> {
+            logoutUseCase()
+        }
+
+        assertThat(exception).isEqualTo(expectedError)
+        coVerify { authRepository.logout() }
+    }
+
+    @Test
+    fun `should throw ValidationException when session is invalid`() = runTest {
+        // Given
+        val expectedError = PlanMateException.ValidationException("Invalid session")
+        coEvery { authRepository.logout() } throws expectedError
+
+        // When/Then
+        val exception = assertThrows<PlanMateException.ValidationException> {
+            logoutUseCase()
+        }
+
+        assertThat(exception).isEqualTo(expectedError)
+        coVerify { authRepository.logout() }
     }
 }

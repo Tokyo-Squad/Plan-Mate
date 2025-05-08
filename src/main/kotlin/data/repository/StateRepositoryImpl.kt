@@ -9,53 +9,30 @@ import java.util.*
 
 class StateRepositoryImpl(
     private val dataProvider: DataProvider<StateEntity>
-): StateRepository {
+) : StateRepository {
 
-    override fun addState(state: StateEntity): Result<String> {
-        return try {
-            dataProvider.add(state)
-            Result.success(state.id.toString())
-        } catch (e: PlanMateException.FileWriteException) {
-            Result.failure(e)
-        }
+    override suspend fun addState(state: StateEntity): String {
+        dataProvider.add(state)
+        return state.id.toString()
     }
 
-    override fun updateState(stateId: StateEntity, newState: StateEntity): Result<StateEntity> {
-        return try {
-            val toSave = newState.copy(id = stateId.id)
-            dataProvider.update(toSave)
-            Result.success(toSave)
-        } catch (e: PlanMateException.ItemNotFoundException) {
-            Result.failure(e)
-        }
+    override suspend fun updateState(stateId: UUID, newState: StateEntity): StateEntity {
+        val toSave = newState.copy(id = stateId)
+        dataProvider.update(toSave)
+        return toSave
     }
 
-    override fun deleteState(stateId: StateEntity): Result<Boolean> {
-        return try {
-            dataProvider.delete(stateId.id)
-            Result.success(true)
-        } catch (e: PlanMateException.ItemNotFoundException) {
-            Result.failure(e)
-        }
+    override suspend fun deleteState(stateId: UUID): Boolean {
+        dataProvider.delete(stateId)
+        return true
     }
 
-    override fun getStateById(stateId: UUID): Result<StateEntity> {
-        return try {
-            val existing = dataProvider.getById(stateId)
-                ?: throw PlanMateException.ItemNotFoundException("State with ID $stateId does not exist")
-            Result.success(existing)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun getStateById(stateId: UUID): StateEntity {
+        return dataProvider.getById(stateId)
+            ?: throw PlanMateException.ItemNotFoundException("State with ID $stateId does not exist")
     }
 
-    override fun getByProjectId(projectId: UUID): Result<List<StateEntity>> {
-        return try {
-            val allStates = dataProvider.get()
-            val statesForProject = allStates.filter { it.projectId == projectId }
-            Result.success(statesForProject)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun getByProjectId(projectId: UUID): List<StateEntity> {
+        return dataProvider.get().filter { it.projectId == projectId }
     }
 }

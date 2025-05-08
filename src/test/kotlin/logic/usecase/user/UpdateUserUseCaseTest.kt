@@ -1,14 +1,16 @@
 package logic.usecase.user
 
-import com.google.common.truth.Truth.assertThat
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+import kotlinx.coroutines.test.runTest
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.UpdateUserUseCase
+import org.example.utils.PlanMateException
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 
 class UpdateUserUseCaseTest {
@@ -17,54 +19,128 @@ class UpdateUserUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        repository = mockk(relaxed = true)
+        repository = mockk()
         updateUseCase = UpdateUserUseCase(repository)
     }
 
     @Test
-    fun `should succeed when ADMIN user updates user`() {
+    fun `should succeed when ADMIN user updates user`() = runTest {
         // Given
-        val userToUpdate = UserEntity(username = "user1", password = "pwd1", type = UserType.MATE)
-        val adminUser = UserEntity(username = "admin", password = "pwd2", type = UserType.ADMIN)
-        every { repository.update(userToUpdate) } returns Result.success(Unit)
+        val userToUpdate = UserEntity(
+            username = "user1",
+            password = "pwd1",
+            type = UserType.MATE
+        )
+        val adminUser = UserEntity(
+            username = "admin",
+            password = "pwd2",
+            type = UserType.ADMIN
+        )
+        coEvery { repository.update(userToUpdate) } returns Unit
 
-        // When
-        val result = updateUseCase(userToUpdate, adminUser)
+        // When/Then
+        assertDoesNotThrow {
+            updateUseCase(userToUpdate, adminUser)
+        }
 
-        // Then
-        assertThat(result.isSuccess)
-        verify { repository.update(userToUpdate) }
+        coVerify { repository.update(userToUpdate) }
     }
 
     @Test
-    fun `should fail when MATE user updates user`() {
+    fun `should throw exception when MATE user updates user`() = runTest {
         // Given
-        val userToUpdate = UserEntity(username = "user2", password = "pwd", type = UserType.ADMIN)
-        val mateUser = UserEntity(username = "mate", password = "pwd2", type = UserType.MATE)
+        val userToUpdate = UserEntity(
+            username = "user2",
+            password = "pwd",
+            type = UserType.ADMIN
+        )
+        val mateUser = UserEntity(
+            username = "mate",
+            password = "pwd2",
+            type = UserType.MATE
+        )
 
-        // When
-        val result = updateUseCase(userToUpdate, mateUser)
+        // When/Then
+        val exception = assertThrows<PlanMateException.UserActionNotAllowedException> {
+            updateUseCase(userToUpdate, mateUser)
+        }
 
-        // Then
-        assertThat(result.isFailure)
-        verify(exactly = 0) { repository.update(any()) }
+        assert(exception.message?.contains("MATE users are not allowed") == true)
+        coVerify(exactly = 0) { repository.update(any()) }
     }
 
     @Test
-    fun `should fail when repository update fails`() {
+    fun `should throw exception when repository update fails`() = runTest {
         // Given
-        val userToUpdate = UserEntity(username = "user3", password = "pwd3", type = UserType.MATE)
-        val adminUser = UserEntity(username = "admin", password = "pwd4", type = UserType.ADMIN)
+        val userToUpdate = UserEntity(
+            username = "user3",
+            password = "pwd3",
+            type = UserType.MATE
+        )
+        val adminUser = UserEntity(
+            username = "admin",
+            password = "pwd4",
+            type = UserType.ADMIN
+        )
         val exception = RuntimeException("Update error")
 
-        every { repository.update(userToUpdate) } returns Result.failure(exception)
+        coEvery { repository.update(userToUpdate) } throws exception
 
-        // When
-        val result = updateUseCase(userToUpdate, adminUser)
+        // When/Then
+        val thrown = assertThrows<RuntimeException> {
+            updateUseCase(userToUpdate, adminUser)
+        }
 
-        // Then
-        assertThat(result.isFailure)
-        verify { repository.update(userToUpdate) }
+        assertEquals("Update error", thrown.message)
+        coVerify { repository.update(userToUpdate) }
+    }
+
+    @Test
+    fun `should throw exception when updating non-existent user`() = runTest {
+        // Given
+        val userToUpdate = UserEntity(
+            username = "nonexistent",
+            password = "pwd",
+            type = UserType.MATE
+        )
+        val adminUser = UserEntity(
+            username = "admin",
+            password = "pwd",
+            type = UserType.ADMIN
+        )
+
+        coEvery { repository.update(userToUpdate) } throws
+                PlanMateException.ItemNotFoundException("User not found")
+
+        // When/Then
+        val exception = assertThrows<PlanMateException.ItemNotFoundException> {
+            updateUseCase(userToUpdate, adminUser)
+        }
+
+        assert(exception.message?.contains("User not found") == true)
+        coVerify { repository.update(userToUpdate) }
+    }
+
+    @Test
+    fun `should validate user data before update`() = runTest {
+        // Given
+        val invalidUser = UserEntity(
+            username = "", // invalid empty username
+            password = "pwd",
+            type = UserType.MATE
+        )
+        val adminUser = UserEntity(
+            username = "admin",
+            password = "pwd",
+            type = UserType.ADMIN
+        )
+
+        // When/Then
+        val exception = assertThrows<PlanMateException.ValidationException> {
+            updateUseCase(invalidUser, adminUser)
+        }
+
+        assert(exception.message?.contains("Username cannot be empty") == true)
+        coVerify(exactly = 0) { repository.update(any()) }
     }
 }
-

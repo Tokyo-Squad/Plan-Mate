@@ -1,6 +1,6 @@
 package org.example.data
 
-import java.util.UUID
+import java.util.*
 
 interface DataProvider<Entity> {
     suspend fun add(item: Entity)

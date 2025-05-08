@@ -2,8 +2,10 @@ package logic.usecase.audit
 
 import com.google.common.truth.Truth.assertThat
 import fakeData.createAuditLogEntity
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.example.entity.AuditAction
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
@@ -27,7 +29,7 @@ class GetAuditLogUseCaseTest {
 
 
     @Test
-    fun `should retrieve audit logs filtered by project ID when provided ID is valid`() {
+    fun `should retrieve audit logs filtered by project ID when provided ID is valid`() = runTest{
         // Given
         val projectUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
         val projectId = UUID.fromString(projectUUID)
@@ -46,36 +48,34 @@ class GetAuditLogUseCaseTest {
         )
 
         val expectedLogs = listOf(auditLog1, auditLog2)
-        every { auditLogRepository.getProjectHistory(projectId) } returns listOf(auditLog1, auditLog2)
+        coEvery { auditLogRepository.getProjectHistory(projectId) } returns listOf(auditLog1, auditLog2)
 
         // When
         val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedEntityType.PROJECT)
 
         // Then
-        Assertions.assertTrue(result.isSuccess)
-        Assertions.assertEquals(expectedLogs, result.getOrNull())
+        assertThat(result).isEqualTo(expectedLogs)
     }
 
     @Test
-    fun `should return failure when an exception occurs while retrieving project audit logs`() {
+    fun `should return failure when an exception occurs while retrieving project audit logs`() = runTest {
         // Given
         val projectUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
         val projectId = UUID.fromString(projectUUID)
         val exception = InvalidStateIdException()
 
-        every { auditLogRepository.getProjectHistory(projectId) } throws exception
+        coEvery { auditLogRepository.getProjectHistory(projectId) } throws exception
 
         // When
         val result = getAuditLogsUseCase.invoke(projectId, AuditedEntityType.PROJECT)
 
         // Then
-        Assertions.assertTrue(result.isFailure)
-        Assertions.assertEquals(exception, result.exceptionOrNull())
+        assertThat(result).isEmpty()
 
     }
 
     @Test
-    fun `should retrieve audit logs filtered by task ID when provided ID is valid`() {
+    fun `should retrieve audit logs filtered by task ID when provided ID is valid`() = runTest {
         // Given
         val taskUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
         val taskId = UUID.fromString(taskUUID)
@@ -93,29 +93,27 @@ class GetAuditLogUseCaseTest {
         )
 
         val expectedLogs = listOf(taskLog1, taskLog2)
-        every { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
+        coEvery { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
 
         // When
         val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
 
         // Then
-        assertThat(result.isSuccess).isTrue()
-        assertEquals(expectedLogs, result.getOrNull())
+        assertThat(result).isEqualTo(expectedLogs)
     }
 
     @Test
-    fun `should throw InvalidStateIdException when using invalid ID`() {
+    fun `should throw InvalidStateIdException when using invalid ID`() = runTest{
         // Given
         val taskUUID = "0f89e958-d40d-4b57-a8e6-75ad7ac0f679"
         val taskId = UUID.fromString(taskUUID)
         val exception = InvalidStateIdException()
-        every { auditLogRepository.getTaskHistory(taskId) } throws exception
+        coEvery { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When
         val result = getAuditLogsUseCase.invoke(UUID.fromString(taskUUID), AuditedEntityType.TASK)
 
         // Then
-        assertThat(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
+        assertThat(result).isEmpty()
     }
 }

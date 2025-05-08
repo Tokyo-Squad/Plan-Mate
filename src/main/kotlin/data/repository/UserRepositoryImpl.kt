@@ -4,26 +4,37 @@ import org.example.data.DataProvider
 import org.example.entity.UserEntity
 import org.example.logic.repository.UserRepository
 import org.example.utils.PlanMateException
-import java.util.UUID
+import java.util.*
+
 
 class UserRepositoryImpl(
     private val dataProvider: DataProvider<UserEntity>
 ) : UserRepository {
 
-    override fun getUserByUsername(username: String): Result<UserEntity> = runCatching {
-        dataProvider.get()
+    override suspend fun getUserByUsername(username: String): UserEntity {
+        return dataProvider.get()
             .firstOrNull { it.username == username }
             ?: throw PlanMateException.ItemNotFoundException("User with username '$username' not found")
     }
 
-    override fun getUserById(id: UUID): Result<UserEntity> = runCatching {
-        dataProvider.getById(id)
+    override suspend fun getUserById(id: UUID): UserEntity {
+        return dataProvider.getById(id)
             ?: throw PlanMateException.ItemNotFoundException("User with id $id not found")
     }
 
-    override fun getUsers(): Result<List<UserEntity>> = runCatching { dataProvider.get() }
+    override suspend fun getUsers(): List<UserEntity> {
+        return dataProvider.get()
+    }
 
-    override fun delete(id: UUID): Result<Unit> = runCatching { dataProvider.delete(id) }
+    override suspend fun delete(id: UUID) {
+        dataProvider.delete(id)
+    }
 
-    override fun update(user: UserEntity): Result<Unit> = runCatching { dataProvider.update(user) }
+    override suspend fun update(user: UserEntity) {
+        dataProvider.update(user)
+    }
+
+    override suspend fun add(user: UserEntity) {
+        dataProvider.add(user)
+    }
 }

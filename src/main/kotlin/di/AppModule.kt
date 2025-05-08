@@ -5,6 +5,7 @@ import org.example.data.AuthProvider
 import org.example.data.DataProvider
 import org.example.data.csvfile.AuthProviderImpl
 import org.example.data.mongo.ProjectMongoDBImpl
+import org.example.data.mongo.AuditLogMongoDbImpl
 import org.example.data.repository.*
 import org.example.entity.*
 import org.example.logic.repository.*
@@ -24,6 +25,7 @@ val appModule = module {
     single<DataProvider<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
     single<DataProvider<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
     single<DataProvider<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
+    single<DataProvider<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get(named("auditLogs"))) }
 
     single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
 
