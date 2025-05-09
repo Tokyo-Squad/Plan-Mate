@@ -32,7 +32,7 @@ class ProjectMongoDBImpl(
 
     override suspend fun getById(id: UUID): ProjectEntity? =
         MongoExceptionHandler.handleOperation("project retrieval by ID") {
-            collection.find(Document("_id", id))
+            collection.find(Document("id", id))
                 .firstOrNull()
                 ?.toProjectEntity()
         }
@@ -40,7 +40,7 @@ class ProjectMongoDBImpl(
     override suspend fun update(item: ProjectEntity) {
         MongoExceptionHandler.handleOperation("project update") {
             val result = collection.replaceOne(
-                Document("_id", item.id),
+                Document("id", item.id),
                 item.toDocument()
             )
 
@@ -51,7 +51,7 @@ class ProjectMongoDBImpl(
     }
 
     override suspend fun delete(id: UUID) = MongoExceptionHandler.handleOperation("project deletion") {
-        val result = collection.deleteOne(Document("_id", id))
+        val result = collection.deleteOne(Document("id", id))
 
         if (result.deletedCount == 0L) {
             throw PlanMateException.ItemNotFoundException("Project with ID $id not found")
@@ -71,7 +71,7 @@ class ProjectMongoDBImpl(
         return ProjectEntity(
             id = get("id", UUID::class.java),
             name = getString("name"),
-            createdByAdminId = UUID.fromString("createdByAdminId"),
+            createdByAdminId = this.get("createdByAdminId", UUID::class.java),
             createdAt = LocalDateTime.parse(getString("createdAt"))
         )
     }

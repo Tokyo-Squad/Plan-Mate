@@ -29,14 +29,14 @@ class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<Tas
     }
 
     override suspend fun getById(id: UUID): TaskEntity? = MongoExceptionHandler.handleOperation("fetching task by ID") {
-        collection.find(Document("_id", id))
+        collection.find(Document("id", id))
             .firstOrNull()
             ?.toTaskEntity()
     }
 
     override suspend fun update(item: TaskEntity) {
         MongoExceptionHandler.handleOperation("updating task") {
-            val result = collection.replaceOne(Document("_id", item.id), item.toDocument())
+            val result = collection.replaceOne(Document("id", item.id), item.toDocument())
             if (result.modifiedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("Task with ID ${item.id} not found.")
             }
@@ -45,7 +45,7 @@ class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<Tas
 
     override suspend fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting task") {
-            val result = collection.deleteOne(Document("_id", id))
+            val result = collection.deleteOne(Document("id", id))
             if (result.deletedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("Task with ID $id not found.")
             }

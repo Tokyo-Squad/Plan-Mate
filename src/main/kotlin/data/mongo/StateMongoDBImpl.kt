@@ -34,7 +34,7 @@ class StateMongoDBImpl(
 
     override suspend fun getById(id: UUID): StateEntity? {
         return MongoExceptionHandler.handleOperation("fetching state by ID") {
-            val filter = Filters.eq("_id", id.toString())
+            val filter = Filters.eq("id", id.toString())
             val document = collection.find(filter).firstOrNull()
             document?.let { fromDocument(it) }
                 ?: throw PlanMateException.ItemNotFoundException("State not found with ID: $id")
@@ -43,7 +43,7 @@ class StateMongoDBImpl(
 
     override suspend fun update(item: StateEntity) {
         MongoExceptionHandler.handleOperation("updating state") {
-            val filter = Filters.eq("_id", item.id.toString())
+            val filter = Filters.eq("id", item.id.toString())
             val update = Updates.combine(
                 Updates.set("name", item.name),
                 Updates.set("projectId", item.projectId.toString())
@@ -57,7 +57,7 @@ class StateMongoDBImpl(
 
     override suspend fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting state") {
-            val filter = Filters.eq("_id", id.toString())
+            val filter = Filters.eq("id", id.toString())
             val result = collection.deleteOne(filter)
             if (result.deletedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("State not found with ID: $id")

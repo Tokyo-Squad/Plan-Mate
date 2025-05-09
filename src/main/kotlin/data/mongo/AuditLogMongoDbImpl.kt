@@ -40,7 +40,7 @@ class AuditLogMongoDbImpl(
 
     override suspend fun update(item: AuditLogEntity) {
         MongoExceptionHandler.handleOperation("updating audit log") {
-            val filter = Filters.eq("_id", item.id.toString())
+            val filter = Filters.eq("id", item.id.toString())
             val document = toDocument(item)
             val result = auditLogCollection.replaceOne(filter, document)
             if (result.matchedCount == 0L) {
@@ -51,7 +51,7 @@ class AuditLogMongoDbImpl(
 
     override suspend fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting audit log") {
-            val result = auditLogCollection.deleteOne(Filters.eq("_id", id.toString()))
+            val result = auditLogCollection.deleteOne(Filters.eq("id", id.toString()))
             if (result.deletedCount == 0L) {
                 throw PlanMateException.ItemNotFoundException("Audit log with id $id not found")
             }
