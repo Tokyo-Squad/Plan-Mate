@@ -28,7 +28,6 @@ class TaskEditScreen(
     private val getProjectUseCase: GetProjectUseCase,
     private val swimlaneRenderer: SwimlaneRenderer
 ) {
-    // Existing show method for editing a specific task, now with suspend modifier
     private suspend fun show(taskId: String) {
         while (true) {
             try {
@@ -36,8 +35,9 @@ class TaskEditScreen(
                 when (showMenu()) {
                     1 -> editTaskTitle(taskId)
                     2 -> editTaskDescription(taskId)
-                    3 -> handleTaskDeletion(taskId)
-                    4 -> return
+                    3 -> updateTaskStatus(UUID.fromString(taskId))
+                    4 -> handleTaskDeletion(taskId)
+                    5 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             } catch (e: PlanMateException) {
@@ -49,7 +49,6 @@ class TaskEditScreen(
         }
     }
 
-    // New method to show tasks for a project and manage them
     suspend fun showTasksForProject(projectId: UUID) {
         try {
             val project = withContext(Dispatchers.IO) {
@@ -62,9 +61,7 @@ class TaskEditScreen(
                     1 -> viewTasks(projectId)
                     2 -> createTask(projectId)
                     3 -> editSpecificTask()
-                    4 -> updateTaskStatus(projectId)
-                    5 -> deleteTaskFromProject(projectId)
-                    6 -> return
+                    4 -> return
                     else -> console.writeError("Invalid option. Please try again.")
                 }
             }
@@ -76,13 +73,12 @@ class TaskEditScreen(
         }
     }
 
+
     private fun showProjectTasksMenu(): Int {
         console.write("1. View Tasks")
         console.write("2. Create Task")
         console.write("3. Edit Task")
-        console.write("4. Update Status")
-        console.write("5. Delete Task")
-        console.write("6. Back")
+        console.write("4. Back")
         console.write("\nSelect an option: ")
         return console.read().toIntOrNull() ?: 0
     }
@@ -91,8 +87,9 @@ class TaskEditScreen(
     private fun showMenu(): Int {
         console.write("1. Edit Title")
         console.write("2. Edit Description")
-        console.write("3. Delete Task")
-        console.write("4. Back")
+        console.write("3. Update Status")
+        console.write("4. Delete Task")
+        console.write("5. Back")
         console.write("\nSelect an option: ")
         return console.read().toIntOrNull() ?: 0
     }
@@ -311,26 +308,16 @@ class TaskEditScreen(
         }
     }
 
-    private suspend fun updateTaskStatus(projectId: UUID) {
+    private suspend fun updateTaskStatus(taskId: UUID) {
         try {
-            viewTasks(projectId)
-
-            console.write("\nEnter task ID to update: ")
-            val taskId = console.read().trim()
-
-            if (taskId.isBlank()) {
-                console.writeError("Task ID cannot be empty")
-                return
-            }
-
             // Get current task
             val task = withContext(Dispatchers.IO) {
-                getTaskUseCase.invoke(UUID.fromString(taskId))
+                getTaskUseCase.invoke(taskId)
             }
 
-            // Get states
+            // Get states for the task's project
             val states = withContext(Dispatchers.IO) {
-                getStatesByProjectId.invoke(projectId)
+                getStatesByProjectId.invoke(task.projectId)
             }
 
             if (states.isEmpty()) {
@@ -374,6 +361,7 @@ class TaskEditScreen(
             e.printStackTrace()
         }
     }
+
 
     private suspend fun deleteTaskFromProject(projectId: UUID) {
         try {
