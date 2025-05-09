@@ -35,7 +35,7 @@ class UsersMongoImpl(
 
     override suspend fun getById(id: UUID): UserEntity? {
         return MongoExceptionHandler.handleOperation("fetching user by ID") {
-            val filter = Filters.eq("_id", id.toString())
+            val filter = Filters.eq("id", id.toString())
             val document = usersCollection.find(filter).first()
             document?.let { fromDocument(it) }
                 ?: throw PlanMateException.ItemNotFoundException("User not found with id: $id")
@@ -44,7 +44,7 @@ class UsersMongoImpl(
 
     override suspend fun update(item: UserEntity) {
         MongoExceptionHandler.handleOperation("updating user") {
-            val filter = Filters.eq("_id", item.id.toString())
+            val filter = Filters.eq("id", item.id.toString())
             val update = Updates.combine(
                 Updates.set("username", item.username),
                 Updates.set("password", item.password),
@@ -61,7 +61,7 @@ class UsersMongoImpl(
 
     override suspend fun delete(id: UUID) {
         MongoExceptionHandler.handleOperation("deleting user") {
-            val filter = Filters.eq("_id", id.toString())
+            val filter = Filters.eq("id", id.toString())
             val result = usersCollection.deleteOne(filter)
 
             if (result.deletedCount == 0L) {
