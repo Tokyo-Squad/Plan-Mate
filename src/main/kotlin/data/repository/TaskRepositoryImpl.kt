@@ -57,10 +57,10 @@ class TaskRepositoryImpl(
         dataProvider.getById(id) ?: throw PlanMateException.ItemNotFoundException("Task $id not found")
 
 
-    override suspend fun getTasksByProjectId(projectId: UUID): List<TaskEntity> =
-        dataProvider.get().filter { it.projectId == projectId }
+    override suspend fun getTasksByProjectId(id: UUID): List<TaskEntity> =
+        dataProvider.get().filter { it.projectId == id }
             .takeIf { it.isNotEmpty() }
-            ?: throw PlanMateException.ItemNotFoundException("Project $projectId not found")
+            ?: throw PlanMateException.ItemNotFoundException("Project $id not found")
 
 
     private suspend fun generateUpdateDetails(
@@ -99,7 +99,6 @@ class TaskRepositoryImpl(
         )
     }
 
-
     private suspend fun audit(
         userId: UUID,
         entityId: UUID,
@@ -115,4 +114,3 @@ class TaskRepositoryImpl(
         )
     )
 }
-

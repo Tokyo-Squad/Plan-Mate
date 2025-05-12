@@ -13,6 +13,7 @@ class AddProjectUseCase(
         projectEntity: ProjectEntity,
         currentUser: UserEntity
     ): ProjectEntity {
+
         if (currentUser.type != UserType.ADMIN) {
             throw PlanMateException.UserActionNotAllowedException(
                 "User ${currentUser.id} is not authorized to create projects"

@@ -10,16 +10,14 @@ import org.example.utils.PlanMateException
 import java.util.*
 
 class AuthMongoImpl(
-    private val mongoDBClient: MongoDBClient
+    mongoDBClient: MongoDBClient
 ) : AuthProvider {
     private val currentUserCollection = mongoDBClient.getDatabase().getCollection<Document>("current_users")
 
     override suspend fun addCurrentUser(user: UserEntity) {
         MongoExceptionHandler.handleOperation("adding current user") {
-            // First delete any existing current user
             deleteCurrentUser()
 
-            // Then add the new user
             val document = toDocument(user)
             currentUserCollection.insertOne(document)
         }

@@ -49,7 +49,6 @@ class ProjectRepositoryImpl(
         return project
     }
 
-
     override suspend fun deleteProject(projectId: UUID, currentUserId: UUID) {
         val project = projectDataProvider.getById(projectId)
             ?: throw NoSuchElementException("Project not found")
@@ -69,8 +68,8 @@ class ProjectRepositoryImpl(
 
     override suspend fun getAllProjects(): List<ProjectEntity> = projectDataProvider.get()
 
-    override suspend fun getProjectById(projectId: String): ProjectEntity {
-        return projectDataProvider.getById(UUID.fromString(projectId))
+    override suspend fun getProjectById(projectId: UUID): ProjectEntity {
+        return projectDataProvider.getById(projectId)
             ?: throw NoSuchElementException("Project not found")
     }
 }

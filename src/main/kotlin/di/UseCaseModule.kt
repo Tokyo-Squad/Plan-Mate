@@ -1,7 +1,5 @@
 package org.example.di
 
-import logic.usecase.auth.CreateDefaultAdminUseCase
-import org.example.logic.usecase.audit.AddAuditLogUseCase
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.LoginUseCase
@@ -23,7 +21,6 @@ val useCaseModule = module {
     single { GetUserByIdUseCase(get()) }
     single { GetUserByUsernameUseCase(get()) }
     single { GetAuditLogUseCase(get()) }
-    single { AddAuditLogUseCase(get()) }
     single { AddTaskUseCase(get()) }
     single { DeleteTaskUseCase(get()) }
     single { GetTaskByIdUseCase(get()) }
@@ -42,5 +39,4 @@ val useCaseModule = module {
     single { UpdateStateUseCase(get()) }
     single { AddStateUseCase(get()) }
     single { DeleteStateUseCase(get()) }
-    single { CreateDefaultAdminUseCase(get()) }
 }

@@ -19,7 +19,7 @@ class GetProjectUseCaseTest {
     @Test
     fun `should return project when found`() = runTest {
         val expectedProject = mockk<ProjectEntity>()
-        coEvery { mockRepo.getProjectById(testProjectId.toString()) } returns expectedProject
+        coEvery { mockRepo.getProjectById(testProjectId) } returns expectedProject
 
         val result = useCase(testProjectId)
 

@@ -32,7 +32,7 @@ class StateMongoDBImpl(
         }
     }
 
-    override suspend fun getById(id: UUID): StateEntity? {
+    override suspend fun getById(id: UUID): StateEntity {
         return MongoExceptionHandler.handleOperation("fetching state by ID") {
             val filter = Filters.eq("id", id.toString())
             val document = collection.find(filter).firstOrNull()

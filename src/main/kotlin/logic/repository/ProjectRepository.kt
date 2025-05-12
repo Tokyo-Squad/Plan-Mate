@@ -13,5 +13,5 @@ interface ProjectRepository {
 
     suspend fun getAllProjects(): List<ProjectEntity>
 
-    suspend fun getProjectById(projectId: String): ProjectEntity
+    suspend fun getProjectById(projectId: UUID): ProjectEntity
 }

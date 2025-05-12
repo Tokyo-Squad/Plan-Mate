@@ -2,7 +2,7 @@ package org.example.data.mongo
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
@@ -14,7 +14,7 @@ import org.example.utils.PlanMateException
 import java.util.*
 
 class UsersMongoImpl(
-    private val mongoDBClient: MongoDBClient
+    mongoDBClient: MongoDBClient
 ) : DataProvider<UserEntity> {
     private val usersCollection = mongoDBClient.getDatabase().getCollection<Document>("users")
 
@@ -33,10 +33,10 @@ class UsersMongoImpl(
         }
     }
 
-    override suspend fun getById(id: UUID): UserEntity? {
+    override suspend fun getById(id: UUID): UserEntity {
         return MongoExceptionHandler.handleOperation("fetching user by ID") {
             val filter = Filters.eq("id", id.toString())
-            val document = usersCollection.find(filter).first()
+            val document = usersCollection.find(filter).firstOrNull()
             document?.let { fromDocument(it) }
                 ?: throw PlanMateException.ItemNotFoundException("User not found with id: $id")
         }

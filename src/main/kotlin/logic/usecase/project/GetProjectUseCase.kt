@@ -8,6 +8,6 @@ class GetProjectUseCase(
     private val projectRepository: ProjectRepository
 ) {
     suspend operator fun invoke(projectId: UUID): ProjectEntity {
-        return projectRepository.getProjectById(projectId.toString())
+        return projectRepository.getProjectById(projectId)
     }
 }
