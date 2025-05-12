@@ -8,10 +8,14 @@ import org.example.data.mongo.*
 import org.example.data.repository.*
 import org.example.entity.*
 import org.example.logic.repository.*
+import org.example.utils.hasher.PasswordHasher
+import org.example.utils.hasher.PasswordMD5HasherImpl
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appModule = module {
+    single <PasswordHasher> { PasswordMD5HasherImpl() }
+
     single(named("projects")) { "projects.csv" }
     single(named("states")) { "states.csv" }
     single(named("tasks")) { "tasks.csv" }
@@ -39,7 +43,8 @@ val appModule = module {
         AuthenticationRepositoryImpl(
             get(named("authProviderMongo")),
             get(),
-            get(qualifier = named("userDataProviderMongo"))
+            get(qualifier = named("userDataProviderMongo")),
+            get()
         )
     }
     single<ProjectRepository> {

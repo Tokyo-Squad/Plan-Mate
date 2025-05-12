@@ -6,20 +6,21 @@ import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.repository.UserRepository
 import org.example.utils.PlanMateException
+import org.example.utils.hasher.PasswordHasher
 
 class AuthenticationRepositoryImpl(
     private val authenticationProvider: AuthProvider,
     private val userRepository: UserRepository,
-    private val dataProvider: DataProvider<UserEntity>
+    private val dataProvider: DataProvider<UserEntity>,
+    private val passwordHasher: PasswordHasher
 ) : AuthenticationRepository {
 
     override suspend fun login(username: String, password: String) {
         val user = userRepository.getUserByUsername(username)
 
-        if (user.password != password) {
+        if (!isPasswordValid(user, password)) {
             throw PlanMateException.ValidationException("Password is not correct.")
         }
-
         authenticationProvider.addCurrentUser(user)
     }
 
@@ -28,7 +29,6 @@ class AuthenticationRepositoryImpl(
             userRepository.getUserByUsername(newUser.username)
             throw PlanMateException.ValidationException("A user with that username already exists.")
         } catch (e: PlanMateException.ItemNotFoundException) {
-            // User doesn't exist, we can proceed
             dataProvider.add(newUser)
         }
     }
@@ -44,6 +44,14 @@ class AuthenticationRepositoryImpl(
             null
         }
     }
+
+    private fun isPasswordValid(user: UserEntity, inputPassword: String): Boolean {
+        return try {
+            val hashedInput = passwordHasher.hash(inputPassword)
+            user.password == hashedInput
+        } catch (e: Exception) {
+            false
+        }
+    }
+
 }
-
-
