@@ -22,10 +22,10 @@ class DeleteProjectUseCaseTest {
         coEvery { mockRepo.getProjectById(any()) } returns testProject
         coEvery { mockRepo.deleteProject(any(), any()) } just Runs
 
-        useCase(testProjectId, testUserId) // Should not throw
+        useCase(testProjectId, testUserId)
 
         coVerify {
-            mockRepo.getProjectById(testProjectId.toString())
+            mockRepo.getProjectById(testProjectId)
             mockRepo.deleteProject(testProjectId, testUserId)
         }
     }

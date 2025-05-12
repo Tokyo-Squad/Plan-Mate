@@ -10,7 +10,7 @@ class DeleteProjectUseCase(
         projectId: UUID,
         currentUser: UUID
     ) {
-        projectRepository.getProjectById(projectId.toString())
+        projectRepository.getProjectById(projectId)
         projectRepository.deleteProject(projectId, currentUser)
     }
 }

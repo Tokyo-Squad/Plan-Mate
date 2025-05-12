@@ -13,9 +13,7 @@ class RegisterUseCase(
             throw PlanMateException.UserActionNotAllowedException("MATE users cannot create new users.")
         }
 
-        if (newUser.username.isBlank()) {
-            throw PlanMateException.ValidationException("Username cannot be empty")
-        }
+        if (newUser.username.isBlank()) throw PlanMateException.ValidationException("Username cannot be empty")
 
         authRepository.register(newUser, currentUser)
     }
