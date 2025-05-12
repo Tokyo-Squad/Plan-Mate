@@ -7,10 +7,10 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import org.bson.UuidRepresentation
 
 class MongoDBClient(
-    private val username: String,
-    private val password: String,
-    private val clusterUrl: String = "cluster0.watzb0c.mongodb.net",
-    private val databaseName: String = "PlanMate"
+    username: String,
+    password: String,
+    clusterUrl: String = "cluster0.watzb0c.mongodb.net",
+    databaseName: String = "PlanMate"
 ) {
 
     private val client: MongoClient

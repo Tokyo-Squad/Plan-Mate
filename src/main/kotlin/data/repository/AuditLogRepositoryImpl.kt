@@ -13,7 +13,7 @@ class AuditLogRepositoryImpl(
     override suspend fun addAudit(auditLogEntity: AuditLogEntity) {
         try {
             dataProvider.add(auditLogEntity)
-        }catch (e: PlanMateException.FileWriteException) {
+        } catch (e: PlanMateException.FileWriteException) {
             throw PlanMateException.FileWriteException("Failed to add audit log due to invalid state.")
         }
     }
@@ -21,10 +21,8 @@ class AuditLogRepositoryImpl(
     override suspend fun getProjectHistory(projectId: UUID): List<AuditLogEntity> =
         getEntityHistory(projectId, AuditedEntityType.PROJECT)
 
-
     override suspend fun getTaskHistory(taskId: UUID): List<AuditLogEntity> =
         getEntityHistory(taskId, AuditedEntityType.TASK)
-
 
     private suspend fun getEntityHistory(entityId: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
         val history = dataProvider.get().filter {

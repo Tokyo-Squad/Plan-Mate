@@ -15,13 +15,13 @@ import org.example.utils.PlanMateException
 import java.util.*
 
 class AuditLogMongoDbImpl(
-    private val mongoDBClient: MongoDBClient
+    mongoDBClient: MongoDBClient
 ) : DataProvider<AuditLogEntity> {
     private val auditLogCollection = mongoDBClient.getDatabase().getCollection<Document>("audit_log")
 
-    override suspend fun add(auditLog: AuditLogEntity) {
+    override suspend fun add(item: AuditLogEntity) {
         MongoExceptionHandler.handleOperation("adding audit log") {
-            val document = toDocument(auditLog)
+            val document = toDocument(item)
             auditLogCollection.insertOne(document)
         }
     }
