@@ -8,113 +8,104 @@ import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
 import kotlin.coroutines.cancellation.CancellationException
 
-
 class MateScreen(
     private val console: ConsoleIO,
     private val getProjectsUseCase: ListProjectsUseCase,
     private val projectScreen: ProjectScreen,
     private val auditScreen: AuditScreen
 ) {
-    private enum class MainMenuOption {
-        VIEW_PROJECTS, VIEW_AUDIT_LOGS, LOGOUT, INVALID
-    }
-
     suspend fun show() {
         while (true) {
             try {
-                displayMainMenu()
-                when (getMenuSelection()) {
-                    MainMenuOption.VIEW_PROJECTS -> handleProjects()
-                    MainMenuOption.VIEW_AUDIT_LOGS -> withContext(Dispatchers.IO) {
-                        auditScreen.show()
-                    }
-                    MainMenuOption.LOGOUT -> return
-                    MainMenuOption.INVALID -> console.writeError("Invalid option. Please try again.")
+                console.write("\n=== Mate Dashboard ===")
+                when (showMainMenu()) {
+                    1 -> handleProjects()
+                    2 -> auditScreen.show()
+                    3 -> return
+                    else -> console.writeError("Invalid option. Please try again.")
                 }
-            } catch (e: CancellationException) {
-                return
             } catch (e: PlanMateException) {
                 console.writeError("Operation failed: ${e.message}")
             } catch (e: Exception) {
-                console.writeError("An unexpected error occurred: ${e.message}")
+                console.writeError("Unexpected error: ${e.message}")
                 e.printStackTrace()
             }
         }
     }
 
-    private fun displayMainMenu() {
-        console.write("\n=== Mate Dashboard ===")
+    private fun showMainMenu(): Int {
         console.write("1. View Projects")
         console.write("2. View Audit Logs")
-        console.write("3. Logout")
-    }
-
-    private fun getMenuSelection(): MainMenuOption {
+        console.write("3. Exit")
         console.write("\nSelect an option: ")
-        return when (console.read().toIntOrNull()) {
-            1 -> MainMenuOption.VIEW_PROJECTS
-            2 -> MainMenuOption.VIEW_AUDIT_LOGS
-            3 -> MainMenuOption.LOGOUT
-            else -> MainMenuOption.INVALID
-        }
+        return console.read().toIntOrNull() ?: 0
     }
 
     private suspend fun handleProjects() {
-        val projects = try {
-            withContext(Dispatchers.IO) {
+        try {
+            val projects = withContext(Dispatchers.IO) {
                 getProjectsUseCase.invoke()
             }
-        } catch (e: PlanMateException) {
-            console.writeError("Failed to load projects: ${e.message}")
-            return
-        } catch (e: Exception) {
-            console.writeError("Unexpected error loading projects: ${e.message}")
-            e.printStackTrace()
-            return
-        }
 
-        if (projects.isEmpty()) {
-            console.write("\nNo projects available.")
-            return
-        }
-
-        while (true) {
-            displayProjects(projects)
-            when (val input = promptForProjectSelection()) {
-                "back" -> return
-                else -> handleSelectedProject(input, projects)
+            if (projects.isEmpty()) {
+                console.write("\nNo projects found.")
+                return
             }
+
+            while (true) {
+                displayProjects(projects)
+
+                when (showProjectsMenu()) {
+                    1 -> viewProject(projects)
+                    2 -> return
+                    else -> console.writeError("Invalid option. Please try again.")
+                }
+            }
+        } catch (error: PlanMateException) {
+            console.writeError("Operation failed: ${error.message}")
+        } catch (error: Exception) {
+            console.writeError("Unexpected error: ${error.message}")
+            error.printStackTrace()
         }
+    }
+
+    private fun showProjectsMenu(): Int {
+        console.write("\n1. View Project Tasks")
+        console.write("2. Back")
+        console.write("\nSelect an option: ")
+        return console.read().toIntOrNull() ?: 0
     }
 
     private fun displayProjects(projects: List<ProjectEntity>) {
-        console.write("\n=== Available Projects ===")
+        console.write("\n=== Projects ===")
         projects.forEachIndexed { index, project ->
-            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+            console.write("${project.name} (ID: ${project.id})")
         }
     }
 
-    private fun promptForProjectSelection(): String {
-        console.write("\nEnter project number to view details (or 'back' to return): ")
-        return console.read().trim()
-    }
+    private suspend fun viewProject(projects: List<ProjectEntity>) {
+        console.write("\nAvailable projects:")
+        projects.forEachIndexed { index, project ->
+            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+        }
 
-    private suspend fun handleSelectedProject(input: String, projects: List<ProjectEntity>) {
+        console.write("\nEnter project number (1-${projects.size}): ")
+        val projectNumber = console.read().toIntOrNull()
+
+        if (projectNumber == null || projectNumber < 1 || projectNumber > projects.size) {
+            console.writeError("Invalid project number")
+            return
+        }
+
         try {
-            val projectIndex = input.toInt() - 1
-            if (projectIndex in projects.indices) {
-                withContext(Dispatchers.IO) {
-                    projectScreen.show(projects[projectIndex].id.toString())
-                }
-            } else {
-                console.writeError("Please enter a number between 1 and ${projects.size}")
+            val selectedProject = projects[projectNumber - 1]
+            withContext(Dispatchers.IO) {
+                projectScreen.show(selectedProject.id.toString())
             }
-        } catch (e: NumberFormatException) {
-            console.writeError("Invalid input. Please enter a number or 'back'")
         } catch (e: PlanMateException) {
-            console.writeError("Failed to view project: ${e.message}")
+            console.writeError("Failed to open project: ${e.message}")
         } catch (e: Exception) {
-            console.writeError("Unexpected error viewing project: ${e.message}")
+            console.writeError("Unexpected error: ${e.message}")
             e.printStackTrace()
         }
     }

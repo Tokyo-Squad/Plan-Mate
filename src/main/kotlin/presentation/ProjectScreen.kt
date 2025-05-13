@@ -20,7 +20,7 @@ class ProjectScreen(
             }
 
             while (true) {
-                console.write("\n=== Project: ${project.name} ===")
+                console.write("\n=== Project: ${project.name} (ID: ${project.id}) ===")
                 when (showProjectMenu()) {
                     1 -> withContext(Dispatchers.IO) {
                         taskEditScreen.showTasksForProject(project.id)
