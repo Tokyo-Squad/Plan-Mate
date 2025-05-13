@@ -143,12 +143,6 @@ class AdminScreen(
         }
     }
 
-    private fun displayProjects(projects: List<ProjectEntity>) {
-        console.write("\n=== Projects ===")
-        projects.forEachIndexed { index, project ->
-            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
-        }
-    }
 
     private suspend fun handleProjects() {
         try {
@@ -179,8 +173,21 @@ class AdminScreen(
         }
     }
 
+    private fun displayProjects(projects: List<ProjectEntity>) {
+        console.write("\n=== Projects ===")
+        projects.forEachIndexed { index, project ->
+            console.write("${project.name} (ID: ${project.id})")
+        }
+    }
+
     private suspend fun viewProject(projects: List<ProjectEntity>) {
-        console.write("Enter project number (1-${projects.size}): ")
+        // First display numbered projects for selection
+        console.write("\nAvailable projects:")
+        projects.forEachIndexed { index, project ->
+            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+        }
+
+        console.write("\nEnter project number (1-${projects.size}): ")
         val projectNumber = console.read().toIntOrNull()
 
         if (projectNumber == null || projectNumber < 1 || projectNumber > projects.size) {
@@ -202,7 +209,13 @@ class AdminScreen(
     }
 
     private suspend fun editProject(projects: List<ProjectEntity>) {
-        console.write("Enter project number (1-${projects.size}): ")
+        // First display numbered projects for selection
+        console.write("\nAvailable projects:")
+        projects.forEachIndexed { index, project ->
+            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+        }
+
+        console.write("\nEnter project number (1-${projects.size}): ")
         val projectNumber = console.read().toIntOrNull()
 
         if (projectNumber == null || projectNumber < 1 || projectNumber > projects.size) {
@@ -222,5 +235,4 @@ class AdminScreen(
             e.printStackTrace()
         }
     }
-
 }
