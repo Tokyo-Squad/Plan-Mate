@@ -172,7 +172,6 @@ class TaskEditScreen(
             console.writeError("Failed to update task description: ${e.message}")
         } catch (e: Exception) {
             console.writeError("Unexpected error updating task description: ${e.message}")
-            e.printStackTrace()
         }
     }
 
@@ -358,44 +357,6 @@ class TaskEditScreen(
             console.writeError("Failed to update task status: ${e.message}")
         } catch (e: Exception) {
             console.writeError("Unexpected error updating task status: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-
-
-    private suspend fun deleteTaskFromProject(projectId: UUID) {
-        try {
-            viewTasks(projectId)
-
-            console.write("\nEnter task ID to delete: ")
-            val taskId = console.read().trim()
-
-            if (taskId.isBlank()) {
-                console.writeError("Task ID cannot be empty")
-                return
-            }
-
-            console.write("Are you sure you want to delete this task? (yes/no): ")
-            val confirmation = console.read().trim().lowercase()
-
-            if (confirmation != "yes") {
-                console.write("Task deletion cancelled")
-                return
-            }
-
-            val currentUser = withContext(Dispatchers.IO) {
-                getCurrentUserUseCase.invoke()
-            } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
-
-            withContext(Dispatchers.IO) {
-                deleteTaskUseCase.invoke(UUID.fromString(taskId), currentUser.id)
-            }
-
-            console.write("Task deleted successfully!")
-        } catch (e: PlanMateException) {
-            console.writeError("Failed to delete task: ${e.message}")
-        } catch (e: Exception) {
-            console.writeError("Unexpected error deleting task: ${e.message}")
             e.printStackTrace()
         }
     }
