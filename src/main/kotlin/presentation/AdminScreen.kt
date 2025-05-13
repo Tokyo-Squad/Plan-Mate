@@ -57,41 +57,7 @@ class AdminScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private suspend fun handleProjects() {
-        try {
-            val projects = withContext(Dispatchers.IO) {
-                getProjectsUseCase.invoke()
-            }
 
-            if (projects.isEmpty()) {
-                console.write("\nNo projects found.")
-                return
-            }
-
-            while (true) {
-                displayProjects(projects)
-
-                when (showProjectsMenu()) {
-                    1 -> viewProject()
-                    2 -> editProject()
-                    3 -> return
-                    else -> console.writeError("Invalid option. Please try again.")
-                }
-            }
-        } catch (error: PlanMateException) {
-            console.writeError("Operation failed: ${error.message}")
-        } catch (error: Exception) {
-            console.writeError("Unexpected error: ${error.message}")
-            error.printStackTrace()
-        }
-    }
-
-    private fun displayProjects(projects: List<ProjectEntity>) {
-        console.write("\n=== Projects ===")
-        projects.forEach { project ->
-            console.write("${project.id}: ${project.name}")
-        }
-    }
 
     private fun showProjectsMenu(): Int {
         console.write("\n1. View Project Tasks")
@@ -101,47 +67,7 @@ class AdminScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private suspend fun viewProject() {
-        console.write("Enter project ID: ")
-        val projectId = console.read().trim()
 
-        if (projectId.isBlank()) {
-            console.writeError("Project ID cannot be empty")
-            return
-        }
-
-        try {
-            withContext(Dispatchers.IO) {
-                projectScreen.show(projectId)
-            }
-        } catch (e: PlanMateException) {
-            console.writeError("Failed to open project: ${e.message}")
-        } catch (e: Exception) {
-            console.writeError("Unexpected error: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-
-    private suspend fun editProject() {
-        console.write("Enter project ID: ")
-        val projectId = console.read().trim()
-
-        if (projectId.isBlank()) {
-            console.writeError("Project ID cannot be empty")
-            return
-        }
-
-        try {
-            withContext(Dispatchers.IO) {
-                projectEditScreen.show(projectId)
-            }
-        } catch (e: PlanMateException) {
-            console.writeError("Failed to edit project: ${e.message}")
-        } catch (e: Exception) {
-            console.writeError("Unexpected error: ${e.message}")
-            e.printStackTrace()
-        }
-    }
 
     private suspend fun createProject() {
         try {
@@ -216,4 +142,85 @@ class AdminScreen(
             e.printStackTrace()
         }
     }
+
+    private fun displayProjects(projects: List<ProjectEntity>) {
+        console.write("\n=== Projects ===")
+        projects.forEachIndexed { index, project ->
+            console.write("${index + 1}. ${project.name} (ID: ${project.id})")
+        }
+    }
+
+    private suspend fun handleProjects() {
+        try {
+            val projects = withContext(Dispatchers.IO) {
+                getProjectsUseCase.invoke()
+            }
+
+            if (projects.isEmpty()) {
+                console.write("\nNo projects found.")
+                return
+            }
+
+            while (true) {
+                displayProjects(projects)
+
+                when (showProjectsMenu()) {
+                    1 -> viewProject(projects)
+                    2 -> editProject(projects)
+                    3 -> return
+                    else -> console.writeError("Invalid option. Please try again.")
+                }
+            }
+        } catch (error: PlanMateException) {
+            console.writeError("Operation failed: ${error.message}")
+        } catch (error: Exception) {
+            console.writeError("Unexpected error: ${error.message}")
+            error.printStackTrace()
+        }
+    }
+
+    private suspend fun viewProject(projects: List<ProjectEntity>) {
+        console.write("Enter project number (1-${projects.size}): ")
+        val projectNumber = console.read().toIntOrNull()
+
+        if (projectNumber == null || projectNumber < 1 || projectNumber > projects.size) {
+            console.writeError("Invalid project number")
+            return
+        }
+
+        try {
+            val selectedProject = projects[projectNumber - 1]
+            withContext(Dispatchers.IO) {
+                projectScreen.show(selectedProject.id.toString())
+            }
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to open project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun editProject(projects: List<ProjectEntity>) {
+        console.write("Enter project number (1-${projects.size}): ")
+        val projectNumber = console.read().toIntOrNull()
+
+        if (projectNumber == null || projectNumber < 1 || projectNumber > projects.size) {
+            console.writeError("Invalid project number")
+            return
+        }
+
+        try {
+            val selectedProject = projects[projectNumber - 1]
+            withContext(Dispatchers.IO) {
+                projectEditScreen.show(selectedProject.id.toString())
+            }
+        } catch (e: PlanMateException) {
+            console.writeError("Failed to edit project: ${e.message}")
+        } catch (e: Exception) {
+            console.writeError("Unexpected error: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
 }
