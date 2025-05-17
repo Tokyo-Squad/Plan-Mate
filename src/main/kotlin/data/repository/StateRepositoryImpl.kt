@@ -3,18 +3,18 @@ package org.example.data.repository
 
 import org.example.data.RemoteDataSource
 import org.example.data.remote.dto.StateDto
+import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toStateDto
 import org.example.data.util.mapper.toStateEntity
 import org.example.entity.StateEntity
 import org.example.logic.repository.StateRepository
-import org.example.utils.PlanMateException
 import java.util.UUID
 
 class StateRepositoryImpl(
     private val remoteDataSource: RemoteDataSource<StateDto>
 ) : StateRepository {
 
-    override suspend fun addState(state: StateEntity){
+    override suspend fun addState(state: StateEntity) {
         remoteDataSource.add(state.toStateDto())
     }
 
@@ -30,7 +30,7 @@ class StateRepositoryImpl(
 
     override suspend fun getStateById(stateId: UUID): StateEntity =
         remoteDataSource.getById(stateId)?.toStateEntity()
-            ?: throw PlanMateException.ItemNotFoundException("State with ID $stateId does not exist")
+            ?: throw DatabaseException.DatabaseItemNotFoundException("State with ID $stateId does not exist")
 
 
     override suspend fun getByProjectId(projectId: UUID): List<StateEntity> =
