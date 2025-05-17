@@ -1,12 +1,11 @@
 package org.example.data.local.csvfile
 
 import org.example.data.LocalDataSource
-import org.example.data.RemoteDataSource
+import org.example.data.util.exception.FileException
 import org.example.entity.StateEntity
-import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.UUID
 
 class StateCsvImpl(
     fileName: String
@@ -20,7 +19,7 @@ class StateCsvImpl(
             items.add(item)
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error adding state: ${e.message}")
+            throw FileException.FileWriteException("Error adding state: ${e.message}")
         }
     }
 
@@ -33,14 +32,14 @@ class StateCsvImpl(
         val index = items.indexOfFirst { it.id == item.id }
 
         if (index == -1) {
-            throw PlanMateException.ItemNotFoundException("State with ID ${item.id} not found.")
+            throw FileException.FileItemNotFoundException("State with ID ${item.id} not found.")
         }
 
         items[index] = item
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error updating state: ${e.message}")
+            throw FileException.FileWriteException("Error updating state: ${e.message}")
         }
     }
 
@@ -49,14 +48,14 @@ class StateCsvImpl(
         val stateToDelete = items.find { it.id == id }
 
         if (stateToDelete == null) {
-            throw PlanMateException.ItemNotFoundException("State with ID $id not found.")
+            throw FileException.FileItemNotFoundException("State with ID $id not found.")
         }
 
         items.remove(stateToDelete)
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error deleting state: ${e.message}")
+            throw FileException.FileWriteException("Error deleting state: ${e.message}")
         }
     }
 
@@ -70,7 +69,7 @@ class StateCsvImpl(
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            throw PlanMateException.FileWriteException("Error creating file '${file.name}': ${e.message}")
+            throw FileException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
 
@@ -85,7 +84,7 @@ class StateCsvImpl(
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
         } catch (e: IOException) {
-            throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
+            throw FileException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
 
@@ -98,7 +97,7 @@ class StateCsvImpl(
                 projectId = UUID.fromString(parts[2])
             )
         } catch (e: Exception) {
-            throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
+            throw FileException.FileInvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
 

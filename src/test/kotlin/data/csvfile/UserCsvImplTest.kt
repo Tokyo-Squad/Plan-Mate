@@ -3,13 +3,13 @@ package data.csvfile
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.example.data.local.csvfile.UserCsvImpl
+import org.example.data.util.exception.FileException
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -70,7 +70,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() = runTest {
         val nonExistent = user.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             userCsv.update(nonExistent)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -95,7 +95,7 @@ class UserCsvImplTest {
         val nonExistentDir = File(tempDir, "non_existent_dir")
         val failingFile = File(nonExistentDir, "users.csv")
         val failingCsv = UserCsvImpl(failingFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(user)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -104,7 +104,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowException_whenCsvLineIsMalformed() = runTest {
         file.writeText("invalid,line,also-invalid")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -125,7 +125,7 @@ class UserCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(user)
         }
         assertThat(exception).hasMessageThat().contains("Error writing to file")
@@ -134,7 +134,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowFileReadException_whenFileContentIsMalformed() = runTest {
         file.writeText("invalid,line,malformed,content")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
@@ -164,7 +164,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() = runTest {
         val nonExistentUser = user.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             userCsv.update(nonExistentUser)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -173,7 +173,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowException_whenUserTypeIsInvalid() = runTest {
         file.writeText("${UUID.randomUUID()},Test,password123,INVALID_TYPE")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
@@ -182,7 +182,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowException_whenUserIdIsInvalidUUID() = runTest {
         file.writeText("not-a-uuid,Test,password123,ADMIN")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             userCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line:")
@@ -197,7 +197,7 @@ class UserCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.delete(user.id)
         }
         assertThat(exception).hasMessageThat().contains("Error deleting user")
@@ -212,7 +212,7 @@ class UserCsvImplTest {
         readOnlyFile.setWritable(false)
         val failingCsv = UserCsvImpl(readOnlyFile.absolutePath)
         val updatedUser = user.copy(username = "UpdatedUser")
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.update(updatedUser)
         }
         assertThat(exception).hasMessageThat().contains("Error updating user")
@@ -221,7 +221,7 @@ class UserCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() = runTest {
         userCsv.add(user)
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             userCsv.delete(UUID.randomUUID())
         }
         assertThat(exception).hasMessageThat().contains("not found")
