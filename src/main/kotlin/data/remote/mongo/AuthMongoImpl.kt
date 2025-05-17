@@ -2,24 +2,21 @@ package org.example.data.remote.mongo
 
 import kotlinx.coroutines.flow.first
 import org.bson.Document
-import org.example.data.AuthProvider
-import org.example.entity.UserEntity
-import org.example.entity.UserType
+import org.example.data.Authentication
+import org.example.data.remote.dto.UserDto
 import org.example.data.util.exception.MongoExceptionHandler
-import org.example.utils.PlanMateException
-import java.util.*
+import org.example.data.util.mapper.toDocument
+import org.example.data.util.mapper.toUserDto
 
 class AuthMongoImpl(
     mongoDBClient: MongoDBClient
-) : AuthProvider {
+) : Authentication {
     private val currentUserCollection = mongoDBClient.getDatabase().getCollection<Document>("current_users")
 
-    override suspend fun addCurrentUser(user: UserEntity) {
+    override suspend fun addCurrentUser(user: UserDto) {
         MongoExceptionHandler.handleOperation("adding current user") {
             deleteCurrentUser()
-
-            val document = toDocument(user)
-            currentUserCollection.insertOne(document)
+            currentUserCollection.insertOne(user.toDocument())
         }
     }
 
@@ -29,32 +26,9 @@ class AuthMongoImpl(
         }
     }
 
-    override suspend fun getCurrentUser(): UserEntity {
+    override suspend fun getCurrentUser(): UserDto {
         return MongoExceptionHandler.handleOperation("fetching current user") {
-            val document = currentUserCollection.find().first()
-            fromDocument(document)
-        }
-    }
-
-    private fun toDocument(user: UserEntity): Document {
-        return Document()
-            .append("id", user.id)
-            .append("username", user.username)
-            .append("password", user.password)
-            .append("type", user.type.name)
-    }
-
-    private fun fromDocument(doc: Document): UserEntity {
-        return try {
-            UserEntity(
-                id = doc.get("id", UUID::class.java),
-
-                username = doc.getString("username"),
-                password = doc.getString("password"),
-                type = UserType.valueOf(doc.getString("type"))
-            )
-        } catch (e: Exception) {
-            throw PlanMateException.InvalidFormatException("Malformed MongoDB document: ${e.message}")
+            currentUserCollection.find().first().toUserDto()
         }
     }
 }

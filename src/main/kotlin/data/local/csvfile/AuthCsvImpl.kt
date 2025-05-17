@@ -1,20 +1,22 @@
 package org.example.data.local.csvfile
 
-import org.example.data.AuthProvider
+import org.example.data.Authentication
+import org.example.data.remote.dto.UserDto
+import org.example.data.util.mapper.toUserDto
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.UUID
 
-class AuthProviderImpl(
+class AuthCsvImpl(
     fileName: String
-) : AuthProvider {
+) : Authentication {
 
     private val file = File(fileName)
 
-    override suspend fun addCurrentUser(user: UserEntity) {
+    override suspend fun addCurrentUser(user: UserDto) {
         ensureFileExists()
         try {
             file.writeText(toCSVLine(user))
@@ -33,20 +35,20 @@ class AuthProviderImpl(
         }
     }
 
-    override suspend fun getCurrentUser(): UserEntity {
+    override suspend fun getCurrentUser(): UserDto {
         ensureFileExists()
         val content = file.readText().trim()
         if (content.isBlank()) {
             throw PlanMateException.ItemNotFoundException("No current user found.")
         }
         return try {
-            fromCSVLine(content)
+            fromCSVLine(content).toUserDto()
         } catch (e: Exception) {
             throw PlanMateException.InvalidFormatException("Malformed current user data: ${e.message}")
         }
     }
 
-    private fun toCSVLine(user: UserEntity): String {
+    private fun toCSVLine(user: UserDto): String {
         return "${user.id},${user.username},${user.password},${user.type}"
     }
 

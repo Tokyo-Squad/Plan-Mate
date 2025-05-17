@@ -2,35 +2,35 @@ package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.example.data.local.csvfile.AuthProviderImpl
-import org.example.entity.UserEntity
+import org.example.data.local.csvfile.AuthCsvImpl
+import org.example.data.remote.dto.UserDto
 import org.example.entity.UserType
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
-class AuthProviderImplTest {
+class AuthCsvImplTest {
 
     @TempDir
     lateinit var tempDir: File
 
     private lateinit var file: File
-    private lateinit var authProvider: AuthProviderImpl
-    private lateinit var user: UserEntity
+    private lateinit var authProvider: AuthCsvImpl
+    private lateinit var user: UserDto
 
     @BeforeEach
     fun setup() {
         file = File(tempDir, "current_user.csv")
-        authProvider = AuthProviderImpl(file.absolutePath)
-        user = UserEntity(
+        authProvider = AuthCsvImpl(file.absolutePath)
+        user = UserDto(
             id = UUID.randomUUID(),
             username = "user1",
             password = "password123",
-            type = UserType.ADMIN
+            type = UserType.ADMIN.toString(),
         )
     }
 
@@ -66,7 +66,7 @@ class AuthProviderImplTest {
             createNewFile()
             setWritable(false)
         }
-        val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
+        val failingProvider = AuthCsvImpl(readOnlyFile.absolutePath)
 
         val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.addCurrentUser(user)
@@ -91,7 +91,7 @@ class AuthProviderImplTest {
             setReadable(true)
             setWritable(false)
         }
-        val failingProvider = AuthProviderImpl(fileWithNoPermission.absolutePath)
+        val failingProvider = AuthCsvImpl(fileWithNoPermission.absolutePath)
 
         val exception = assertFailsWith<PlanMateException.FileWriteException> {
             failingProvider.addCurrentUser(user)
@@ -105,7 +105,7 @@ class AuthProviderImplTest {
             createNewFile()
             setWritable(true)
         }
-        val failingProvider = AuthProviderImpl(fileWithNoPermission.absolutePath)
+        val failingProvider = AuthCsvImpl(fileWithNoPermission.absolutePath)
         failingProvider.addCurrentUser(user)
         fileWithNoPermission.setWritable(false)
 
@@ -118,7 +118,7 @@ class AuthProviderImplTest {
     @Test
     fun shouldThrowItemNotFoundException_whenFileIsEmpty() = runTest {
         val emptyFile = File(tempDir, "empty.csv").apply { createNewFile() }
-        val provider = AuthProviderImpl(emptyFile.absolutePath)
+        val provider = AuthCsvImpl(emptyFile.absolutePath)
 
         val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
             provider.getCurrentUser()
@@ -134,7 +134,7 @@ class AuthProviderImplTest {
             setWritable(false)
         }
 
-        val failingProvider = AuthProviderImpl(readOnlyFile.absolutePath)
+        val failingProvider = AuthCsvImpl(readOnlyFile.absolutePath)
         val newUser = user.copy(username = "UpdatedUser")
 
         val exception = assertFailsWith<PlanMateException.FileWriteException> {

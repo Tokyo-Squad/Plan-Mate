@@ -1,6 +1,6 @@
 package org.example.di
 
-import org.example.data.AuthProvider
+import org.example.data.Authentication
 import org.example.data.RemoteDataSource
 import org.example.data.local.csvfile.*
 import org.example.data.remote.mongo.*
@@ -32,8 +32,8 @@ val appModule = module {
     single<RemoteDataSource<UserEntity>>(named("userDataProviderMongo")) { UsersMongoImpl(get()) }
     single<RemoteDataSource<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
     single<RemoteDataSource<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get()) }
-    single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
-    single<AuthProvider>(named("authProviderMongo")) { AuthMongoImpl(get()) }
+    single<Authentication> { AuthCsvImpl(get(named("auth"))) }
+    single<Authentication>(named("authProviderMongo")) { AuthMongoImpl(get()) }
 
 
 
