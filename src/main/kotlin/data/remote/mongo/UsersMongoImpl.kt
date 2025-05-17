@@ -9,7 +9,7 @@ import org.bson.Document
 import org.example.data.RemoteDataSource
 import org.example.entity.UserEntity
 import org.example.entity.UserType
-import org.example.utils.MongoExceptionHandler
+import org.example.data.util.exception.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
 

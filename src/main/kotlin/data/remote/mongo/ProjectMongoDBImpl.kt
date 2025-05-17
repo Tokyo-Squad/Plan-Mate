@@ -8,7 +8,7 @@ import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.RemoteDataSource
 import org.example.entity.ProjectEntity
-import org.example.utils.MongoExceptionHandler
+import org.example.data.util.exception.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
 

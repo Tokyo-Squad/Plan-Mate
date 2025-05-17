@@ -1,4 +1,4 @@
-package org.example.utils
+package org.example.data.util.exception
 
 import com.mongodb.MongoException
 import com.mongodb.MongoSecurityException
@@ -6,52 +6,39 @@ import com.mongodb.MongoTimeoutException
 import com.mongodb.MongoWriteException
 
 object MongoExceptionHandler {
-    /**
-     * Handles MongoDB exceptions and converts them to appropriate PlanMateExceptions
-     *
-     * @param e The caught exception
-     * @param operation Description of the operation being performed
-     * @throws PlanMateException with appropriate subtype based on the error
-     */
+
     private fun handle(e: Exception, operation: String): Nothing {
         throw when (e) {
             is MongoWriteException -> {
                 when (e.error.code) {
-                    11000 -> PlanMateException.DuplicateKeyException(
+                    11000 -> DatabaseException.DuplicateKeyException(
                         "Duplicate key error during $operation: ${e.message}"
                     )
 
-                    else -> PlanMateException.DatabaseOperationException(
+                    else -> DatabaseException.DatabaseOperationException(
                         "Write error during $operation: ${e.message}"
                     )
                 }
             }
 
-            is MongoTimeoutException -> PlanMateException.DatabaseTimeoutException(
+            is MongoTimeoutException -> DatabaseException.DatabaseTimeoutException(
                 "Operation timeout during $operation: ${e.message}"
             )
 
-            is MongoSecurityException -> PlanMateException.DatabaseAuthenticationException(
+            is MongoSecurityException -> DatabaseException.DatabaseAuthenticationException(
                 "Authentication failed during $operation: ${e.message}"
             )
 
-            is MongoException -> PlanMateException.DatabaseOperationException(
+            is MongoException -> DatabaseException.DatabaseOperationException(
                 "Database error during $operation: ${e.message}"
             )
 
-            else -> PlanMateException.UnknownException(
+            else -> DatabaseException.UnknownException(
                 "Unexpected error during $operation: ${e.message}"
             )
         }
     }
 
-    /**
-     * Wraps a MongoDB operation in a try-catch block with standardized error handling
-     *
-     * @param operation Description of the operation being performed
-     * @param block The operation to execute
-     * @return Result of the operation
-     */
     suspend fun <T> handleOperation(operation: String, block: suspend () -> T): T {
         return try {
             block()
