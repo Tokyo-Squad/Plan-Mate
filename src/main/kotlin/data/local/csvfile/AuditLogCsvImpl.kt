@@ -1,4 +1,4 @@
-package data.csvfile
+package org.example.data.local.csvfile
 
 import kotlinx.datetime.LocalDateTime
 import org.example.data.DataProvider

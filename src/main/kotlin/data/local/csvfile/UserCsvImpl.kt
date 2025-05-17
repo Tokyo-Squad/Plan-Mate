@@ -1,4 +1,4 @@
-package data.csvfile
+package org.example.data.local.csvfile
 
 import org.example.data.DataProvider
 import org.example.entity.UserEntity
