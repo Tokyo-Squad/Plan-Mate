@@ -4,7 +4,7 @@ import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import org.bson.UuidRepresentation
-import org.example.data.mongo.MongoDBClient
+import org.example.data.remote.mongo.MongoDBClient
 import org.koin.dsl.module
 import java.io.File
 import java.util.*

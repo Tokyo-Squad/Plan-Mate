@@ -5,6 +5,7 @@ import org.example.data.AuthProvider
 import org.example.data.DataProvider
 import org.example.data.local.csvfile.*
 import org.example.data.mongo.*
+import org.example.data.remote.mongo.*
 import org.example.data.repository.*
 import org.example.entity.*
 import org.example.logic.repository.*

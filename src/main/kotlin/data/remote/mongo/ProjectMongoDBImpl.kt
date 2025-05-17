@@ -1,4 +1,4 @@
-package org.example.data.mongo
+package org.example.data.remote.mongo
 
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import kotlinx.coroutines.flow.firstOrNull
