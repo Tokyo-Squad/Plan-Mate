@@ -3,7 +3,7 @@ package org.example.di
 import data.csvfile.*
 import org.example.data.AuthProvider
 import org.example.data.DataProvider
-import org.example.data.csvfile.AuthProviderImpl
+import org.example.data.local.csvfile.*
 import org.example.data.mongo.*
 import org.example.data.repository.*
 import org.example.entity.*

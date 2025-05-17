@@ -3,6 +3,7 @@ package data.csvfile
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
+import org.example.data.local.csvfile.AuditLogCsvImpl
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType

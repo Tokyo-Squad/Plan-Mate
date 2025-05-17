@@ -1,65 +1,66 @@
-package data.csvfile
+package org.example.data.local.csvfile
 
+import kotlinx.datetime.LocalDateTime
 import org.example.data.DataProvider
-import org.example.entity.StateEntity
+import org.example.entity.ProjectEntity
 import org.example.utils.PlanMateException
 import java.io.File
 import java.io.IOException
 import java.util.*
 
-class StateCsvImpl(
+class ProjectCsvImpl(
     fileName: String
-) : DataProvider<StateEntity> {
+) : DataProvider<ProjectEntity> {
 
     private val file: File = File(fileName)
 
-    override suspend fun add(item: StateEntity) {
+    override suspend fun add(item: ProjectEntity) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error adding state: ${e.message}")
+            throw PlanMateException.FileWriteException("Error adding project: ${e.message}")
         }
     }
 
-    override suspend fun get(): List<StateEntity> = loadFromCsv()
+    override suspend fun get(): List<ProjectEntity> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): StateEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): ProjectEntity? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: StateEntity) {
+    override suspend fun update(item: ProjectEntity) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
         if (index == -1) {
-            throw PlanMateException.ItemNotFoundException("State with ID ${item.id} not found.")
+            throw PlanMateException.ItemNotFoundException("Project with ID ${item.id} not found.")
         }
 
         items[index] = item
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error updating state: ${e.message}")
+            throw PlanMateException.FileWriteException("Error updating project: ${e.message}")
         }
     }
 
     override suspend fun delete(id: UUID) {
         val items = loadFromCsv().toMutableList()
-        val stateToDelete = items.find { it.id == id }
+        val projectToDelete = items.find { it.id == id }
 
-        if (stateToDelete == null) {
-            throw PlanMateException.ItemNotFoundException("State with ID $id not found.")
+        if (projectToDelete == null) {
+            throw PlanMateException.ItemNotFoundException("Project with ID $id not found.")
         }
 
-        items.remove(stateToDelete)
+        items.remove(projectToDelete)
         try {
             saveToCsv(items)
         } catch (e: Exception) {
-            throw PlanMateException.FileWriteException("Error deleting state: ${e.message}")
+            throw PlanMateException.FileWriteException("Error deleting project: ${e.message}")
         }
     }
 
-    private fun loadFromCsv(): List<StateEntity> {
+    private fun loadFromCsv(): List<ProjectEntity> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -73,13 +74,15 @@ class StateCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<StateEntity> {
+    private fun readAndParseFile(): List<ProjectEntity> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
-    private fun saveToCsv(data: List<StateEntity>) {
+
+
+    private fun saveToCsv(data: List<ProjectEntity>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -87,20 +90,21 @@ class StateCsvImpl(
             throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
-    private fun fromCSVLine(line: String): StateEntity {
+
+    private fun fromCSVLine(line: String): ProjectEntity {
         try {
             val parts = line.split(",")
-            return StateEntity(
+            return ProjectEntity(
                 id = UUID.fromString(parts[0]),
                 name = parts[1],
-                projectId = UUID.fromString(parts[2])
+                createdByAdminId = UUID.fromString(parts[2]),
+                createdAt = LocalDateTime.parse(parts[3])
             )
         } catch (e: Exception) {
             throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
-
-    private fun toCSVLine(entity: StateEntity): String {
-        return "${entity.id},${entity.name},${entity.projectId}"
+    private fun toCSVLine(entity: ProjectEntity): String {
+        return "${entity.id},${entity.name},${entity.createdByAdminId},${entity.createdAt}"
     }
 }

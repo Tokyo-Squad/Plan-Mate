@@ -2,7 +2,7 @@ package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.example.data.csvfile.AuthProviderImpl
+import org.example.data.local.csvfile.AuthProviderImpl
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.utils.PlanMateException

@@ -2,6 +2,7 @@ package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
+import org.example.data.local.csvfile.StateCsvImpl
 import org.example.entity.StateEntity
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
