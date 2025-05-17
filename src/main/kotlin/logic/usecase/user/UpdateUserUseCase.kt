@@ -8,7 +8,7 @@ import org.example.utils.PlanMateException
 class UpdateUserUseCase(
     private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(user: UserEntity, currentUser: UserEntity) {
+    suspend operator fun invoke(user: UserEntity, currentUser: UserEntity): UserEntity {
 
         if (currentUser.type != UserType.ADMIN) {
             throw PlanMateException.UserActionNotAllowedException(
@@ -17,7 +17,7 @@ class UpdateUserUseCase(
         }
 
         validationInput(user)
-        userRepository.update(user)
+        return userRepository.update(user)
     }
 
     private fun validationInput(user: UserEntity) {

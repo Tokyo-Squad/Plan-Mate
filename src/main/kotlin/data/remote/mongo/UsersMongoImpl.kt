@@ -7,54 +7,52 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
 import org.example.data.RemoteDataSource
-import org.example.entity.UserEntity
-import org.example.entity.UserType
+import org.example.data.remote.dto.UserDto
+import org.example.data.util.exception.DatabaseException
 import org.example.data.util.exception.MongoExceptionHandler
-import org.example.utils.PlanMateException
-import java.util.*
+import org.example.data.util.mapper.toDocument
+import org.example.data.util.mapper.toUserDto
+import java.util.UUID
 
 class UsersMongoImpl(
     mongoDBClient: MongoDBClient
-) : RemoteDataSource<UserEntity> {
+) : RemoteDataSource<UserDto> {
     private val usersCollection = mongoDBClient.getDatabase().getCollection<Document>("users")
 
-    override suspend fun add(item: UserEntity) {
+    override suspend fun add(item: UserDto) {
         MongoExceptionHandler.handleOperation("adding user") {
-            val document = toDocument(item)
-            usersCollection.insertOne(document)
+            usersCollection.insertOne(item.toDocument())
         }
     }
 
-    override suspend fun get(): List<UserEntity> {
-        return MongoExceptionHandler.handleOperation("fetching all users") {
-            usersCollection.find()
-                .map { doc -> fromDocument(doc) }
-                .toList()
-        }
+    override suspend fun get(): List<UserDto> = MongoExceptionHandler.handleOperation("fetching all users") {
+        usersCollection.find()
+            .map { it.toUserDto() }
+            .toList()
     }
 
-    override suspend fun getById(id: UUID): UserEntity {
+
+    override suspend fun getById(id: UUID): UserDto? {
         return MongoExceptionHandler.handleOperation("fetching user by ID") {
             val filter = Filters.eq("id", id.toString())
             val document = usersCollection.find(filter).firstOrNull()
-            document?.let { fromDocument(it) }
-                ?: throw PlanMateException.ItemNotFoundException("User not found with id: $id")
+            document?.toUserDto()
         }
     }
 
-    override suspend fun update(item: UserEntity) {
+    override suspend fun update(item: UserDto) {
         MongoExceptionHandler.handleOperation("updating user") {
             val filter = Filters.eq("id", item.id.toString())
             val update = Updates.combine(
                 Updates.set("username", item.username),
                 Updates.set("password", item.password),
-                Updates.set("type", item.type.name)
+                Updates.set("type", item.type)
             )
 
             val result = usersCollection.updateOne(filter, update)
 
             if (result.matchedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("User not found with id: ${item.id}")
+                throw DatabaseException.DatabaseItemNotFoundException("User not found with id: ${item.id}")
             }
         }
     }
@@ -65,29 +63,8 @@ class UsersMongoImpl(
             val result = usersCollection.deleteOne(filter)
 
             if (result.deletedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("User not found with id: $id")
+                throw DatabaseException.DatabaseItemNotFoundException("User not found with id: $id")
             }
-        }
-    }
-
-    private fun toDocument(item: UserEntity): Document {
-        return Document()
-            .append("id", item.id)
-            .append("username", item.username)
-            .append("password", item.password)
-            .append("type", item.type.name)
-    }
-
-    private fun fromDocument(doc: Document): UserEntity {
-        return try {
-            UserEntity(
-                id = doc.get("id", UUID::class.java),
-                username = doc.getString("username"),
-                password = doc.getString("password"),
-                type = UserType.valueOf(doc.getString("type"))
-            )
-        } catch (e: Exception) {
-            throw PlanMateException.InvalidFormatException("Malformed MongoDB document: ${e.message}")
         }
     }
 }
