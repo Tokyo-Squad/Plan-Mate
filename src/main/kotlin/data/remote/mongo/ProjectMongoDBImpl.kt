@@ -4,40 +4,41 @@ import com.mongodb.kotlin.client.coroutine.MongoCollection
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.RemoteDataSource
-import org.example.entity.ProjectEntity
+import org.example.data.remote.dto.ProjectDto
+import org.example.data.util.exception.DatabaseException
 import org.example.data.util.exception.MongoExceptionHandler
-import org.example.utils.PlanMateException
-import java.util.*
+import toDocument
+import toProjectDto
+import java.util.UUID
 
 class ProjectMongoDBImpl(
     private val mongoClient: MongoDBClient
-) : RemoteDataSource<ProjectEntity> {
+) : RemoteDataSource<ProjectDto> {
 
     private val collection: MongoCollection<Document> by lazy {
         mongoClient.getDatabase().getCollection("projects")
     }
 
-    override suspend fun add(item: ProjectEntity) {
+    override suspend fun add(item: ProjectDto) {
         return MongoExceptionHandler.handleOperation("project creation") { collection.insertOne(item.toDocument()) }
     }
 
-    override suspend fun get(): List<ProjectEntity> = MongoExceptionHandler.handleOperation("projects retrieval") {
+    override suspend fun get(): List<ProjectDto> = MongoExceptionHandler.handleOperation("projects retrieval") {
         collection.find()
-            .map { it.toProjectEntity() }
+            .map { it.toProjectDto() }
             .toList()
     }
 
-    override suspend fun getById(id: UUID): ProjectEntity? =
+    override suspend fun getById(id: UUID): ProjectDto? =
         MongoExceptionHandler.handleOperation("project retrieval by ID") {
             collection.find(Document("id", id))
                 .firstOrNull()
-                ?.toProjectEntity()
+                ?.toProjectDto()
         }
 
-    override suspend fun update(item: ProjectEntity) {
+    override suspend fun update(item: ProjectDto) {
         MongoExceptionHandler.handleOperation("project update") {
             val result = collection.replaceOne(
                 Document("id", item.id),
@@ -45,7 +46,7 @@ class ProjectMongoDBImpl(
             )
 
             if (result.modifiedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("Project with ID ${item.id} not found")
+                throw DatabaseException.DatabaseItemNotFoundException("Project with ID ${item.id} not found")
             }
         }
     }
@@ -54,25 +55,7 @@ class ProjectMongoDBImpl(
         val result = collection.deleteOne(Document("id", id))
 
         if (result.deletedCount == 0L) {
-            throw PlanMateException.ItemNotFoundException("Project with ID $id not found")
+            throw DatabaseException.DatabaseItemNotFoundException("Project with ID $id not found")
         }
-    }
-
-    private fun ProjectEntity.toDocument(): Document {
-        return Document().apply {
-            put("id", id)
-            put("name", name)
-            put("createdByAdminId", createdByAdminId)
-            put("createdAt", createdAt.toString())
-        }
-    }
-
-    private fun Document.toProjectEntity(): ProjectEntity {
-        return ProjectEntity(
-            id = get("id", UUID::class.java),
-            name = getString("name"),
-            createdByAdminId = this.get("createdByAdminId", UUID::class.java),
-            createdAt = LocalDateTime.parse(getString("createdAt"))
-        )
     }
 }
