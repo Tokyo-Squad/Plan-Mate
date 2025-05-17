@@ -3,13 +3,13 @@ package fakeData
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toLocalDateTime
-import org.example.entity.ProjectEntity
-import org.example.entity.UserEntity
+import logic.model.Project
+import org.example.entity.User
 import org.example.entity.UserType
 import java.util.*
 
-fun fakeAdminEntity(): UserEntity {
-    return UserEntity(
+fun fakeAdminEntity(): User {
+    return User(
         id = UUID.randomUUID(),
         username = "test_user",
         password = "hashed_password_123",
@@ -17,8 +17,8 @@ fun fakeAdminEntity(): UserEntity {
     )
 }
 
-fun fakeRegularUserEntity(): UserEntity {
-    return UserEntity(
+fun fakeRegularUserEntity(): User {
+    return User(
         id = UUID.randomUUID(),
         username = "test_user",
         password = "hashed_password_123",
@@ -26,8 +26,8 @@ fun fakeRegularUserEntity(): UserEntity {
     )
 }
 
-fun fakeProjectEntity(): ProjectEntity {
-    return ProjectEntity(
+fun fakeProjectEntity(): Project {
+    return Project(
         id = UUID.randomUUID(),
         name = "Test Project",
         createdByAdminId = fakeAdminEntity().id,

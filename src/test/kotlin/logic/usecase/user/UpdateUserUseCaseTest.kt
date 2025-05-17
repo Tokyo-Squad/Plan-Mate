@@ -3,7 +3,7 @@ package logic.usecase.user
 import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.UpdateUserUseCase
@@ -28,12 +28,12 @@ class UpdateUserUseCaseTest {
     @Test
     fun `should succeed when ADMIN user updates user`() = runTest {
         // Given
-        val userToUpdate = UserEntity(
+        val userToUpdate = User(
             username = "user1",
             password = "pwd1",
             type = UserType.MATE
         )
-        val adminUser = UserEntity(
+        val adminUser = User(
             username = "admin",
             password = "pwd2",
             type = UserType.ADMIN
@@ -51,12 +51,12 @@ class UpdateUserUseCaseTest {
     @Test
     fun `should throw exception when MATE user updates user`() = runTest {
         // Given
-        val userToUpdate = UserEntity(
+        val userToUpdate = User(
             username = "user2",
             password = "pwd",
             type = UserType.ADMIN
         )
-        val mateUser = UserEntity(
+        val mateUser = User(
             username = "mate",
             password = "pwd2",
             type = UserType.MATE
@@ -74,12 +74,12 @@ class UpdateUserUseCaseTest {
     @Test
     fun `should throw exception when repository update fails`() = runTest {
         // Given
-        val userToUpdate = UserEntity(
+        val userToUpdate = User(
             username = "user3",
             password = "pwd3",
             type = UserType.MATE
         )
-        val adminUser = UserEntity(
+        val adminUser = User(
             username = "admin",
             password = "pwd4",
             type = UserType.ADMIN
@@ -100,12 +100,12 @@ class UpdateUserUseCaseTest {
     @Test
     fun `should throw exception when updating non-existent user`() = runTest {
         // Given
-        val userToUpdate = UserEntity(
+        val userToUpdate = User(
             username = "nonexistent",
             password = "pwd",
             type = UserType.MATE
         )
-        val adminUser = UserEntity(
+        val adminUser = User(
             username = "admin",
             password = "pwd",
             type = UserType.ADMIN
@@ -126,13 +126,13 @@ class UpdateUserUseCaseTest {
     @Test
     fun `should validate user data before update`() = runTest {
         // Given
-        val invalidUser = UserEntity(
+        val invalidUser = User(
             id = UUID.randomUUID(),
             username = "",
             password = "pwd",
             type = UserType.MATE
         )
-        val adminUser = UserEntity(
+        val adminUser = User(
             id = UUID.randomUUID(),
             username = "admin",
             password = "pwd",

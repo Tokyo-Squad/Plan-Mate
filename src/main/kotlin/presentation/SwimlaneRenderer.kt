@@ -1,6 +1,6 @@
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.number
-import org.example.entity.TaskEntity
+import logic.model.Task
 import org.example.presentation.io.ConsoleIO
 import java.util.*
 
@@ -12,13 +12,13 @@ class SwimlaneRenderer(private val console: ConsoleIO) {
         const val VERTICAL_LINE = "|"
     }
 
-    fun render(tasks: List<TaskEntity>, states: Map<UUID, String>) {
+    fun render(tasks: List<Task>, states: Map<UUID, String>) {
         if (tasks.isEmpty()) {
             console.write("\nNo tasks found in this project.")
             return
         }
 
-        val tasksByState = tasks.groupBy { it.stateId }
+        val tasksByState = tasks.groupBy { it.workflowStateId }
         drawHeader(states)
         drawTasks(tasksByState, states)
         drawFooter(states)
@@ -38,7 +38,7 @@ class SwimlaneRenderer(private val console: ConsoleIO) {
     }
 
     private fun drawTasks(
-        tasksByState: Map<UUID, List<TaskEntity>>,
+        tasksByState: Map<UUID, List<Task>>,
         states: Map<UUID, String>
     ) {
         val maxTasks = tasksByState.values.maxOfOrNull { it.size } ?: 0
@@ -75,21 +75,21 @@ class SwimlaneRenderer(private val console: ConsoleIO) {
         }
     }
 
-    private fun formatTaskCell(task: TaskEntity?): String {
+    private fun formatTaskCell(task: Task?): String {
         val content = task?.let {
             "📎 ${it.title}".take(COLUMN_WIDTH - 2)
         } ?: ""
         return "$VERTICAL_LINE ${content.padEnd(COLUMN_WIDTH - 2)} "
     }
 
-    private fun formatDescriptionCell(task: TaskEntity?): String {
+    private fun formatDescriptionCell(task: Task?): String {
         val content = task?.let {
             "  ${it.description}".take(COLUMN_WIDTH - 2)
         } ?: ""
         return "$VERTICAL_LINE ${content.padEnd(COLUMN_WIDTH - 2)} "
     }
 
-    private fun formatMetadataCell(task: TaskEntity?): String {
+    private fun formatMetadataCell(task: Task?): String {
         val content = task?.let {
             val fullId = it.id.toString()
             val date = formatDateTime(it.createdAt)

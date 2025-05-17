@@ -5,7 +5,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.ProjectCsvImpl
 import org.example.data.util.exception.FileException
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -20,13 +20,13 @@ class ProjectCsvImplTest {
 
     private lateinit var file: File
     private lateinit var projectCsv: ProjectCsvImpl
-    private lateinit var project: ProjectEntity
+    private lateinit var project: Project
 
     @BeforeEach
     fun setup() {
         file = File(tempDir, "projects.csv")
         projectCsv = ProjectCsvImpl(file.absolutePath)
-        project = ProjectEntity(
+        project = Project(
             id = UUID.randomUUID(),
             name = "Test Project",
             createdByAdminId = UUID.randomUUID(),
@@ -208,7 +208,7 @@ class ProjectCsvImplTest {
     @Test
     fun shouldSuccessfullyParseFile_whenValidContent() = runTest {
         // Given
-        val validProject = ProjectEntity(
+        val validProject = Project(
             id = UUID.randomUUID(),
             name = "Test Project",
             createdByAdminId = UUID.randomUUID(),
@@ -226,7 +226,7 @@ class ProjectCsvImplTest {
     @Test
     fun shouldReturnNotEmpty_whenFileContainsEmptyLines() = runTest {
         // Given
-        val validProject = ProjectEntity(
+        val validProject = Project(
             id = UUID.randomUUID(),
             name = "Valid Project",
             createdByAdminId = UUID.randomUUID(),

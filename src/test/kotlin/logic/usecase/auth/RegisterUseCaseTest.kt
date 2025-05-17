@@ -5,7 +5,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.RegisterUseCase
@@ -16,17 +16,17 @@ import org.junit.jupiter.api.assertThrows
 class RegisterUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val registerUseCase = RegisterUseCase(authRepository)
-    private val adminUser = UserEntity(
+    private val adminUser = User(
         username = "admin",
         password = "adminPass",
         type = UserType.ADMIN
     )
-    private val mateUser = UserEntity(
+    private val mateUser = User(
         username = "mate",
         password = "matePass",
         type = UserType.MATE
     )
-    private val validNewUser = UserEntity(
+    private val validNewUser = User(
         username = "newUser",
         password = "password123",
         type = UserType.MATE

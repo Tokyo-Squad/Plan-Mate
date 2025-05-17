@@ -3,20 +3,20 @@ package org.example.data.local.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
+import logic.model.AuditAction
+import logic.model.AuditLog
+import logic.model.AuditedType
 import java.io.File
 import java.io.IOException
 import java.util.UUID
 
 class AuditLogCsvImpl(
     fileName: String
-) : LocalDataSource<AuditLogEntity> {
+) : LocalDataSource<AuditLog> {
 
     private val file: File = File(fileName)
 
-    override suspend fun add(item: AuditLogEntity) {
+    override suspend fun add(item: AuditLog) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -26,11 +26,11 @@ class AuditLogCsvImpl(
         }
     }
 
-    override suspend fun get(): List<AuditLogEntity> = loadFromCsv()
+    override suspend fun get(): List<AuditLog> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): AuditLogEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): AuditLog? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: AuditLogEntity) {
+    override suspend fun update(item: AuditLog) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -62,7 +62,7 @@ class AuditLogCsvImpl(
         }
     }
 
-    private fun loadFromCsv(): List<AuditLogEntity> {
+    private fun loadFromCsv(): List<AuditLog> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -77,13 +77,13 @@ class AuditLogCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<AuditLogEntity> {
+    private fun readAndParseFile(): List<AuditLog> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
-    private fun saveToCsv(data: List<AuditLogEntity>) {
+    private fun saveToCsv(data: List<AuditLog>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -92,13 +92,13 @@ class AuditLogCsvImpl(
         }
     }
 
-    private fun fromCSVLine(line: String): AuditLogEntity {
+    private fun fromCSVLine(line: String): AuditLog {
         try {
             val parts = line.split(",")
-            return AuditLogEntity(
+            return AuditLog(
                 id = UUID.fromString(parts[0]),
                 userId = UUID.fromString(parts[1]),
-                entityType = AuditedEntityType.valueOf(parts[2]),
+                entityType = AuditedType.valueOf(parts[2]),
                 entityId = UUID.fromString(parts[3]),
                 action = AuditAction.valueOf(parts[4]),
                 changeDetails = parts[5],
@@ -109,7 +109,7 @@ class AuditLogCsvImpl(
         }
     }
 
-    private fun toCSVLine(entity: AuditLogEntity): String {
+    private fun toCSVLine(entity: AuditLog): String {
         return "${entity.id},${entity.userId},${entity.entityType},${entity.entityId},${entity.action},${entity.changeDetails},${entity.timestamp}"
     }
 }

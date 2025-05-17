@@ -4,7 +4,7 @@ import AdminScreen
 import MateScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.LoginUseCase
@@ -21,7 +21,7 @@ class PlanMateConsoleUI(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase
 ) {
-    private var currentUser: UserEntity? = null
+    private var currentUser: User? = null
 
     suspend fun start() {
         // Initialize current user asynchronously
@@ -164,7 +164,7 @@ class PlanMateConsoleUI(
         }
     }
 
-    private suspend fun routeToUserScreen(user: UserEntity) {
+    private suspend fun routeToUserScreen(user: User) {
         try {
             when (user.type) {
                 UserType.ADMIN -> adminScreen.show()

@@ -5,7 +5,7 @@ import fakeData.StateFakeData
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.logic.repository.StateRepository
+import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +14,7 @@ import kotlin.test.Test
 
 class GetStatesByProjectIdTest {
 
-    private lateinit var repo: StateRepository
+    private lateinit var repo: WorkflowStateRepository
     private lateinit var useCase: GetStatesByProjectId
     private val fake = StateFakeData()
 

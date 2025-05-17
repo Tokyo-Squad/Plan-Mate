@@ -1,6 +1,6 @@
 package fakeData
 
-import org.example.entity.StateEntity
+import logic.model.WorkflowState
 import java.util.UUID
 
 class StateFakeData {
@@ -8,8 +8,8 @@ class StateFakeData {
         id: UUID = UUID.randomUUID(),
         name: String = "To Do",
         projectId: UUID = UUID.randomUUID()
-    ): StateEntity {
-        return StateEntity(
+    ): WorkflowState {
+        return WorkflowState(
             id = id,
             name = name,
             projectId = projectId

@@ -2,7 +2,7 @@ package org.example.data.local.csvfile
 
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import java.io.File
 import java.io.IOException
@@ -11,10 +11,10 @@ import java.util.UUID
 
 class UserCsvImpl(
     fileName: String
-) : LocalDataSource<UserEntity> {
+) : LocalDataSource<User> {
     private val file: File = File(fileName)
 
-    override suspend fun add(item: UserEntity) {
+    override suspend fun add(item: User) {
         try {
             val users = loadFromCsv().toMutableList()
             users.add(item)
@@ -24,11 +24,11 @@ class UserCsvImpl(
         }
     }
 
-    override suspend fun get(): List<UserEntity> = loadFromCsv()
+    override suspend fun get(): List<User> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): UserEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): User? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: UserEntity) {
+    override suspend fun update(item: User) {
         val users = loadFromCsv().toMutableList()
         val index = users.indexOfFirst { it.id == item.id }
 
@@ -61,7 +61,7 @@ class UserCsvImpl(
         }
     }
 
-    private fun loadFromCsv(): List<UserEntity> {
+    private fun loadFromCsv(): List<User> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -75,13 +75,13 @@ class UserCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<UserEntity> {
+    private fun readAndParseFile(): List<User> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
-    private fun saveToCsv(data: List<UserEntity>) {
+    private fun saveToCsv(data: List<User>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -90,10 +90,10 @@ class UserCsvImpl(
         }
     }
 
-    private fun fromCSVLine(line: String): UserEntity {
+    private fun fromCSVLine(line: String): User {
         try {
             val parts = line.split(",")
-            return UserEntity(
+            return User(
                 id = UUID.fromString(parts[0]),
                 username = parts[1],
                 password = parts[2],
@@ -104,7 +104,7 @@ class UserCsvImpl(
         }
     }
 
-    private fun toCSVLine(user: UserEntity): String {
+    private fun toCSVLine(user: User): String {
         return "${user.id},${user.username},${user.password},${user.type}"
     }
 }

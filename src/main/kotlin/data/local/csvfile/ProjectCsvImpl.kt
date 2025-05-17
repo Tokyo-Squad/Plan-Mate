@@ -3,18 +3,18 @@ package org.example.data.local.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import java.io.File
 import java.io.IOException
 import java.util.UUID
 
 class ProjectCsvImpl(
     fileName: String
-) : LocalDataSource<ProjectEntity> {
+) : LocalDataSource<Project> {
 
     private val file: File = File(fileName)
 
-    override suspend fun add(item: ProjectEntity) {
+    override suspend fun add(item: Project) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -24,11 +24,11 @@ class ProjectCsvImpl(
         }
     }
 
-    override suspend fun get(): List<ProjectEntity> = loadFromCsv()
+    override suspend fun get(): List<Project> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): ProjectEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): Project? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: ProjectEntity) {
+    override suspend fun update(item: Project) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -60,7 +60,7 @@ class ProjectCsvImpl(
         }
     }
 
-    private fun loadFromCsv(): List<ProjectEntity> {
+    private fun loadFromCsv(): List<Project> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -74,14 +74,14 @@ class ProjectCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<ProjectEntity> {
+    private fun readAndParseFile(): List<Project> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
 
-    private fun saveToCsv(data: List<ProjectEntity>) {
+    private fun saveToCsv(data: List<Project>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -90,10 +90,10 @@ class ProjectCsvImpl(
         }
     }
 
-    private fun fromCSVLine(line: String): ProjectEntity {
+    private fun fromCSVLine(line: String): Project {
         try {
             val parts = line.split(",")
-            return ProjectEntity(
+            return Project(
                 id = UUID.fromString(parts[0]),
                 name = parts[1],
                 createdByAdminId = UUID.fromString(parts[2]),
@@ -104,7 +104,7 @@ class ProjectCsvImpl(
         }
     }
 
-    private fun toCSVLine(entity: ProjectEntity): String {
+    private fun toCSVLine(entity: Project): String {
         return "${entity.id},${entity.name},${entity.createdByAdminId},${entity.createdAt}"
     }
 }

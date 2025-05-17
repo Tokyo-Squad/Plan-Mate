@@ -2,18 +2,18 @@ package org.example.data.local.csvfile
 
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import org.example.entity.StateEntity
+import logic.model.WorkflowState
 import java.io.File
 import java.io.IOException
 import java.util.UUID
 
-class StateCsvImpl(
+class WorkflowStateCsvImpl(
     fileName: String
-) : LocalDataSource<StateEntity> {
+) : LocalDataSource<WorkflowState> {
 
     private val file: File = File(fileName)
 
-    override suspend fun add(item: StateEntity) {
+    override suspend fun add(item: WorkflowState) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -23,11 +23,11 @@ class StateCsvImpl(
         }
     }
 
-    override suspend fun get(): List<StateEntity> = loadFromCsv()
+    override suspend fun get(): List<WorkflowState> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): StateEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): WorkflowState? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: StateEntity) {
+    override suspend fun update(item: WorkflowState) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -59,7 +59,7 @@ class StateCsvImpl(
         }
     }
 
-    private fun loadFromCsv(): List<StateEntity> {
+    private fun loadFromCsv(): List<WorkflowState> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -73,13 +73,13 @@ class StateCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<StateEntity> {
+    private fun readAndParseFile(): List<WorkflowState> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
-    private fun saveToCsv(data: List<StateEntity>) {
+    private fun saveToCsv(data: List<WorkflowState>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -88,10 +88,10 @@ class StateCsvImpl(
         }
     }
 
-    private fun fromCSVLine(line: String): StateEntity {
+    private fun fromCSVLine(line: String): WorkflowState {
         try {
             val parts = line.split(",")
-            return StateEntity(
+            return WorkflowState(
                 id = UUID.fromString(parts[0]),
                 name = parts[1],
                 projectId = UUID.fromString(parts[2])
@@ -101,7 +101,7 @@ class StateCsvImpl(
         }
     }
 
-    private fun toCSVLine(entity: StateEntity): String {
+    private fun toCSVLine(entity: WorkflowState): String {
         return "${entity.id},${entity.name},${entity.projectId}"
     }
 }

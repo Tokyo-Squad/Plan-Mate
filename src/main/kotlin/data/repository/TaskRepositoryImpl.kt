@@ -9,22 +9,22 @@ import org.example.data.remote.dto.TaskDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toTaskDto
 import org.example.data.util.mapper.toTaskEntity
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
-import org.example.entity.TaskEntity
+import logic.model.AuditAction
+import logic.model.AuditLog
+import logic.model.AuditedType
+import logic.model.Task
 import org.example.logic.repository.AuditLogRepository
-import org.example.logic.repository.StateRepository
+import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.repository.TaskRepository
 import java.util.UUID
 
 class TaskRepositoryImpl(
     private val auditLogRepository: AuditLogRepository,
     private val remoteDataSource: RemoteDataSource<TaskDto>,
-    private val stateRepository: StateRepository
+    private val workflowStateRepository: WorkflowStateRepository
 ) : TaskRepository {
 
-    override suspend fun add(task: TaskEntity, currentUserId: UUID) {
+    override suspend fun add(task: Task, currentUserId: UUID) {
         remoteDataSource.add(task.toTaskDto())
         audit(
             currentUserId,
@@ -35,9 +35,9 @@ class TaskRepositoryImpl(
     }
 
     override suspend fun update(
-        task: TaskEntity,
+        task: Task,
         currentUserId: UUID
-    ): TaskEntity {
+    ): Task {
         val old = remoteDataSource.getById(task.id)?.toTaskEntity()
             ?: throw DatabaseException.DatabaseItemNotFoundException("Task ${task.id} not found")
         remoteDataSource.update(task.toTaskDto())
@@ -57,28 +57,28 @@ class TaskRepositoryImpl(
         )
     }
 
-    override suspend fun getTaskById(id: UUID): TaskEntity =
+    override suspend fun getTaskById(id: UUID): Task =
         remoteDataSource.getById(id)?.toTaskEntity()
             ?: throw DatabaseException.DatabaseItemNotFoundException("Task $id not found")
 
 
-    override suspend fun getTasksByProjectId(id: UUID): List<TaskEntity> =
+    override suspend fun getTasksByProjectId(id: UUID): List<Task> =
         remoteDataSource.get().filter { it.projectId == id }
             .takeIf { it.isNotEmpty() }?.map { it.toTaskEntity() }
             ?: throw DatabaseException.DatabaseItemNotFoundException("Project $id not found")
 
 
     private suspend fun generateUpdateDetails(
-        old: TaskEntity,
-        new: TaskEntity,
+        old: Task,
+        new: Task,
         currentUserId: UUID,
         dateTime: LocalDateTime
     ): String {
         val base = "user $currentUserId changed task ${new.id}"
         val time = " at ${formatTime(dateTime)}"
         return when {
-            new.stateId != old.stateId ->
-                "$base from ${stateRepository.getStateById(old.stateId)} to ${stateRepository.getStateById(new.stateId)}$time"
+            new.workflowStateId != old.workflowStateId ->
+                "$base from ${workflowStateRepository.getStateById(old.workflowStateId)} to ${workflowStateRepository.getStateById(new.workflowStateId)}$time"
 
             new.title != old.title ->
                 "$base renamed from '${old.title}' to '${new.title}'$time"
@@ -110,8 +110,8 @@ class TaskRepositoryImpl(
         action: AuditAction,
         details: String
     ) = auditLogRepository.addAudit(
-        AuditLogEntity(
-            userId = userId, entityType = AuditedEntityType.TASK,
+        AuditLog(
+            userId = userId, entityType = AuditedType.TASK,
             entityId = entityId,
             timestamp = now(),
             action = action,

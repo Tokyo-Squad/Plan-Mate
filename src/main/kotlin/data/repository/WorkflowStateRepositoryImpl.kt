@@ -2,24 +2,24 @@ package org.example.data.repository
 
 
 import org.example.data.RemoteDataSource
-import org.example.data.remote.dto.StateDto
+import org.example.data.remote.dto.WorkflowStateDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toStateDto
 import org.example.data.util.mapper.toStateEntity
-import org.example.entity.StateEntity
-import org.example.logic.repository.StateRepository
+import logic.model.WorkflowState
+import org.example.logic.repository.WorkflowStateRepository
 import java.util.UUID
 
-class StateRepositoryImpl(
-    private val remoteDataSource: RemoteDataSource<StateDto>
-) : StateRepository {
+class WorkflowStateRepositoryImpl(
+    private val remoteDataSource: RemoteDataSource<WorkflowStateDto>
+) : WorkflowStateRepository {
 
-    override suspend fun addState(state: StateEntity) {
-        remoteDataSource.add(state.toStateDto())
+    override suspend fun addState(workflowState: WorkflowState) {
+        remoteDataSource.add(workflowState.toStateDto())
     }
 
-    override suspend fun updateState(stateId: UUID, newState: StateEntity): StateEntity {
-        val toSave = newState.copy(id = stateId)
+    override suspend fun updateState(stateId: UUID, newWorkflowState: WorkflowState): WorkflowState {
+        val toSave = newWorkflowState.copy(id = stateId)
         remoteDataSource.update(toSave.toStateDto())
         return toSave
     }
@@ -28,12 +28,12 @@ class StateRepositoryImpl(
         remoteDataSource.delete(stateId)
 
 
-    override suspend fun getStateById(stateId: UUID): StateEntity =
+    override suspend fun getStateById(stateId: UUID): WorkflowState =
         remoteDataSource.getById(stateId)?.toStateEntity()
             ?: throw DatabaseException.DatabaseItemNotFoundException("State with ID $stateId does not exist")
 
 
-    override suspend fun getByProjectId(projectId: UUID): List<StateEntity> =
+    override suspend fun getByProjectId(projectId: UUID): List<WorkflowState> =
         remoteDataSource.get().filter { it.projectId == projectId }.map { it.toStateEntity() }
 
 }

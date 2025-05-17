@@ -3,18 +3,18 @@ package org.example.data.local.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import org.example.entity.TaskEntity
+import logic.model.Task
 import java.io.File
 import java.io.IOException
 import java.util.UUID
 
 class TaskCsvImpl(
     fileName: String
-) : LocalDataSource<TaskEntity> {
+) : LocalDataSource<Task> {
 
     private val file: File = File(fileName)
 
-    override suspend fun add(item: TaskEntity) {
+    override suspend fun add(item: Task) {
         try {
             val items = loadFromCsv().toMutableList()
             items.add(item)
@@ -24,11 +24,11 @@ class TaskCsvImpl(
         }
     }
 
-    override suspend fun get(): List<TaskEntity> = loadFromCsv()
+    override suspend fun get(): List<Task> = loadFromCsv()
 
-    override suspend fun getById(id: UUID): TaskEntity? = loadFromCsv().find { it.id == id }
+    override suspend fun getById(id: UUID): Task? = loadFromCsv().find { it.id == id }
 
-    override suspend fun update(item: TaskEntity) {
+    override suspend fun update(item: Task) {
         val items = loadFromCsv().toMutableList()
         val index = items.indexOfFirst { it.id == item.id }
 
@@ -60,7 +60,7 @@ class TaskCsvImpl(
         }
     }
 
-    private fun loadFromCsv(): List<TaskEntity> {
+    private fun loadFromCsv(): List<Task> {
         ensureFileExists()
         return readAndParseFile()
     }
@@ -74,13 +74,13 @@ class TaskCsvImpl(
         }
     }
 
-    private fun readAndParseFile(): List<TaskEntity> {
+    private fun readAndParseFile(): List<Task> {
         return file.readLines()
             .filter { it.isNotBlank() }
             .map { fromCSVLine(it) }
     }
 
-    private fun saveToCsv(data: List<TaskEntity>) {
+    private fun saveToCsv(data: List<Task>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
             file.writeText(content)
@@ -89,14 +89,14 @@ class TaskCsvImpl(
         }
     }
 
-    private fun fromCSVLine(line: String): TaskEntity {
+    private fun fromCSVLine(line: String): Task {
         try {
             val parts = line.split(",")
-            return TaskEntity(
+            return Task(
                 id = UUID.fromString(parts[0]),
                 title = parts[1],
                 description = parts[2],
-                stateId = UUID.fromString(parts[3]),
+                workflowStateId = UUID.fromString(parts[3]),
                 projectId = UUID.fromString(parts[4]),
                 createdByUserId = UUID.fromString(parts[5]),
                 createdAt = LocalDateTime.parse(parts[6])
@@ -106,7 +106,7 @@ class TaskCsvImpl(
         }
     }
 
-    private fun toCSVLine(entity: TaskEntity): String {
-        return "${entity.id},${entity.title},${entity.description},${entity.stateId},${entity.projectId},${entity.createdByUserId},${entity.createdAt}"
+    private fun toCSVLine(entity: Task): String {
+        return "${entity.id},${entity.title},${entity.description},${entity.workflowStateId},${entity.projectId},${entity.createdByUserId},${entity.createdAt}"
     }
 }

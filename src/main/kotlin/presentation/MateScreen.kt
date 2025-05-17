@@ -1,12 +1,11 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import org.example.logic.usecase.project.ListProjectsUseCase
 import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
-import kotlin.coroutines.cancellation.CancellationException
 
 class MateScreen(
     private val console: ConsoleIO,
@@ -76,14 +75,14 @@ class MateScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private fun displayProjects(projects: List<ProjectEntity>) {
+    private fun displayProjects(projects: List<Project>) {
         console.write("\n=== Projects ===")
         projects.forEachIndexed { index, project ->
             console.write("${project.name} (ID: ${project.id})")
         }
     }
 
-    private suspend fun viewProject(projects: List<ProjectEntity>) {
+    private suspend fun viewProject(projects: List<Project>) {
         console.write("\nAvailable projects:")
         projects.forEachIndexed { index, project ->
             console.write("${index + 1}. ${project.name} (ID: ${project.id})")

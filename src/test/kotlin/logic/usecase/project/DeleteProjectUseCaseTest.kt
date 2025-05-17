@@ -3,7 +3,7 @@ package logic.usecase.project
 import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.DeleteProjectUseCase
 import org.junit.jupiter.api.assertThrows
@@ -15,7 +15,7 @@ class DeleteProjectUseCaseTest {
     private val useCase = DeleteProjectUseCase(mockRepo)
     private val testProjectId = UUID.randomUUID()
     private val testUserId = UUID.randomUUID()
-    private val testProject = mockk<ProjectEntity>()
+    private val testProject = mockk<Project>()
 
     @Test
     fun `should delete when project exists`() = runTest {

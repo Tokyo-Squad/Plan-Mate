@@ -1,17 +1,17 @@
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.remote.dto.ProjectDto
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import java.util.UUID
 
-fun ProjectDto.toProjectEntity(): ProjectEntity = ProjectEntity(
+fun ProjectDto.toProjectEntity(): Project = Project(
     id = id,
     name = name,
     createdByAdminId = UUID.fromString(createdByAdminId),
     createdAt = LocalDateTime.parse(createdAt)
 )
 
-fun ProjectEntity.toProjectDto(): ProjectDto = ProjectDto(
+fun Project.toProjectDto(): ProjectDto = ProjectDto(
     id = id,
     name = name,
     createdByAdminId = createdByAdminId.toString(),

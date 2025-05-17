@@ -2,9 +2,9 @@ package data.csvfile
 
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.example.data.local.csvfile.StateCsvImpl
+import org.example.data.local.csvfile.WorkflowStateCsvImpl
 import org.example.data.util.exception.FileException
-import org.example.entity.StateEntity
+import logic.model.WorkflowState
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -12,20 +12,20 @@ import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
-class StateCsvImplTest {
+class WorkflowWorkflowStateCsvImplTest {
 
     @TempDir
     lateinit var tempDir: File
 
     private lateinit var file: File
-    private lateinit var stateCsv: StateCsvImpl
-    private lateinit var state: StateEntity
+    private lateinit var stateCsv: WorkflowStateCsvImpl
+    private lateinit var state: WorkflowState
 
     @BeforeEach
     fun setup() {
         file = File(tempDir, "states.csv")
-        stateCsv = StateCsvImpl(file.absolutePath)
-        state = StateEntity(
+        stateCsv = WorkflowStateCsvImpl(file.absolutePath)
+        state = WorkflowState(
             id = UUID.randomUUID(), name = "Initial State", projectId = UUID.randomUUID()
         )
     }
@@ -135,7 +135,7 @@ class StateCsvImplTest {
         val failingFile = File(nonExistentDir, "states.csv")
 
         // When
-        val failingCsv = StateCsvImpl(failingFile.absolutePath)
+        val failingCsv = WorkflowStateCsvImpl(failingFile.absolutePath)
 
         // Then
         val exception = assertFailsWith<FileException.FileWriteException> {
@@ -152,7 +152,7 @@ class StateCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
 
-        val failingCsv = StateCsvImpl(readOnlyFile.absolutePath)
+        val failingCsv = WorkflowStateCsvImpl(readOnlyFile.absolutePath)
 
         // When
         val exception = assertFailsWith<FileException.FileWriteException> {
@@ -169,7 +169,7 @@ class StateCsvImplTest {
         file.createNewFile()
         assertThat(file.exists()).isTrue()
 
-        val stateCsv = StateCsvImpl(file.absolutePath)
+        val stateCsv = WorkflowStateCsvImpl(file.absolutePath)
 
         // When
         stateCsv.add(state)
@@ -193,32 +193,32 @@ class StateCsvImplTest {
     @Test
     fun `should successfully parse file when valid content`() = runTest {
         // Given
-        val validState = StateEntity(
+        val validWorkflowState = WorkflowState(
             id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
         )
-        file.writeText("${validState.id},${validState.name},${validState.projectId}")
+        file.writeText("${validWorkflowState.id},${validWorkflowState.name},${validWorkflowState.projectId}")
 
         // When
         val result = stateCsv.get()
 
         // Then
-        assertThat(result.first()).isEqualTo(validState)
+        assertThat(result.first()).isEqualTo(validWorkflowState)
     }
 
     @Test
     fun `should return not empty when file contains empty lines`() = runTest {
         // Given
-        val validState = StateEntity(
+        val validWorkflowState = WorkflowState(
             id = UUID.randomUUID(), name = "Valid State", projectId = UUID.randomUUID()
         )
-        file.writeText("\n\n${validState.id},${validState.name},${validState.projectId}\n\n") // Contains empty lines before and after the valid state data
+        file.writeText("\n\n${validWorkflowState.id},${validWorkflowState.name},${validWorkflowState.projectId}\n\n") // Contains empty lines before and after the valid state data
 
         // When
         val result = stateCsv.get()
 
         // Then
         assertThat(result).isNotEmpty()
-        assertThat(result.first()).isEqualTo(validState)
+        assertThat(result.first()).isEqualTo(validWorkflowState)
     }
 
     @Test
@@ -270,7 +270,7 @@ class StateCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
 
-        val failingCsv = StateCsvImpl(readOnlyFile.absolutePath)
+        val failingCsv = WorkflowStateCsvImpl(readOnlyFile.absolutePath)
 
         // When
         val exception = assertFailsWith<FileException.FileWriteException> {
@@ -290,7 +290,7 @@ class StateCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
 
-        val failingCsv = StateCsvImpl(readOnlyFile.absolutePath)
+        val failingCsv = WorkflowStateCsvImpl(readOnlyFile.absolutePath)
 
         val updatedState = state.copy(name = "Updated State Name")
 

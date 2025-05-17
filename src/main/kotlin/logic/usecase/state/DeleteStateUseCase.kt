@@ -1,10 +1,10 @@
 package org.example.logic.usecase.state
 
-import org.example.entity.StateEntity
-import org.example.logic.repository.StateRepository
+import logic.model.WorkflowState
+import org.example.logic.repository.WorkflowStateRepository
 
 class DeleteStateUseCase(
-    private val stateRepository: StateRepository
+    private val workflowStateRepository: WorkflowStateRepository
 ) {
-    suspend operator fun invoke(stateEntity: StateEntity)= stateRepository.deleteState(stateEntity.id)
+    suspend operator fun invoke(workflowState: WorkflowState)= workflowStateRepository.deleteState(workflowState.id)
 }

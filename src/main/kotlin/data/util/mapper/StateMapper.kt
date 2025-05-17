@@ -1,30 +1,30 @@
 package org.example.data.util.mapper
 
 import org.bson.Document
-import org.example.data.remote.dto.StateDto
-import org.example.entity.StateEntity
+import org.example.data.remote.dto.WorkflowStateDto
+import logic.model.WorkflowState
 import java.util.UUID
 
 
-fun StateDto.toStateEntity(): StateEntity = StateEntity(
+fun WorkflowStateDto.toStateEntity(): WorkflowState = WorkflowState(
     id = id,
     name = name,
     projectId = id
 )
 
-fun StateEntity.toStateDto(): StateDto = StateDto(
+fun WorkflowState.toStateDto(): WorkflowStateDto = WorkflowStateDto(
     id = id,
     name = name,
     projectId = projectId
 )
 
-fun StateDto.toDocument(): Document = Document().apply {
+fun WorkflowStateDto.toDocument(): Document = Document().apply {
     put("id", id)
     put("name", name)
     put("projectId", projectId)
 }
 
-fun Document.toStateDto(): StateDto = StateDto(
+fun Document.toStateDto(): WorkflowStateDto = WorkflowStateDto(
     id = UUID.fromString(getString("id")),
     name = getString("name"),
     projectId = UUID.fromString(getString("projectId"))

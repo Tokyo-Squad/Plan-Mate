@@ -5,7 +5,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUserByUsernameUseCase
@@ -28,7 +28,7 @@ class GetUserByUsernameUseCaseTest {
     @Test
     fun `should return UserEntity when repository finds by username`() = runTest {
         // Given
-        val expected = UserEntity(
+        val expected = User(
             username = "john",
             password = "john123",
             type = UserType.MATE

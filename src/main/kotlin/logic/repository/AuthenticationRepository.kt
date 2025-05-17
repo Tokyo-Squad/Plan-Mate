@@ -1,10 +1,10 @@
 package org.example.logic.repository
 
-import org.example.entity.UserEntity
+import org.example.entity.User
 
 interface AuthenticationRepository {
     suspend fun login(username: String, password: String)
-    suspend fun register(newUser: UserEntity)
+    suspend fun register(newUser: User)
     suspend fun logout()
-    suspend fun getCurrentUser(): UserEntity
+    suspend fun getCurrentUser(): User
 }
