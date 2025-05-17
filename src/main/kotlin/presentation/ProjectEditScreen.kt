@@ -13,7 +13,7 @@ import org.example.logic.usecase.state.DeleteStateUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.state.UpdateStateUseCase
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.util.*
 
 

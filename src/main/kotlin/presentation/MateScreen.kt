@@ -5,7 +5,7 @@ import org.example.logic.usecase.project.ListProjectsUseCase
 import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class MateScreen(
     private val console: ConsoleIO,

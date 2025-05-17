@@ -7,7 +7,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LogoutUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 

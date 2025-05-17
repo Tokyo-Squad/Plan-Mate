@@ -7,7 +7,7 @@ import domain.model.AuditLog
 import domain.model.AuditedType
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.util.*
 
 

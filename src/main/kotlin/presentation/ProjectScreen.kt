@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.util.*
 
 

@@ -4,7 +4,7 @@ import domain.model.Project
 import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.ProjectRepository
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class UpdateProjectUseCase(
     private val projectRepository: ProjectRepository,

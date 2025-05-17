@@ -2,7 +2,7 @@ package org.example.logic.usecase.task
 
 import domain.model.Task
 import org.example.logic.repository.TaskRepository
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.util.UUID
 
 class AddTaskUseCase(

@@ -3,7 +3,7 @@ package org.example.logic.usecase.user
 import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class UpdateUserUseCase(
     private val userRepository: UserRepository

@@ -10,7 +10,7 @@ import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.LoginUseCase
 import org.example.logic.usecase.auth.LogoutUseCase
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import kotlin.system.exitProcess
 
 class PlanMateConsoleUI(

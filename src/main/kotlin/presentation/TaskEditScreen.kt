@@ -12,7 +12,7 @@ import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId
 import org.example.logic.usecase.task.*
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.util.*
 
 
