@@ -1,17 +1,16 @@
 package logic.usecase.auth
 
-import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
+import org.example.data.util.exception.AuthenticationException
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import kotlin.test.assertFailsWith
 
 class GetCurrentUserUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
@@ -36,15 +35,14 @@ class GetCurrentUserUseCaseTest {
     }
 
     @Test
-    fun `should return null when no user is authenticated`() = runTest {
+    fun `should throw exception when no user is authenticated`() = runTest {
         // arrange
-        coEvery { authRepository.getCurrentUser() } returns null
-
-        // act
-        val result = getCurrentUserUseCase()
+        coEvery { authRepository.getCurrentUser() } throws AuthenticationException.NoCurrentUser()
 
         // assert
-        assertNull(result)
+        assertFailsWith<AuthenticationException.NoCurrentUser>{
+            getCurrentUserUseCase()
+        }
         coVerify { authRepository.getCurrentUser() }
     }
 

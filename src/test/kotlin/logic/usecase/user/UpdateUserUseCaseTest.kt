@@ -38,7 +38,7 @@ class UpdateUserUseCaseTest {
             password = "pwd2",
             type = UserType.ADMIN
         )
-        coEvery { repository.update(userToUpdate) } returns Unit
+        coEvery { repository.update(userToUpdate) } returns userToUpdate
 
         // When/Then
         assertDoesNotThrow {

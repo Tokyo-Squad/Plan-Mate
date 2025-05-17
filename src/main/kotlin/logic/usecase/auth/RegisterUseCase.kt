@@ -15,6 +15,6 @@ class RegisterUseCase(
 
         if (newUser.username.isBlank()) throw PlanMateException.ValidationException("Username cannot be empty")
 
-        authRepository.register(newUser, currentUser)
+        authRepository.register(newUser)
     }
 }
