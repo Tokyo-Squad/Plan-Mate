@@ -1,3 +1,5 @@
+package presentation.console
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -10,9 +12,6 @@ import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.RegisterUseCase
 import org.example.logic.usecase.project.AddProjectUseCase
 import org.example.logic.usecase.project.ListProjectsUseCase
-import org.example.presentation.AuditScreen
-import org.example.presentation.ProjectEditScreen
-import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
 import domain.utils.exception.PlanMateException
 

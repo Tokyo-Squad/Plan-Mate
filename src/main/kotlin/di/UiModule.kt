@@ -1,12 +1,9 @@
 package org.example.di
 
-import AdminScreen
-import MateScreen
-import SwimlaneRenderer
-import org.example.presentation.*
 import org.example.presentation.io.ConsoleIO
 import org.example.presentation.io.ConsoleIOImpl
 import org.koin.dsl.module
+import presentation.console.*
 
 val uiModule = module {
 

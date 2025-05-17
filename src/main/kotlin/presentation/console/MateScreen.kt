@@ -1,9 +1,9 @@
+package presentation.console
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import domain.model.Project
 import org.example.logic.usecase.project.ListProjectsUseCase
-import org.example.presentation.AuditScreen
-import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
 import domain.utils.exception.PlanMateException
 
