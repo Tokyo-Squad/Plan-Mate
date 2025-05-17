@@ -135,7 +135,7 @@ src/
 │   │   │   └── repository/ # Repository implementations  
 │   │   ├── di/             # Dependency injection  
 │   │   ├── entity/         # Domain entities  
-│   │   ├── logic/          # Business logic  
+│   │   ├── domain/          # Business domain  
 │   │   │   └── usecase/    # Use cases  
 │   │   ├── presentation/   # UI layer  
 │   │   └── utils/          # Utilities  

@@ -3,7 +3,7 @@ package org.example.data.local.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import logic.model.Project
+import domain.model.Project
 import java.io.File
 import java.io.IOException
 import java.util.UUID

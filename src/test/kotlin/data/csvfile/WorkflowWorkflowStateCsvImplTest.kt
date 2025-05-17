@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.example.data.local.csvfile.WorkflowStateCsvImpl
 import org.example.data.util.exception.FileException
-import logic.model.WorkflowState
+import domain.model.WorkflowState
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File

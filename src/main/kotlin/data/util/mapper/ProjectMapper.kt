@@ -1,7 +1,7 @@
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.remote.dto.ProjectDto
-import logic.model.Project
+import domain.model.Project
 import java.util.UUID
 
 fun ProjectDto.toProjectEntity(): Project = Project(

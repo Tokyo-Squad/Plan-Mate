@@ -3,9 +3,9 @@ package org.example.data.util.mapper
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.remote.dto.AuditLogDto
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
 import java.util.UUID
 
 

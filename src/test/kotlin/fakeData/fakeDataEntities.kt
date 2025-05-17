@@ -3,7 +3,7 @@ package fakeData
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toLocalDateTime
-import logic.model.Project
+import domain.model.Project
 import org.example.entity.User
 import org.example.entity.UserType
 import java.util.*

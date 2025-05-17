@@ -3,7 +3,7 @@ package org.example.data.util.mapper
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.remote.dto.TaskDto
-import logic.model.Task
+import domain.model.Task
 import java.util.UUID
 
 fun TaskDto.toTaskEntity(): Task = Task(
