@@ -1,4 +1,4 @@
-package org.example.utils
+package domain.utils.exception
 
 open class PlanMateException(message: String) : Exception(message) {
 

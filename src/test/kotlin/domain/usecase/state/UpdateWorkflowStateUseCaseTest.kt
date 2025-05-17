@@ -8,7 +8,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.usecase.state.UpdateStateUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 

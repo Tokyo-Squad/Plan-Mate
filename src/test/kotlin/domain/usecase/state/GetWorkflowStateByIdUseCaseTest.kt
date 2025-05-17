@@ -9,7 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.usecase.state.GetStateByIdUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import java.util.*
 import kotlin.test.Test

@@ -6,7 +6,7 @@ import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUserByIdUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows

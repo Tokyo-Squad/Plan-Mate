@@ -2,7 +2,7 @@ package org.example.logic.usecase.user
 
 import org.example.entity.User
 import org.example.logic.repository.UserRepository
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class GetUserByUsernameUseCase(
     private val userRepository: UserRepository

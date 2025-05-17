@@ -1,7 +1,7 @@
 package org.example.logic.usecase.auth
 
 import org.example.logic.repository.AuthenticationRepository
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class LoginUseCase(
     private val authRepository: AuthenticationRepository

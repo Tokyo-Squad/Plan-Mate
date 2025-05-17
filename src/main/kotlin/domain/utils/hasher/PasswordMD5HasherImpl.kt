@@ -1,6 +1,6 @@
 package org.example.utils.hasher
 
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import java.security.MessageDigest
 
 class PasswordMD5HasherImpl : PasswordHasher {

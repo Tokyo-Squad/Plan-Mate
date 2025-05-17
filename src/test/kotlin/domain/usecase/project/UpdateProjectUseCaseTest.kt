@@ -8,7 +8,7 @@ import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.UpdateProjectUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 

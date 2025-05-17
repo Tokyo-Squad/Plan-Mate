@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.TaskRepository
 import org.example.logic.usecase.task.AddTaskUseCase
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow

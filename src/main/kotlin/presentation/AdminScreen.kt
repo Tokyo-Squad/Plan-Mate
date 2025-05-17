@@ -14,7 +14,7 @@ import org.example.presentation.AuditScreen
 import org.example.presentation.ProjectEditScreen
 import org.example.presentation.ProjectScreen
 import org.example.presentation.io.ConsoleIO
-import org.example.utils.PlanMateException
+import domain.utils.exception.PlanMateException
 
 class AdminScreen(
     private val console: ConsoleIO,

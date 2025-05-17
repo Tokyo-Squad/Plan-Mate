@@ -9,7 +9,7 @@ import domain.model.AuditAction
 import domain.model.AuditedType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.GetAuditLogUseCase
-import org.example.utils.PlanMateException.InvalidStateIdException
+import domain.utils.exception.PlanMateException.InvalidStateIdException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
