@@ -2,7 +2,7 @@ package org.example.data.local.csvfile
 
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import logic.model.WorkflowState
+import domain.model.WorkflowState
 import java.io.File
 import java.io.IOException
 import java.util.UUID

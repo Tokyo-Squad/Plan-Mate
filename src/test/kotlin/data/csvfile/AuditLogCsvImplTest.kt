@@ -5,9 +5,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.AuditLogCsvImpl
 import org.example.data.util.exception.FileException
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File

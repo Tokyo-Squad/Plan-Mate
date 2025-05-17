@@ -1,9 +1,9 @@
 package org.example.di
 
-import logic.model.AuditLog
-import logic.model.Project
-import logic.model.Task
-import logic.model.WorkflowState
+import domain.model.AuditLog
+import domain.model.Project
+import domain.model.Task
+import domain.model.WorkflowState
 import org.example.data.Authentication
 import org.example.data.LocalDataSource
 import org.example.data.RemoteDataSource

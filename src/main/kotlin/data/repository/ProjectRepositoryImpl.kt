@@ -8,10 +8,10 @@ import org.example.data.remote.dto.AuditLogDto
 import org.example.data.remote.dto.ProjectDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toAuditLogDto
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
-import logic.model.Project
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
+import domain.model.Project
 import org.example.logic.repository.ProjectRepository
 import toProjectDto
 import toProjectEntity

@@ -6,7 +6,7 @@ import org.example.data.remote.dto.WorkflowStateDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toStateDto
 import org.example.data.util.mapper.toStateEntity
-import logic.model.WorkflowState
+import domain.model.WorkflowState
 import org.example.logic.repository.WorkflowStateRepository
 import java.util.UUID
 

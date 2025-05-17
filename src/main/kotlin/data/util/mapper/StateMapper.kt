@@ -2,7 +2,7 @@ package org.example.data.util.mapper
 
 import org.bson.Document
 import org.example.data.remote.dto.WorkflowStateDto
-import logic.model.WorkflowState
+import domain.model.WorkflowState
 import java.util.UUID
 
 

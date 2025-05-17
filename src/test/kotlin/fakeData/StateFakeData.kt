@@ -1,6 +1,6 @@
 package fakeData
 
-import logic.model.WorkflowState
+import domain.model.WorkflowState
 import java.util.UUID
 
 class StateFakeData {

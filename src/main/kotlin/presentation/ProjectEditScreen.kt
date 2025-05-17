@@ -2,8 +2,8 @@ package org.example.presentation
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import logic.model.Project
-import logic.model.WorkflowState
+import domain.model.Project
+import domain.model.WorkflowState
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.DeleteProjectUseCase
 import org.example.logic.usecase.project.GetProjectUseCase

@@ -9,10 +9,10 @@ import org.example.data.remote.dto.TaskDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toTaskDto
 import org.example.data.util.mapper.toTaskEntity
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
-import logic.model.Task
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
+import domain.model.Task
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.repository.TaskRepository

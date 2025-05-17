@@ -4,9 +4,9 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
 import java.util.UUID
 
 fun createAuditLogEntity(

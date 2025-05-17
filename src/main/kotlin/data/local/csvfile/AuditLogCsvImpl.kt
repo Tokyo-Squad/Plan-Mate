@@ -3,9 +3,9 @@ package org.example.data.local.csvfile
 import kotlinx.datetime.LocalDateTime
 import org.example.data.LocalDataSource
 import org.example.data.util.exception.FileException
-import logic.model.AuditAction
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditAction
+import domain.model.AuditLog
+import domain.model.AuditedType
 import java.io.File
 import java.io.IOException
 import java.util.UUID

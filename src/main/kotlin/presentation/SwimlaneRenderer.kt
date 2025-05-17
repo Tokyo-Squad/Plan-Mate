@@ -1,6 +1,6 @@
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.number
-import logic.model.Task
+import domain.model.Task
 import org.example.presentation.io.ConsoleIO
 import java.util.*
 

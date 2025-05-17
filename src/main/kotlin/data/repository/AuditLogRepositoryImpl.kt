@@ -4,8 +4,8 @@ import org.example.data.RemoteDataSource
 import org.example.data.remote.dto.AuditLogDto
 import org.example.data.util.mapper.toAuditLogDto
 import org.example.data.util.mapper.toAuditLogEntity
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditLog
+import domain.model.AuditedType
 import org.example.logic.repository.AuditLogRepository
 import java.util.UUID
 

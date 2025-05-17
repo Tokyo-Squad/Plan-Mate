@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import logic.model.Task
+import domain.model.Task
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId

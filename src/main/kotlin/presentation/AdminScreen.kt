@@ -3,7 +3,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import logic.model.Project
+import domain.model.Project
 import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.usecase.auth.GetCurrentUserUseCase

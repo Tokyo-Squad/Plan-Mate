@@ -3,8 +3,8 @@ package org.example.presentation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
-import logic.model.AuditLog
-import logic.model.AuditedType
+import domain.model.AuditLog
+import domain.model.AuditedType
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
