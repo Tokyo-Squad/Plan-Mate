@@ -6,7 +6,6 @@ import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.TaskCsvImpl
 import org.example.data.util.exception.FileException
 import org.example.entity.TaskEntity
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -71,7 +70,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() = runTest {
         val nonExistent = task.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             taskCsv.update(nonExistent)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -114,7 +113,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowException_whenCsvLineIsMalformed() = runTest {
         file.writeText("invalid,line,also-invalid")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -136,7 +135,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowFileReadException_whenFileContentIsMalformed() = runTest {
         file.writeText("invalid,line,malformed,content")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -178,7 +177,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() = runTest {
         val nonExistentTask = task.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             taskCsv.update(nonExistentTask)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -187,7 +186,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() = runTest {
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             taskCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -225,7 +224,7 @@ class TaskCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() = runTest {
         taskCsv.add(task)
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             taskCsv.delete(UUID.randomUUID())
         }
         assertThat(exception).hasMessageThat().contains("not found")
