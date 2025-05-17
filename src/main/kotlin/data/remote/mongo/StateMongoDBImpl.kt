@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.toList
 import org.bson.Document
 import org.example.data.RemoteDataSource
 import org.example.entity.StateEntity
-import org.example.utils.MongoExceptionHandler
+import org.example.data.util.exception.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
 

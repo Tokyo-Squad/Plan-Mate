@@ -1,4 +1,4 @@
-package org.example.data.mapper
+package org.example.data.util.mapper
 
 import org.bson.Document
 import org.example.data.remote.dto.UserDto

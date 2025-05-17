@@ -1,4 +1,4 @@
-package org.example.data.mapper
+package org.example.data.util.mapper
 
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
