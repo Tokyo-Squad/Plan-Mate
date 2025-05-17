@@ -8,6 +8,6 @@ interface TaskRepository {
     suspend fun delete(id: UUID, currentUserId: UUID)
     suspend fun getTaskById(id: UUID): TaskEntity
     suspend fun getTasksByProjectId(id: UUID): List<TaskEntity>
-    suspend fun update(task: TaskEntity, currentUserId: UUID)
+    suspend fun update(task: TaskEntity, currentUserId: UUID): TaskEntity
 
 }
