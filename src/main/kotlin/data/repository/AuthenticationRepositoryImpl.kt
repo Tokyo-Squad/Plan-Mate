@@ -1,57 +1,58 @@
 package org.example.data.repository
 
-import org.example.data.AuthProvider
+import org.example.data.Authentication
 import org.example.data.RemoteDataSource
+import org.example.data.remote.dto.UserDto
+import org.example.data.util.exception.AuthenticationException
+import org.example.data.util.exception.DatabaseException
+import org.example.data.util.mapper.toUserDto
+import org.example.data.util.mapper.toUserEntity
 import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.repository.UserRepository
-import org.example.utils.PlanMateException
 import org.example.utils.hasher.PasswordHasher
 
 class AuthenticationRepositoryImpl(
-    private val authenticationProvider: AuthProvider,
+    private val authProvider: Authentication,
     private val userRepository: UserRepository,
-    private val remoteDataSource: RemoteDataSource<UserEntity>,
-    private val passwordHasher: PasswordHasher
+    private val remoteDataSource: RemoteDataSource<UserDto>,
+    private val hasher: PasswordHasher
 ) : AuthenticationRepository {
 
     override suspend fun login(username: String, password: String) {
-        val user = userRepository.getUserByUsername(username)
+        val user = runCatching { userRepository.getUserByUsername(username) }
+            .getOrElse { e ->
+                if (e is DatabaseException.DatabaseItemNotFoundException) {
+                    throw AuthenticationException.UserNotFound()
+                }
+                throw e
+            }
 
-        if (!isPasswordValid(user, password)) {
-            throw PlanMateException.ValidationException("Password is not correct.")
+        if (!isPasswordValid(user.password, password)) {
+            throw AuthenticationException.InvalidCredentials()
         }
-        authenticationProvider.addCurrentUser(user)
+
+        authProvider.addCurrentUser(user.toUserDto())
     }
 
-    override suspend fun register(newUser: UserEntity, currentUser: UserEntity) {
-        try {
-            userRepository.getUserByUsername(newUser.username)
-            throw PlanMateException.ValidationException("A user with that username already exists.")
-        } catch (e: PlanMateException.ItemNotFoundException) {
-            remoteDataSource.add(newUser)
-        }
+    override suspend fun register(newUser: UserEntity) {
+        runCatching { userRepository.getUserByUsername(newUser.username) }
+            .onSuccess {
+                throw AuthenticationException.UserAlreadyExists()
+            }.onFailure { e ->
+                if (e !is DatabaseException.DatabaseItemNotFoundException) throw e
+            }
+
+        remoteDataSource.add(newUser.toUserDto())
     }
 
     override suspend fun logout() {
-        authenticationProvider.deleteCurrentUser()
+        authProvider.deleteCurrentUser()
     }
 
-    override suspend fun getCurrentUser(): UserEntity? {
-        return try {
-            authenticationProvider.getCurrentUser()
-        } catch (e: PlanMateException.ItemNotFoundException) {
-            null
-        }
-    }
+    override suspend fun getCurrentUser(): UserEntity =
+        authProvider.getCurrentUser()?.toUserEntity() ?: throw AuthenticationException.NoCurrentUser()
 
-    private fun isPasswordValid(user: UserEntity, inputPassword: String): Boolean {
-        return try {
-            val hashedInput = passwordHasher.hash(inputPassword)
-            user.password == hashedInput
-        } catch (e: Exception) {
-            false
-        }
-    }
-
+    private fun isPasswordValid(storedHashed: String, rawInput: String): Boolean =
+        storedHashed == hasher.hash(rawInput)
 }
