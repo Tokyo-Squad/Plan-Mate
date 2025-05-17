@@ -1,8 +1,8 @@
-package org.example.entity
+package logic.model
 
 import java.util.UUID
 
-data class StateEntity(
+data class WorkflowState(
     val id: UUID = UUID.randomUUID(),
     val name: String,
     val projectId: UUID

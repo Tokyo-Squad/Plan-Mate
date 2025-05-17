@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.example.entity.TaskEntity
+import logic.model.Task
 import java.util.UUID
 
 fun createTaskEntityTest(
@@ -14,10 +14,10 @@ fun createTaskEntityTest(
     projectId: UUID = UUID.randomUUID(),
     createdByUserId: UUID = UUID.randomUUID(),
     createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-): TaskEntity = TaskEntity(
+): Task = Task(
     title = title,
     description = description,
-    stateId = stateId,
+    workflowStateId = stateId,
     projectId = projectId,
     createdByUserId = createdByUserId,
     createdAt = createdAt,

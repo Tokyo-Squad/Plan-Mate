@@ -1,17 +1,17 @@
 package org.example.logic.repository
 
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import java.util.UUID
 
 interface ProjectRepository {
 
-    suspend fun addProject(project: ProjectEntity): ProjectEntity
+    suspend fun addProject(project: Project): Project
 
-    suspend fun updateProject(project: ProjectEntity, currentUserId: UUID): ProjectEntity
+    suspend fun updateProject(project: Project, currentUserId: UUID): Project
 
     suspend fun deleteProject(projectId: UUID, currentUserId: UUID)
 
-    suspend fun getAllProjects(): List<ProjectEntity>
+    suspend fun getAllProjects(): List<Project>
 
-    suspend fun getProjectById(projectId: UUID): ProjectEntity
+    suspend fun getProjectById(projectId: UUID): Project
 }

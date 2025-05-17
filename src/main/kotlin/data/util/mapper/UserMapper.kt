@@ -2,18 +2,18 @@ package org.example.data.util.mapper
 
 import org.bson.Document
 import org.example.data.remote.dto.UserDto
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import java.util.UUID
 
-fun UserDto.toUserEntity(): UserEntity = UserEntity(
+fun UserDto.toUserEntity(): User = User(
     id = id,
     username = username,
     password = password,
     type = UserType.valueOf(type)
 )
 
-fun UserEntity.toUserDto(): UserDto = UserDto(
+fun User.toUserDto(): UserDto = UserDto(
     id = id,
     username = username,
     password = password,

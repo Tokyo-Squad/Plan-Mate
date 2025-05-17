@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.junit.jupiter.api.assertThrows
@@ -18,7 +18,7 @@ class GetProjectUseCaseTest {
 
     @Test
     fun `should return project when found`() = runTest {
-        val expectedProject = mockk<ProjectEntity>()
+        val expectedProject = mockk<Project>()
         coEvery { mockRepo.getProjectById(testProjectId) } returns expectedProject
 
         val result = useCase(testProjectId)

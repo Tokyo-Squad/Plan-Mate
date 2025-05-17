@@ -2,8 +2,8 @@ package org.example.presentation
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.example.entity.ProjectEntity
-import org.example.entity.StateEntity
+import logic.model.Project
+import logic.model.WorkflowState
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.DeleteProjectUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
@@ -61,7 +61,7 @@ class ProjectEditScreen(
         return console.read().toIntOrNull() ?: 0
     }
 
-    private suspend fun editProjectName(project: ProjectEntity) {
+    private suspend fun editProjectName(project: Project) {
         console.write("\n=== Edit Project Name ===")
         console.write("Enter new project name: ")
         val newName = console.read().trim()
@@ -91,7 +91,7 @@ class ProjectEditScreen(
         }
     }
 
-    private suspend fun editProjectStates(project: ProjectEntity) {
+    private suspend fun editProjectStates(project: Project) {
         while (true) {
             console.write("\n=== Edit Project States ===")
 
@@ -146,7 +146,7 @@ class ProjectEditScreen(
         }
     }
 
-    private suspend fun addNewState(project: ProjectEntity) {
+    private suspend fun addNewState(project: Project) {
         console.write("\n=== Add New State ===")
         console.write("Enter state name: ")
         val stateName = console.read().trim()
@@ -156,7 +156,7 @@ class ProjectEditScreen(
             return
         }
 
-        val newState = StateEntity(
+        val newWorkflowState = WorkflowState(
             id = UUID.randomUUID(),
             name = stateName,
             projectId = project.id
@@ -164,7 +164,7 @@ class ProjectEditScreen(
 
         try {
             withContext(Dispatchers.IO) {
-                addStateUseCase.invoke(newState)
+                addStateUseCase.invoke(newWorkflowState)
             }
             console.write("State added successfully!")
         } catch (e: PlanMateException) {
@@ -175,17 +175,17 @@ class ProjectEditScreen(
         }
     }
 
-    private suspend fun editExistingState(states: List<StateEntity>) {
+    private suspend fun editExistingState(workflowStates: List<WorkflowState>) {
         console.write("\n=== Edit Existing State ===")
-        console.write("Select a state to edit (1-${states.size}): ")
+        console.write("Select a state to edit (1-${workflowStates.size}): ")
         val stateIndex = console.read().toIntOrNull()?.minus(1) ?: -1
 
-        if (stateIndex < 0 || stateIndex >= states.size) {
+        if (stateIndex < 0 || stateIndex >= workflowStates.size) {
             console.writeError("Invalid state selection")
             return
         }
 
-        val selectedState = states[stateIndex]
+        val selectedState = workflowStates[stateIndex]
         console.write("Current name: ${selectedState.name}")
         console.write("Enter new name: ")
         val newName = console.read().trim()
@@ -210,17 +210,17 @@ class ProjectEditScreen(
         }
     }
 
-    private suspend fun deleteState(states: List<StateEntity>) {
+    private suspend fun deleteState(workflowStates: List<WorkflowState>) {
         console.write("\n=== Delete State ===")
-        console.write("Select a state to delete (1-${states.size}): ")
+        console.write("Select a state to delete (1-${workflowStates.size}): ")
         val stateIndex = console.read().toIntOrNull()?.minus(1) ?: -1
 
-        if (stateIndex < 0 || stateIndex >= states.size) {
+        if (stateIndex < 0 || stateIndex >= workflowStates.size) {
             console.writeError("Invalid state selection")
             return
         }
 
-        val selectedState = states[stateIndex]
+        val selectedState = workflowStates[stateIndex]
         console.write("Are you sure you want to delete state '${selectedState.name}'? (yes/no): ")
         val confirmation = console.read().trim().lowercase()
 
@@ -242,7 +242,7 @@ class ProjectEditScreen(
         }
     }
 
-    private suspend fun handleProjectDeletion(project: ProjectEntity) {
+    private suspend fun handleProjectDeletion(project: Project) {
         console.write("\n=== Delete Project ===")
         console.write("WARNING: This action cannot be undone!")
         console.write("Are you sure you want to delete this project? (yes/no): ")

@@ -3,16 +3,16 @@ package org.example.data.util.mapper
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.remote.dto.AuditLogDto
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
+import logic.model.AuditAction
+import logic.model.AuditLog
+import logic.model.AuditedType
 import java.util.UUID
 
 
-fun AuditLogDto.toAuditLogEntity(): AuditLogEntity = AuditLogEntity(
+fun AuditLogDto.toAuditLogEntity(): AuditLog = AuditLog(
     id = id,
     userId = userId,
-    entityType = AuditedEntityType.valueOf(entityType),
+    entityType = AuditedType.valueOf(entityType),
     entityId = entityId,
     action = AuditAction.valueOf(action),
     changeDetails = changeDetails,
@@ -20,7 +20,7 @@ fun AuditLogDto.toAuditLogEntity(): AuditLogEntity = AuditLogEntity(
 )
 
 
-fun AuditLogEntity.toAuditLogDto(): AuditLogDto = AuditLogDto(
+fun AuditLog.toAuditLogDto(): AuditLogDto = AuditLogDto(
     id = id,
     userId = userId,
     entityType = entityType.toString(),

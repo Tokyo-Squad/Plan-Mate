@@ -2,7 +2,7 @@ package logic.usecase.user
 
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUsersUseCase
@@ -25,7 +25,7 @@ class GetUsersUseCaseTest {
     @Test
     fun `should return empty list when repository returns empty`() = runTest {
         // Given
-        val emptyList = emptyList<UserEntity>()
+        val emptyList = emptyList<User>()
         coEvery { repository.getUsers() } returns emptyList
 
         // When
@@ -40,12 +40,12 @@ class GetUsersUseCaseTest {
     fun `should return list of users when repository returns data`() = runTest {
         // Given
         val users = listOf(
-            UserEntity(
+            User(
                 username = "username1",
                 password = "password1",
                 type = UserType.MATE
             ),
-            UserEntity(
+            User(
                 username = "username2",
                 password = "password2",
                 type = UserType.MATE

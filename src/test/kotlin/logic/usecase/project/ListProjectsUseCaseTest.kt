@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.ProjectEntity
+import logic.model.Project
 import org.example.logic.repository.ProjectRepository
 import org.example.logic.usecase.project.ListProjectsUseCase
 import org.junit.jupiter.api.assertThrows
@@ -16,7 +16,7 @@ class ListProjectsUseCaseTest {
 
     @Test
     fun `should return projects list when available`() = runTest {
-        val expectedProjects = listOf(mockk<ProjectEntity>())
+        val expectedProjects = listOf(mockk<Project>())
         coEvery { mockRepo.getAllProjects() } returns expectedProjects
 
         val result = useCase()
@@ -30,7 +30,7 @@ class ListProjectsUseCaseTest {
 
         val result = useCase()
 
-        assertThat(result).isEqualTo(emptyList<ProjectEntity>())
+        assertThat(result).isEqualTo(emptyList<Project>())
     }
 
     @Test

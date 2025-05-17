@@ -1,12 +1,12 @@
 package org.example.logic.usecase.state
 
-import org.example.entity.StateEntity
-import org.example.logic.repository.StateRepository
+import logic.model.WorkflowState
+import org.example.logic.repository.WorkflowStateRepository
 
 class UpdateStateUseCase(
-    private val stateRepository: StateRepository
+    private val workflowStateRepository: WorkflowStateRepository
 ) {
-    suspend operator fun invoke(stateEntity: StateEntity, newState: StateEntity): StateEntity {
-        return stateRepository.updateState(stateEntity.id, newState)
+    suspend operator fun invoke(workflowState: WorkflowState, newWorkflowState: WorkflowState): WorkflowState {
+        return workflowStateRepository.updateState(workflowState.id, newWorkflowState)
     }
 }

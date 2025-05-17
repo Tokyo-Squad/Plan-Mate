@@ -1,13 +1,13 @@
 package org.example.logic.usecase.state
 
-import org.example.entity.StateEntity
-import org.example.logic.repository.StateRepository
+import logic.model.WorkflowState
+import org.example.logic.repository.WorkflowStateRepository
 import java.util.*
 
 class GetStateByIdUseCase(
-    private val stateRepository: StateRepository
+    private val workflowStateRepository: WorkflowStateRepository
 ) {
-    suspend operator fun invoke(stateId: UUID): StateEntity {
-        return stateRepository.getStateById(stateId)
+    suspend operator fun invoke(stateId: UUID): WorkflowState {
+        return workflowStateRepository.getStateById(stateId)
     }
 }

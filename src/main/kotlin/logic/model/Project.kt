@@ -1,9 +1,9 @@
-package org.example.entity
+package logic.model
 
 import kotlinx.datetime.LocalDateTime
 import java.util.UUID
 
-data class ProjectEntity(
+data class Project(
     val id: UUID = UUID.randomUUID(),
     val name: String,
     val createdByAdminId: UUID,

@@ -5,8 +5,8 @@ import fakeData.createAuditLogEntity
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.AuditAction
-import org.example.entity.AuditedEntityType
+import logic.model.AuditAction
+import logic.model.AuditedType
 import org.example.logic.repository.AuditLogRepository
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.utils.PlanMateException.InvalidStateIdException
@@ -33,14 +33,14 @@ class GetAuditLogUseCaseTest {
         val projectId = UUID.fromString(projectUUID)
         val auditLog1 = createAuditLogEntity(
             entityId = projectId,
-            entityType = AuditedEntityType.PROJECT,
+            entityType = AuditedType.PROJECT,
             action = AuditAction.CREATE,
             changeDetails = "Project created"
         )
 
         val auditLog2 = createAuditLogEntity(
             entityId = projectId,
-            entityType = AuditedEntityType.PROJECT,
+            entityType = AuditedType.PROJECT,
             action = AuditAction.UPDATE,
             changeDetails = "Project updated"
         )
@@ -49,7 +49,7 @@ class GetAuditLogUseCaseTest {
         coEvery { auditLogRepository.getProjectHistory(projectId) } returns listOf(auditLog1, auditLog2)
 
         // When
-        val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedEntityType.PROJECT)
+        val result = getAuditLogsUseCase.invoke(projectId, entityType = AuditedType.PROJECT)
 
         // Then
         assertThat(result).isEqualTo(expectedLogs)
@@ -62,13 +62,13 @@ class GetAuditLogUseCaseTest {
         val taskId = UUID.fromString(taskUUID)
         val taskLog1 = createAuditLogEntity(
             entityId = taskId,
-            entityType = AuditedEntityType.TASK,
+            entityType = AuditedType.TASK,
             action = AuditAction.CREATE,
             changeDetails = "Task updated"
         )
         val taskLog2 = createAuditLogEntity(
             entityId = taskId,
-            entityType = AuditedEntityType.TASK,
+            entityType = AuditedType.TASK,
             action = AuditAction.UPDATE,
             changeDetails = "Task created"
         )
@@ -77,7 +77,7 @@ class GetAuditLogUseCaseTest {
         coEvery { auditLogRepository.getTaskHistory(taskId) } returns expectedLogs
 
         // When
-        val result = getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK)
+        val result = getAuditLogsUseCase.invoke(taskId, AuditedType.TASK)
 
         // Then
         assertThat(result).isEqualTo(expectedLogs)
@@ -91,6 +91,6 @@ class GetAuditLogUseCaseTest {
         coEvery { auditLogRepository.getTaskHistory(taskId) } throws exception
 
         // When & then
-        assertThrows<InvalidStateIdException> { getAuditLogsUseCase.invoke(taskId, AuditedEntityType.TASK) }
+        assertThrows<InvalidStateIdException> { getAuditLogsUseCase.invoke(taskId, AuditedType.TASK) }
     }
 }

@@ -1,7 +1,7 @@
 package org.example.logic.usecase.project
 
-import org.example.entity.ProjectEntity
-import org.example.entity.UserEntity
+import logic.model.Project
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.ProjectRepository
 import org.example.utils.PlanMateException
@@ -10,9 +10,9 @@ class AddProjectUseCase(
     private val projectRepository: ProjectRepository,
 ) {
     suspend operator fun invoke(
-        projectEntity: ProjectEntity,
-        currentUser: UserEntity
-    ): ProjectEntity {
+        project: Project,
+        currentUser: User
+    ): Project {
 
         if (currentUser.type != UserType.ADMIN) {
             throw PlanMateException.UserActionNotAllowedException(
@@ -20,12 +20,12 @@ class AddProjectUseCase(
             )
         }
 
-        if (projectEntity.name.isBlank()) {
+        if (project.name.isBlank()) {
             throw PlanMateException.ValidationException(
                 "Project name cannot be blank"
             )
         }
 
-        return projectRepository.addProject(projectEntity)
+        return projectRepository.addProject(project)
     }
 }

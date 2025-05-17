@@ -1,9 +1,8 @@
 package logic.usecase.user
 
-import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.GetUserByIdUseCase
@@ -28,7 +27,7 @@ class GetUserByIdUseCaseTest {
     fun `should return UserEntity when repository finds by id`() = runTest {
         // Given
         val id = UUID.randomUUID()
-        val expected = UserEntity(
+        val expected = User(
             id = id,
             username = "jane",
             password = "jane123",

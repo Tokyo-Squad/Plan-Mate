@@ -3,8 +3,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.example.entity.ProjectEntity
-import org.example.entity.UserEntity
+import logic.model.Project
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.auth.RegisterUseCase
@@ -83,7 +83,7 @@ class AdminScreen(
                 getCurrentUser.invoke()
             } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
 
-            val newProject = ProjectEntity(
+            val newProject = Project(
                 name = projectName,
                 createdByAdminId = currentUser.id,
                 createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -124,7 +124,7 @@ class AdminScreen(
                 getCurrentUser.invoke()
             } ?: throw PlanMateException.UserActionNotAllowedException("Not authenticated")
 
-            val newUser = UserEntity(
+            val newUser = User(
                 username = username,
                 password = password,
                 type = UserType.MATE
@@ -173,14 +173,14 @@ class AdminScreen(
         }
     }
 
-    private fun displayProjects(projects: List<ProjectEntity>) {
+    private fun displayProjects(projects: List<Project>) {
         console.write("\n=== Projects ===")
         projects.forEachIndexed { index, project ->
             console.write("${project.name} (ID: ${project.id})")
         }
     }
 
-    private suspend fun viewProject(projects: List<ProjectEntity>) {
+    private suspend fun viewProject(projects: List<Project>) {
         // First display numbered projects for selection
         console.write("\nAvailable projects:")
         projects.forEachIndexed { index, project ->
@@ -208,7 +208,7 @@ class AdminScreen(
         }
     }
 
-    private suspend fun editProject(projects: List<ProjectEntity>) {
+    private suspend fun editProject(projects: List<Project>) {
         // First display numbered projects for selection
         console.write("\nAvailable projects:")
         projects.forEachIndexed { index, project ->

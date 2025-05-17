@@ -4,7 +4,7 @@ import org.example.data.Authentication
 import org.example.data.remote.dto.UserDto
 import org.example.data.util.exception.FileException
 import org.example.data.util.mapper.toUserDto
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import java.io.File
 import java.io.IOException
@@ -52,10 +52,10 @@ class AuthCsvImpl(
         return "${user.id},${user.username},${user.password},${user.type}"
     }
 
-    private fun fromCSVLine(line: String): UserEntity {
+    private fun fromCSVLine(line: String): User {
         val parts = line.split(",")
         return try {
-            UserEntity(
+            User(
                 id = UUID.fromString(parts[0]),
                 username = parts[1],
                 password = parts[2],

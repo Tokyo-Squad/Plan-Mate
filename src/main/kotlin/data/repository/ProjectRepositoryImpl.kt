@@ -8,10 +8,10 @@ import org.example.data.remote.dto.AuditLogDto
 import org.example.data.remote.dto.ProjectDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.mapper.toAuditLogDto
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
-import org.example.entity.ProjectEntity
+import logic.model.AuditAction
+import logic.model.AuditLog
+import logic.model.AuditedType
+import logic.model.Project
 import org.example.logic.repository.ProjectRepository
 import toProjectDto
 import toProjectEntity
@@ -22,7 +22,7 @@ class ProjectRepositoryImpl(
     private val auditRemoteDataSource: RemoteDataSource<AuditLogDto>
 ) : ProjectRepository {
 
-    override suspend fun addProject(project: ProjectEntity): ProjectEntity {
+    override suspend fun addProject(project: Project): Project {
         require(project.name.isNotBlank()) { "Project name must not be blank" }
 
         projectRemoteDataSource.add(project.toProjectDto())
@@ -35,7 +35,7 @@ class ProjectRepositoryImpl(
         return project
     }
 
-    override suspend fun updateProject(project: ProjectEntity, currentUserId: UUID): ProjectEntity {
+    override suspend fun updateProject(project: Project, currentUserId: UUID): Project {
         projectRemoteDataSource.update(project.toProjectDto())
         logAudit(
             userId = currentUserId,
@@ -60,10 +60,10 @@ class ProjectRepositoryImpl(
         )
     }
 
-    override suspend fun getAllProjects(): List<ProjectEntity> =
+    override suspend fun getAllProjects(): List<Project> =
         projectRemoteDataSource.get().map { it.toProjectEntity() }
 
-    override suspend fun getProjectById(projectId: UUID): ProjectEntity =
+    override suspend fun getProjectById(projectId: UUID): Project =
         projectRemoteDataSource.getById(projectId)
             ?.toProjectEntity()
             ?: throw DatabaseException.DatabaseItemNotFoundException(
@@ -76,9 +76,9 @@ class ProjectRepositoryImpl(
         action: AuditAction,
         details: String
     ) {
-        val auditDto = AuditLogEntity(
+        val auditDto = AuditLog(
             userId = userId,
-            entityType = AuditedEntityType.PROJECT,
+            entityType = AuditedType.PROJECT,
             entityId = entityId,
             action = action,
             changeDetails = details,

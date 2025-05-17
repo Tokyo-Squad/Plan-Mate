@@ -5,9 +5,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.AuditLogCsvImpl
 import org.example.data.util.exception.FileException
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
+import logic.model.AuditAction
+import logic.model.AuditLog
+import logic.model.AuditedType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -22,16 +22,16 @@ class AuditLogCsvImplTest {
 
     private lateinit var file: File
     private lateinit var csv: AuditLogCsvImpl
-    private lateinit var auditLog: AuditLogEntity
+    private lateinit var auditLog: AuditLog
 
     @BeforeEach
     fun setup() {
         file = File(tempDir, "audit_logs.csv")
         csv = AuditLogCsvImpl(file.absolutePath)
-        auditLog = AuditLogEntity(
+        auditLog = AuditLog(
             id = UUID.randomUUID(),
             userId = UUID.randomUUID(),
-            entityType = AuditedEntityType.PROJECT,
+            entityType = AuditedType.PROJECT,
             entityId = UUID.randomUUID(),
             action = AuditAction.CREATE,
             changeDetails = "Initial creation",

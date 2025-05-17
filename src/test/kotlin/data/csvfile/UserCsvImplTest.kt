@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.example.data.local.csvfile.UserCsvImpl
 import org.example.data.util.exception.FileException
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -20,13 +20,13 @@ class UserCsvImplTest {
 
     private lateinit var file: File
     private lateinit var userCsv: UserCsvImpl
-    private lateinit var user: UserEntity
+    private lateinit var user: User
 
     @BeforeEach
     fun setup() {
         file = File(tempDir, "users.csv")
         userCsv = UserCsvImpl(file.absolutePath)
-        user = UserEntity(
+        user = User(
             id = UUID.randomUUID(), username = "user1", password = "password123", type = UserType.ADMIN
         )
     }
@@ -142,7 +142,7 @@ class UserCsvImplTest {
 
     @Test
     fun shouldSuccessfullyParseFile_whenValidContent() = runTest {
-        val validUser = UserEntity(
+        val validUser = User(
             id = UUID.randomUUID(), username = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
         file.writeText("${validUser.id},${validUser.username},${validUser.password},${validUser.type}")
@@ -152,7 +152,7 @@ class UserCsvImplTest {
 
     @Test
     fun shouldReturnNotEmpty_whenFileContainsEmptyLines() = runTest {
-        val validUser = UserEntity(
+        val validUser = User(
             id = UUID.randomUUID(), username = "ValidUser", password = "ValidPassword123", type = UserType.ADMIN
         )
         file.writeText("\n\n${validUser.id},${validUser.username},${validUser.password},${validUser.type}\n\n")

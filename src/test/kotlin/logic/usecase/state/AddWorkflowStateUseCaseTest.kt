@@ -7,15 +7,15 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.example.data.util.exception.FileException
-import org.example.logic.repository.StateRepository
+import org.example.logic.repository.WorkflowStateRepository
 import org.example.logic.usecase.state.AddStateUseCase
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
 
-class AddStateUseCaseTest {
-    private lateinit var repo: StateRepository
+class AddWorkflowStateUseCaseTest {
+    private lateinit var repo: WorkflowStateRepository
     private lateinit var useCase: AddStateUseCase
     private val fake = StateFakeData()
 

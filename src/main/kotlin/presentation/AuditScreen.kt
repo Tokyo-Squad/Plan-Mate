@@ -3,8 +3,8 @@ package org.example.presentation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
+import logic.model.AuditLog
+import logic.model.AuditedType
 import org.example.logic.usecase.audit.GetAuditLogUseCase
 import org.example.presentation.io.ConsoleIO
 import org.example.utils.PlanMateException
@@ -55,7 +55,7 @@ class AuditScreen(
             val uuid = parseUUID(projectId) ?: return
 
             val logs = withContext(Dispatchers.IO) {
-                getAuditLogUseCase.invoke(uuid, AuditedEntityType.PROJECT)
+                getAuditLogUseCase.invoke(uuid, AuditedType.PROJECT)
             }
 
             if (logs.isNotEmpty()) {
@@ -84,7 +84,7 @@ class AuditScreen(
             val uuid = parseUUID(taskId) ?: return
 
             val logs = withContext(Dispatchers.IO) {
-                getAuditLogUseCase.invoke(uuid, AuditedEntityType.TASK)
+                getAuditLogUseCase.invoke(uuid, AuditedType.TASK)
             }
 
             if (logs.isNotEmpty()) {
@@ -109,7 +109,7 @@ class AuditScreen(
         }
     }
 
-    private fun displayAuditLogs(logs: List<AuditLogEntity>) {
+    private fun displayAuditLogs(logs: List<AuditLog>) {
         if (logs.isEmpty()) {
             console.write("No audit logs found.")
             return

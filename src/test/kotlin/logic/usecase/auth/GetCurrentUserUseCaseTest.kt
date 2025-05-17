@@ -3,7 +3,7 @@ package logic.usecase.auth
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.example.data.util.exception.AuthenticationException
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
@@ -19,7 +19,7 @@ class GetCurrentUserUseCaseTest {
     @Test
     fun `should return user when user is authenticated`() = runTest {
         // arrange
-        val currentUser = UserEntity(
+        val currentUser = User(
             username = "testUser",
             password = "password123",
             type = UserType.MATE

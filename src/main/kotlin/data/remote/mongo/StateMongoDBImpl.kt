@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
 import org.example.data.RemoteDataSource
-import org.example.data.remote.dto.StateDto
+import org.example.data.remote.dto.WorkflowStateDto
 import org.example.data.util.exception.DatabaseException
 import org.example.data.util.exception.MongoExceptionHandler
 import org.example.data.util.mapper.toDocument
@@ -16,21 +16,21 @@ import java.util.UUID
 
 class StateMongoDBImpl(
     mongoClient: MongoDBClient
-) : RemoteDataSource<StateDto> {
+) : RemoteDataSource<WorkflowStateDto> {
 
     private val collection = mongoClient.getDatabase().getCollection<Document>("states")
 
-    override suspend fun add(item: StateDto) {
+    override suspend fun add(item: WorkflowStateDto) {
         MongoExceptionHandler.handleOperation("adding state") {
             collection.insertOne(item.toDocument())
         }
     }
 
-    override suspend fun get(): List<StateDto> = MongoExceptionHandler.handleOperation("fetching all states") {
+    override suspend fun get(): List<WorkflowStateDto> = MongoExceptionHandler.handleOperation("fetching all states") {
         collection.find().map { it.toStateDto() }.toList()
     }
 
-    override suspend fun getById(id: UUID): StateDto?=
+    override suspend fun getById(id: UUID): WorkflowStateDto?=
         MongoExceptionHandler.handleOperation("fetching state by ID") {
             val filter = Filters.eq("id", id.toString())
             val document = collection.find(filter).firstOrNull()
@@ -38,7 +38,7 @@ class StateMongoDBImpl(
         }
 
 
-    override suspend fun update(item: StateDto) {
+    override suspend fun update(item: WorkflowStateDto) {
         MongoExceptionHandler.handleOperation("updating state") {
             val filter = Filters.eq("id", item.id.toString())
             val update = Updates.combine(

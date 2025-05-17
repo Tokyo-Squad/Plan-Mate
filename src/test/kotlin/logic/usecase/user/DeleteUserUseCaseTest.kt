@@ -1,15 +1,13 @@
 package logic.usecase.user
 
-import com.google.common.truth.Truth.assertThat
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
+import org.example.entity.User
 import org.example.entity.UserType
 import org.example.logic.repository.UserRepository
 import org.example.logic.usecase.user.DeleteUserUseCase
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 import kotlin.test.Test
@@ -28,7 +26,7 @@ class DeleteUserUseCaseTest {
     fun `should succeed when non-MATE user deletes user`() = runTest {
         // Given
         val id = UUID.randomUUID()
-        val adminUser = UserEntity(
+        val adminUser = User(
             username = "admin",
             password = "pwd",
             type = UserType.ADMIN
@@ -45,7 +43,7 @@ class DeleteUserUseCaseTest {
     fun `should throw exception when MATE user deletes user`() = runTest {
         // Given
         val id = UUID.randomUUID()
-        val mateUser = UserEntity(
+        val mateUser = User(
             username = "mate",
             password = "pwd",
             type = UserType.MATE
@@ -64,7 +62,7 @@ class DeleteUserUseCaseTest {
     fun `should throw exception when repository delete fails`() = runTest {
         // Given
         val id = UUID.randomUUID()
-        val adminUser = UserEntity(
+        val adminUser = User(
             username = "admin",
             password = "pwd",
             type = UserType.ADMIN

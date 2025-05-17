@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.example.entity.TaskEntity
+import logic.model.Task
 import org.example.logic.usecase.auth.GetCurrentUserUseCase
 import org.example.logic.usecase.project.GetProjectUseCase
 import org.example.logic.usecase.state.GetStatesByProjectId
@@ -266,10 +266,10 @@ class TaskEditScreen(
                 return
             }
 
-            val newTask = TaskEntity(
+            val newTask = Task(
                 title = title,
                 description = description,
-                stateId = initialState,
+                workflowStateId = initialState,
                 projectId = projectId,
                 createdByUserId = currentUser.id,
                 createdAt = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -344,7 +344,7 @@ class TaskEditScreen(
 
             // Create updated task with new state
             val updatedTask = task.copy(
-                stateId = states[stateIndex].id
+                workflowStateId = states[stateIndex].id
             )
 
             // Update the task

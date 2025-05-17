@@ -1,13 +1,13 @@
 package org.example.logic.repository
 
-import org.example.entity.TaskEntity
+import logic.model.Task
 import java.util.UUID
 
 interface TaskRepository {
-    suspend fun add(task: TaskEntity, currentUserId: UUID)
+    suspend fun add(task: Task, currentUserId: UUID)
     suspend fun delete(id: UUID, currentUserId: UUID)
-    suspend fun getTaskById(id: UUID): TaskEntity
-    suspend fun getTasksByProjectId(id: UUID): List<TaskEntity>
-    suspend fun update(task: TaskEntity, currentUserId: UUID): TaskEntity
+    suspend fun getTaskById(id: UUID): Task
+    suspend fun getTasksByProjectId(id: UUID): List<Task>
+    suspend fun update(task: Task, currentUserId: UUID): Task
 
 }

@@ -1,11 +1,11 @@
 package org.example.logic.usecase.task
 
-import org.example.entity.TaskEntity
+import logic.model.Task
 import org.example.logic.repository.TaskRepository
 import java.util.UUID
 
 class GetTaskByIdUseCase(
     private val taskRepository: TaskRepository,
 ) {
-    suspend operator fun invoke(id: UUID): TaskEntity = taskRepository.getTaskById(id)
+    suspend operator fun invoke(id: UUID): Task = taskRepository.getTaskById(id)
 }

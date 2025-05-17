@@ -1,5 +1,9 @@
 package org.example.di
 
+import logic.model.AuditLog
+import logic.model.Project
+import logic.model.Task
+import logic.model.WorkflowState
 import org.example.data.Authentication
 import org.example.data.LocalDataSource
 import org.example.data.RemoteDataSource
@@ -24,15 +28,15 @@ val appModule = module {
     single(named("auditLogs")) { "audit_logs.csv" }
     single(named("auth")) { "auth.csv" }
 
-    single<LocalDataSource<ProjectEntity>>(named("projectDataProvider")) { ProjectCsvImpl(get(named("projects"))) }
+    single<LocalDataSource<Project>>(named("projectDataProvider")) { ProjectCsvImpl(get(named("projects"))) }
     single<RemoteDataSource<ProjectDto>>(named("projectDataProviderMongo")) { ProjectMongoDBImpl(get()) }
-    single<LocalDataSource<StateEntity>>(named("stateDataProvider")) { StateCsvImpl(get(named("states"))) }
-    single<RemoteDataSource<StateDto>>(named("stateDataProviderMongo")) { StateMongoDBImpl(get()) }
-    single<LocalDataSource<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
+    single<LocalDataSource<WorkflowState>>(named("stateDataProvider")) { WorkflowStateCsvImpl(get(named("states"))) }
+    single<RemoteDataSource<WorkflowStateDto>>(named("stateDataProviderMongo")) { StateMongoDBImpl(get()) }
+    single<LocalDataSource<Task>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
     single<RemoteDataSource<TaskDto>>(named("taskDataProviderMongo")) { TaskMongoDBImpl(get()) }
-    single<LocalDataSource<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
+    single<LocalDataSource<User>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
     single<RemoteDataSource<UserDto>>(named("userDataProviderMongo")) { UsersMongoImpl(get()) }
-    single<LocalDataSource<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
+    single<LocalDataSource<AuditLog>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
     single<RemoteDataSource<AuditLogDto>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get()) }
     single<Authentication> { AuthCsvImpl(get(named("auth"))) }
     single<Authentication>(named("authProviderMongo")) { AuthMongoImpl(get()) }
@@ -57,8 +61,8 @@ val appModule = module {
             )
         )
     }
-    single<StateRepository> {
-        StateRepositoryImpl(
+    single<WorkflowStateRepository> {
+        WorkflowStateRepositoryImpl(
             get(
                 qualifier = named("stateDataProviderMongo")
             )
