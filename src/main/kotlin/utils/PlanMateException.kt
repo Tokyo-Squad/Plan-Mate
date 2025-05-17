@@ -6,8 +6,6 @@ open class PlanMateException(message: String) : Exception(message) {
 
     class ItemNotFoundException(message: String = "Item not found.") : PlanMateException(message)
 
-    class UnknownException(message: String = "An unknown error occurred.") : PlanMateException(message)
-
     class InvalidFormatException(message: String = "Invalid data format.") : PlanMateException(message)
 
     class ValidationException(message: String = "Validation failed.") : PlanMateException(message)
@@ -21,19 +19,4 @@ open class PlanMateException(message: String) : Exception(message) {
     class InvalidStateIdException(message: String = "Invalid state id, no audit logs found.") :
         PlanMateException(message)
 
-    class DatabaseOperationException(
-        message: String = "Database operation failed."
-    ) : PlanMateException(message)
-
-    class DatabaseTimeoutException(
-        message: String = "Database operation timed out."
-    ) : PlanMateException(message)
-
-    class DuplicateKeyException(
-        message: String = "Duplicate key violation in database."
-    ) : PlanMateException(message)
-
-    class DatabaseAuthenticationException(
-        message: String = "Database authentication failed."
-    ) : PlanMateException(message)
 }
