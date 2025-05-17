@@ -1,4 +1,4 @@
-package org.example.data.mongo
+package org.example.data.remote.mongo
 
 import kotlinx.coroutines.flow.first
 import org.bson.Document
