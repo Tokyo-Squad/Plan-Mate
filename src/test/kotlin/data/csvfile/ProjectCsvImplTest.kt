@@ -4,12 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.ProjectCsvImpl
+import org.example.data.util.exception.FileException
 import org.example.entity.ProjectEntity
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -99,7 +99,7 @@ class ProjectCsvImplTest {
         val nonExistent = project.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             projectCsv.update(nonExistent)
         }
 
@@ -156,7 +156,7 @@ class ProjectCsvImplTest {
         val failingCsv = ProjectCsvImpl(failingFile.absolutePath)
 
         // Then
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(project)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -168,7 +168,7 @@ class ProjectCsvImplTest {
         file.writeText("invalid,line,also-invalid")
 
         // Then
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             projectCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line")
@@ -185,7 +185,7 @@ class ProjectCsvImplTest {
         val failingCsv = ProjectCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(project)
         }
 
@@ -199,7 +199,7 @@ class ProjectCsvImplTest {
         file.writeText("invalid,line,malformed,content")
 
         // When / Then
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             projectCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line: invalid,line,malformed,content")
@@ -248,7 +248,7 @@ class ProjectCsvImplTest {
         val nonExistentProject = project.copy(id = UUID.randomUUID())
 
         // When:
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             projectCsv.update(nonExistentProject)
         }
 
@@ -262,7 +262,7 @@ class ProjectCsvImplTest {
         val nonExistentProject = project.copy(id = UUID.randomUUID())
 
         // When
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             projectCsv.update(nonExistentProject)
         }
 
@@ -276,7 +276,7 @@ class ProjectCsvImplTest {
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
 
         // When / Then
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             projectCsv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line")
@@ -294,7 +294,7 @@ class ProjectCsvImplTest {
         val failingCsv = ProjectCsvImpl(readOnlyFile.absolutePath)
 
         // When
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.delete(project.id)
         }
 
@@ -316,7 +316,7 @@ class ProjectCsvImplTest {
         val updatedProject = project.copy(name = "Updated Project Name")
 
         // When
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.update(updatedProject)
         }
 
@@ -330,7 +330,7 @@ class ProjectCsvImplTest {
         projectCsv.add(project)
 
         // When
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             projectCsv.delete(UUID.randomUUID())
         }
         // Then

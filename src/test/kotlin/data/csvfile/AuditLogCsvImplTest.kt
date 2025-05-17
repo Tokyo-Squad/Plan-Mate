@@ -4,14 +4,14 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.AuditLogCsvImpl
+import org.example.data.util.exception.FileException
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -72,7 +72,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowException_whenCsvLineIsMalformed() = runTest {
         file.writeText("invalid,line,also-invalid")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Invalid UUID string")
@@ -87,7 +87,7 @@ class AuditLogCsvImplTest {
         readOnlyFile.setWritable(false)
         val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
         val updatedAuditLog = auditLog.copy(changeDetails = "Updated info")
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.update(updatedAuditLog)
         }
         assertThat(exception).hasMessageThat().contains("Error updating audit log")
@@ -96,7 +96,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentEntity() = runTest {
         val nonExistent = auditLog.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             csv.update(nonExistent)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -130,7 +130,7 @@ class AuditLogCsvImplTest {
         val nonExistentDir = File(tempDir, "non_existent_dir")
         val failingFile = File(nonExistentDir, "audit_logs.csv")
         val csv = AuditLogCsvImpl(failingFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             csv.add(auditLog)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -143,7 +143,7 @@ class AuditLogCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(auditLog)
         }
         assertThat(exception).hasMessageThat().contains("Error writing to file")
@@ -152,7 +152,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowFileReadException_whenFileContentIsMalformed() = runTest {
         file.writeText("invalid,line,malformed,content")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line: invalid,line,malformed,content")
@@ -178,7 +178,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowItemNotFoundException_whenUpdatingNonExistentEntity() = runTest {
         val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             csv.update(nonExistentProject)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -187,7 +187,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenUpdatingNonExistentProject() = runTest {
         val nonExistentProject = auditLog.copy(id = UUID.randomUUID())
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             csv.update(nonExistentProject)
         }
         assertThat(exception).hasMessageThat().contains("not found")
@@ -196,7 +196,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowException_whenCreatedByAdminIdIsInvalidUUID() = runTest {
         file.writeText("${UUID.randomUUID()},Test,invalid-uuid,2025-04-29T15:00:00")
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             csv.get()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line")
@@ -210,7 +210,7 @@ class AuditLogCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = AuditLogCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.delete(auditLog.id)
         }
         assertThat(exception).hasMessageThat().contains("Error deleting audit log")
@@ -219,7 +219,7 @@ class AuditLogCsvImplTest {
     @Test
     fun shouldThrowItemNotFound_whenDeletingNonExistentEntityInNonEmptyFile() = runTest {
         csv.add(auditLog)
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             csv.delete(UUID.randomUUID())
         }
         assertThat(exception).hasMessageThat().contains("not found")

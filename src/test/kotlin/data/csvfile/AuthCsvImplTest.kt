@@ -4,8 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.example.data.local.csvfile.AuthCsvImpl
 import org.example.data.remote.dto.UserDto
+import org.example.data.util.exception.FileException
 import org.example.entity.UserType
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -46,7 +46,7 @@ class AuthCsvImplTest {
         authProvider.addCurrentUser(user)
         authProvider.deleteCurrentUser()
 
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             authProvider.getCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("No current user found.")
@@ -54,7 +54,7 @@ class AuthCsvImplTest {
 
     @Test
     fun shouldThrowItemNotFoundException_whenNoUserStored() = runTest {
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             authProvider.getCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("No current user found.")
@@ -68,7 +68,7 @@ class AuthCsvImplTest {
         }
         val failingProvider = AuthCsvImpl(readOnlyFile.absolutePath)
 
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingProvider.addCurrentUser(user)
         }
         assertThat(exception).hasMessageThat().contains("Error writing")
@@ -78,7 +78,7 @@ class AuthCsvImplTest {
     fun shouldThrowFormatException_whenUserFileIsMalformed() = runTest {
         file.writeText("invalid,line,content")
 
-        val exception = assertFailsWith<PlanMateException.InvalidFormatException> {
+        val exception = assertFailsWith<FileException.FileInvalidFormatException> {
             authProvider.getCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("Malformed CSV line")
@@ -93,7 +93,7 @@ class AuthCsvImplTest {
         }
         val failingProvider = AuthCsvImpl(fileWithNoPermission.absolutePath)
 
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingProvider.addCurrentUser(user)
         }
         assertThat(exception).hasMessageThat().contains("Error writing current user to file")
@@ -109,7 +109,7 @@ class AuthCsvImplTest {
         failingProvider.addCurrentUser(user)
         fileWithNoPermission.setWritable(false)
 
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingProvider.deleteCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("Error deleting current user")
@@ -120,7 +120,7 @@ class AuthCsvImplTest {
         val emptyFile = File(tempDir, "empty.csv").apply { createNewFile() }
         val provider = AuthCsvImpl(emptyFile.absolutePath)
 
-        val exception = assertFailsWith<PlanMateException.ItemNotFoundException> {
+        val exception = assertFailsWith<FileException.FileItemNotFoundException> {
             provider.getCurrentUser()
         }
         assertThat(exception).hasMessageThat().contains("No current user found.")
@@ -137,7 +137,7 @@ class AuthCsvImplTest {
         val failingProvider = AuthCsvImpl(readOnlyFile.absolutePath)
         val newUser = user.copy(username = "UpdatedUser")
 
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingProvider.addCurrentUser(newUser)
         }
         assertThat(exception).hasMessageThat().contains("Error writing current user to file")

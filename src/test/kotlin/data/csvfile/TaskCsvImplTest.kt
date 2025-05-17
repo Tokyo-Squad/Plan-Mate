@@ -4,12 +4,13 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import org.example.data.local.csvfile.TaskCsvImpl
+import org.example.data.util.exception.FileException
 import org.example.entity.TaskEntity
 import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -104,7 +105,7 @@ class TaskCsvImplTest {
         val nonExistentDir = File(tempDir, "non_existent_dir")
         val failingFile = File(nonExistentDir, "tasks.csv")
         val failingCsv = TaskCsvImpl(failingFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(task)
         }
         assertThat(exception).hasMessageThat().contains("Error creating file")
@@ -126,7 +127,7 @@ class TaskCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.add(task)
         }
         assertThat(exception).hasMessageThat().contains("Error writing to file")
@@ -200,7 +201,7 @@ class TaskCsvImplTest {
         readOnlyFile.setReadable(true)
         readOnlyFile.setWritable(false)
         val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.delete(task.id)
         }
         assertThat(exception).hasMessageThat().contains("Error deleting task")
@@ -215,7 +216,7 @@ class TaskCsvImplTest {
         readOnlyFile.setWritable(false)
         val failingCsv = TaskCsvImpl(readOnlyFile.absolutePath)
         val updatedTask = task.copy(title = "Updated Task Title")
-        val exception = assertFailsWith<PlanMateException.FileWriteException> {
+        val exception = assertFailsWith<FileException.FileWriteException> {
             failingCsv.update(updatedTask)
         }
         assertThat(exception).hasMessageThat().contains("Error updating task")

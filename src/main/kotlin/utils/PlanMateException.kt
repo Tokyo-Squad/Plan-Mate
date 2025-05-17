@@ -2,8 +2,6 @@ package org.example.utils
 
 open class PlanMateException(message: String) : Exception(message) {
 
-    class FileWriteException(message: String = "Error writing to file.") : PlanMateException(message)
-
     class ItemNotFoundException(message: String = "Item not found.") : PlanMateException(message)
 
     class InvalidFormatException(message: String = "Invalid data format.") : PlanMateException(message)
