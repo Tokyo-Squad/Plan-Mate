@@ -35,13 +35,13 @@ class RegisterUseCaseTest {
     @Test
     fun `should succeed when admin creates new user`() = runTest {
         // Given
-        coEvery { authRepository.register(validNewUser, adminUser) } returns Unit
+        coEvery { authRepository.register(validNewUser) } returns Unit
 
         // When/Then
         registerUseCase(validNewUser, adminUser)
 
         // Then
-        coVerify { authRepository.register(validNewUser, adminUser) }
+        coVerify { authRepository.register(validNewUser) }
     }
 
     @Test
@@ -52,14 +52,14 @@ class RegisterUseCaseTest {
         }
 
         assertThat(exception.message).contains("MATE users cannot create new users")
-        coVerify(exactly = 0) { authRepository.register(any(), any()) }
+        coVerify(exactly = 0) { authRepository.register(any()) }
     }
 
     @Test
     fun `should throw ValidationException when username exists`() = runTest {
         // Given
         val error = PlanMateException.ValidationException("Username exists")
-        coEvery { authRepository.register(validNewUser, adminUser) } throws error
+        coEvery { authRepository.register(validNewUser) } throws error
 
         // When/Then
         val exception = assertThrows<PlanMateException.ValidationException> {
@@ -67,14 +67,14 @@ class RegisterUseCaseTest {
         }
 
         assertThat(exception).isEqualTo(error)
-        coVerify { authRepository.register(validNewUser, adminUser) }
+        coVerify { authRepository.register(validNewUser) }
     }
 
     @Test
     fun `should throw repository exceptions`() = runTest {
         // Given
         val error = RuntimeException("DB error")
-        coEvery { authRepository.register(validNewUser, adminUser) } throws error
+        coEvery { authRepository.register(validNewUser) } throws error
 
         // When/Then
         val exception = assertThrows<RuntimeException> {
@@ -82,7 +82,7 @@ class RegisterUseCaseTest {
         }
 
         assertThat(exception).isEqualTo(error)
-        coVerify { authRepository.register(validNewUser, adminUser) }
+        coVerify { authRepository.register(validNewUser) }
     }
 
     @Test
@@ -96,6 +96,6 @@ class RegisterUseCaseTest {
         }
 
         assertThat(exception.message).contains("Username cannot be empty")
-        coVerify(exactly = 0) { authRepository.register(any(), any()) }
+        coVerify(exactly = 0) { authRepository.register(any()) }
     }
 }

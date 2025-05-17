@@ -1,12 +1,10 @@
 package logic.usecase.auth
 
 import com.google.common.truth.Truth.assertThat
-import fakeData.fakeAdminEntity
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.usecase.auth.LoginUseCase
 import org.example.utils.PlanMateException
@@ -16,7 +14,6 @@ import org.junit.jupiter.api.assertThrows
 class LoginUseCaseTest {
     private val authRepository = mockk<AuthenticationRepository>()
     private val loginUseCase = LoginUseCase(authRepository)
-    private val userType = fakeAdminEntity()
 
     @Test
     fun `should succeed when credentials are valid`() = runTest {
