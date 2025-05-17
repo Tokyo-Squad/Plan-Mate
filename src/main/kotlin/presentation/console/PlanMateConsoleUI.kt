@@ -1,7 +1,5 @@
-package org.example.presentation
+package presentation.console
 
-import AdminScreen
-import MateScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.example.entity.User
@@ -59,7 +57,7 @@ class PlanMateConsoleUI(
 
     private suspend fun showWelcome() {
         withContext(Dispatchers.IO) {
-            console.write("\n=== Welcome to PlanMate v${VERSION} ===")
+            console.write("\n=== Welcome to PlanMate v$VERSION ===")
             console.write("A Simple Task Management System")
             console.write("------------------------------")
 

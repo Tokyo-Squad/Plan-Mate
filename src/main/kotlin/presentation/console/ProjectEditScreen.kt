@@ -1,4 +1,4 @@
-package org.example.presentation
+package presentation.console
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
