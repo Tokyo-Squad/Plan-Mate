@@ -9,7 +9,9 @@ import kotlinx.coroutines.test.runTest
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.DeleteStateUseCase
 import org.example.utils.PlanMateException
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.test.Test
 
 class DeleteStateUseCaseTest {
@@ -28,13 +30,10 @@ class DeleteStateUseCaseTest {
     fun `invoke returns true when deletion succeeds`() = runTest {
         // Given
         val state = fake.createState()
-        coEvery { repo.deleteState(state.id) } returns true
+        coEvery { repo.deleteState(state.id) }
 
-        // When
-        val result = useCase(state)
-
-        // Then
-        assertThat(result).isTrue()
+        // When & Then
+        assertDoesNotThrow{useCase(state)}
         coVerify(exactly = 1) { repo.deleteState(state.id) }
     }
 

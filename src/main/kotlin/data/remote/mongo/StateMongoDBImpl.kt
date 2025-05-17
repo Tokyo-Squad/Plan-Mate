@@ -7,41 +7,38 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
 import org.example.data.RemoteDataSource
-import org.example.entity.StateEntity
+import org.example.data.remote.dto.StateDto
+import org.example.data.util.exception.DatabaseException
 import org.example.data.util.exception.MongoExceptionHandler
-import org.example.utils.PlanMateException
-import java.util.*
+import org.example.data.util.mapper.toDocument
+import org.example.data.util.mapper.toStateDto
+import java.util.UUID
 
 class StateMongoDBImpl(
     mongoClient: MongoDBClient
-) : RemoteDataSource<StateEntity> {
+) : RemoteDataSource<StateDto> {
 
     private val collection = mongoClient.getDatabase().getCollection<Document>("states")
 
-    override suspend fun add(item: StateEntity) {
+    override suspend fun add(item: StateDto) {
         MongoExceptionHandler.handleOperation("adding state") {
-            collection.insertOne(toDocument(item))
+            collection.insertOne(item.toDocument())
         }
     }
 
-    override suspend fun get(): List<StateEntity> {
-        return MongoExceptionHandler.handleOperation("fetching all states") {
-            collection.find()
-                .map { fromDocument(it) }
-                .toList()
-        }
+    override suspend fun get(): List<StateDto> = MongoExceptionHandler.handleOperation("fetching all states") {
+        collection.find().map { it.toStateDto() }.toList()
     }
 
-    override suspend fun getById(id: UUID): StateEntity {
-        return MongoExceptionHandler.handleOperation("fetching state by ID") {
+    override suspend fun getById(id: UUID): StateDto?=
+        MongoExceptionHandler.handleOperation("fetching state by ID") {
             val filter = Filters.eq("id", id.toString())
             val document = collection.find(filter).firstOrNull()
-            document?.let { fromDocument(it) }
-                ?: throw PlanMateException.ItemNotFoundException("State not found with ID: $id")
+            document?.toStateDto()
         }
-    }
 
-    override suspend fun update(item: StateEntity) {
+
+    override suspend fun update(item: StateDto) {
         MongoExceptionHandler.handleOperation("updating state") {
             val filter = Filters.eq("id", item.id.toString())
             val update = Updates.combine(
@@ -50,7 +47,7 @@ class StateMongoDBImpl(
             )
             val result = collection.updateOne(filter, update)
             if (result.matchedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("State not found with ID: ${item.id}")
+                throw DatabaseException.DatabaseItemNotFoundException("State not found with ID: ${item.id}")
             }
         }
     }
@@ -60,27 +57,8 @@ class StateMongoDBImpl(
             val filter = Filters.eq("id", id.toString())
             val result = collection.deleteOne(filter)
             if (result.deletedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("State not found with ID: $id")
+                throw DatabaseException.DatabaseItemNotFoundException("State not found with ID: $id")
             }
-        }
-    }
-
-    private fun toDocument(item: StateEntity): Document {
-        return Document()
-            .append("id", item.id)
-            .append("name", item.name)
-            .append("projectId", item.projectId.toString())
-    }
-
-    private fun fromDocument(doc: Document): StateEntity {
-        return try {
-            StateEntity(
-                id = doc.get("id", UUID::class.java),
-                name = doc.getString("name"),
-                projectId = UUID.fromString(doc.getString("projectId"))
-            )
-        } catch (e: Exception) {
-            throw PlanMateException.InvalidFormatException("Malformed MongoDB document: ${e.message}")
         }
     }
 }
