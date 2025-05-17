@@ -4,47 +4,44 @@ package org.example.data.remote.mongo
 import com.mongodb.client.model.Filters
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
-import kotlinx.datetime.LocalDateTime
 import org.bson.Document
 import org.example.data.RemoteDataSource
-import org.example.entity.AuditAction
-import org.example.entity.AuditLogEntity
-import org.example.entity.AuditedEntityType
-import org.example.utils.MongoExceptionHandler
-import org.example.utils.PlanMateException
-import java.util.*
+import org.example.data.remote.dto.AuditLogDto
+import org.example.data.util.exception.DatabaseException
+import org.example.data.util.exception.MongoExceptionHandler
+import org.example.data.util.mapper.toAuditLogDto
+import org.example.data.util.mapper.toDocument
+import java.util.UUID
 
 class AuditLogMongoDbImpl(
     mongoDBClient: MongoDBClient
-) : RemoteDataSource<AuditLogEntity> {
+) : RemoteDataSource<AuditLogDto> {
     private val auditLogCollection = mongoDBClient.getDatabase().getCollection<Document>("audit_log")
 
-    override suspend fun add(item: AuditLogEntity) {
+    override suspend fun add(item: AuditLogDto) {
         MongoExceptionHandler.handleOperation("adding audit log") {
-            val document = toDocument(item)
-            auditLogCollection.insertOne(document)
+            auditLogCollection.insertOne(item.toDocument())
         }
     }
 
-    override suspend fun get(): List<AuditLogEntity> {
+    override suspend fun get(): List<AuditLogDto> {
         return MongoExceptionHandler.handleOperation("fetching all audit logs") {
-            auditLogCollection.find().toList().map { fromDocument(it) }
+            auditLogCollection.find().toList().map { it.toAuditLogDto() }
         }
     }
 
-    override suspend fun getById(id: UUID): AuditLogEntity? {
+    override suspend fun getById(id: UUID): AuditLogDto? {
         return MongoExceptionHandler.handleOperation("fetching audit log by ID") {
-            auditLogCollection.find(Filters.eq("_id", id.toString())).firstOrNull()?.let { fromDocument(it) }
+            auditLogCollection.find(Filters.eq("id", id.toString())).firstOrNull()?.toAuditLogDto()
         }
     }
 
-    override suspend fun update(item: AuditLogEntity) {
+    override suspend fun update(item: AuditLogDto) {
         MongoExceptionHandler.handleOperation("updating audit log") {
             val filter = Filters.eq("id", item.id.toString())
-            val document = toDocument(item)
-            val result = auditLogCollection.replaceOne(filter, document)
+            val result = auditLogCollection.replaceOne(filter, item.toDocument())
             if (result.matchedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("Audit log with id ${item.id} not found")
+                throw DatabaseException.DatabaseItemNotFoundException("Audit log with id ${item.id} not found")
             }
         }
     }
@@ -53,35 +50,8 @@ class AuditLogMongoDbImpl(
         MongoExceptionHandler.handleOperation("deleting audit log") {
             val result = auditLogCollection.deleteOne(Filters.eq("id", id.toString()))
             if (result.deletedCount == 0L) {
-                throw PlanMateException.ItemNotFoundException("Audit log with id $id not found")
+                throw DatabaseException.DatabaseItemNotFoundException("Audit log with id $id not found")
             }
-        }
-    }
-
-    private fun toDocument(auditLog: AuditLogEntity): Document {
-        return Document()
-            .append("id", auditLog.id)
-            .append("userId", auditLog.userId.toString())
-            .append("entityType", auditLog.entityType.toString())
-            .append("entityId", auditLog.entityId.toString())
-            .append("action", auditLog.action.toString())
-            .append("changeDetails", auditLog.changeDetails)
-            .append("timestamp", auditLog.timestamp.toString())
-    }
-
-    private fun fromDocument(document: Document): AuditLogEntity {
-        return try {
-            AuditLogEntity(
-                id = document.get("id", UUID::class.java),
-                userId = UUID.fromString(document.getString("userId")),
-                entityType = AuditedEntityType.valueOf(document.getString("entityType")),
-                entityId = UUID.fromString(document.getString("entityId")),
-                action = AuditAction.valueOf(document.getString("action")),
-                changeDetails = document.getString("changeDetails"),
-                timestamp = document.getString("timestamp").let { LocalDateTime.parse(it) }
-            )
-        } catch (e: Exception) {
-            throw PlanMateException.InvalidFormatException("Malformed audit log document: $document. ${e.message}")
         }
     }
 }
