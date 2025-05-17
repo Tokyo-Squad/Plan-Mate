@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
@@ -17,12 +17,12 @@ import java.util.UUID
 
 class TaskRepositoryImpl(
     private val auditLogRepository: AuditLogRepository,
-    private val dataProvider: DataProvider<TaskEntity>,
+    private val remoteDataSource: RemoteDataSource<TaskEntity>,
     private val stateRepository: StateRepository
 ) : TaskRepository {
 
     override suspend fun add(task: TaskEntity, currentUserId: UUID) {
-        dataProvider.add(task)
+        remoteDataSource.add(task)
         audit(
             currentUserId,
             task.id,
@@ -35,16 +35,16 @@ class TaskRepositoryImpl(
         task: TaskEntity,
         currentUserId: UUID
     ) {
-        val old = dataProvider.getById(task.id)
+        val old = remoteDataSource.getById(task.id)
             ?: throw PlanMateException.ItemNotFoundException("Task ${task.id} not found")
-        dataProvider.update(task)
+        remoteDataSource.update(task)
         val details = generateUpdateDetails(old, task, currentUserId, now())
         audit(currentUserId, task.id, AuditAction.UPDATE, details)
     }
 
     override suspend fun delete(id: UUID, currentUserId: UUID) {
-        if (dataProvider.getById(id) == null) throw PlanMateException.ItemNotFoundException("Task $id not found")
-        dataProvider.delete(id)
+        if (remoteDataSource.getById(id) == null) throw PlanMateException.ItemNotFoundException("Task $id not found")
+        remoteDataSource.delete(id)
         audit(
             currentUserId,
             id,
@@ -54,11 +54,11 @@ class TaskRepositoryImpl(
     }
 
     override suspend fun getTaskById(id: UUID): TaskEntity =
-        dataProvider.getById(id) ?: throw PlanMateException.ItemNotFoundException("Task $id not found")
+        remoteDataSource.getById(id) ?: throw PlanMateException.ItemNotFoundException("Task $id not found")
 
 
     override suspend fun getTasksByProjectId(id: UUID): List<TaskEntity> =
-        dataProvider.get().filter { it.projectId == id }
+        remoteDataSource.get().filter { it.projectId == id }
             .takeIf { it.isNotEmpty() }
             ?: throw PlanMateException.ItemNotFoundException("Project $id not found")
 

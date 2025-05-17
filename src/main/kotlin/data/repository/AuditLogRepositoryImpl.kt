@@ -1,6 +1,6 @@
 package org.example.data.repository
 
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
 import org.example.logic.repository.AuditLogRepository
@@ -8,11 +8,11 @@ import org.example.utils.PlanMateException
 import java.util.*
 
 class AuditLogRepositoryImpl(
-    private val dataProvider: DataProvider<AuditLogEntity>
+    private val remoteDataSource: RemoteDataSource<AuditLogEntity>
 ) : AuditLogRepository {
     override suspend fun addAudit(auditLogEntity: AuditLogEntity) {
         try {
-            dataProvider.add(auditLogEntity)
+            remoteDataSource.add(auditLogEntity)
         } catch (e: PlanMateException.FileWriteException) {
             throw PlanMateException.FileWriteException("Failed to add audit log due to invalid state.")
         }
@@ -25,7 +25,7 @@ class AuditLogRepositoryImpl(
         getEntityHistory(taskId, AuditedEntityType.TASK)
 
     private suspend fun getEntityHistory(entityId: UUID, entityType: AuditedEntityType): List<AuditLogEntity> {
-        val history = dataProvider.get().filter {
+        val history = remoteDataSource.get().filter {
             it.entityType == entityType && it.entityId == entityId
         }
         return history

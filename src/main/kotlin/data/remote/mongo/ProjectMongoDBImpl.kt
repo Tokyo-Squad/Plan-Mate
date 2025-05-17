@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.LocalDateTime
 import org.bson.Document
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.ProjectEntity
 import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
@@ -14,7 +14,7 @@ import java.util.*
 
 class ProjectMongoDBImpl(
     private val mongoClient: MongoDBClient
-) : DataProvider<ProjectEntity> {
+) : RemoteDataSource<ProjectEntity> {
 
     private val collection: MongoCollection<Document> by lazy {
         mongoClient.getDatabase().getCollection("projects")

@@ -1,10 +1,8 @@
 package org.example.di
 
-import data.csvfile.*
 import org.example.data.AuthProvider
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.data.local.csvfile.*
-import org.example.data.mongo.*
 import org.example.data.remote.mongo.*
 import org.example.data.repository.*
 import org.example.entity.*
@@ -24,16 +22,16 @@ val appModule = module {
     single(named("auditLogs")) { "audit_logs.csv" }
     single(named("auth")) { "auth.csv" }
 
-    single<DataProvider<ProjectEntity>>(named("projectDataProvider")) { ProjectCsvImpl(get(named("projects"))) }
-    single<DataProvider<ProjectEntity>>(named("projectDataProviderMongo")) { ProjectMongoDBImpl(get()) }
-    single<DataProvider<StateEntity>>(named("stateDataProvider")) { StateCsvImpl(get(named("states"))) }
-    single<DataProvider<StateEntity>>(named("stateDataProviderMongo")) { StateMongoDBImpl(get()) }
-    single<DataProvider<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
-    single<DataProvider<TaskEntity>>(named("taskDataProviderMongo")) { TaskMongoDBImpl(get()) }
-    single<DataProvider<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
-    single<DataProvider<UserEntity>>(named("userDataProviderMongo")) { UsersMongoImpl(get()) }
-    single<DataProvider<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
-    single<DataProvider<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get()) }
+    single<RemoteDataSource<ProjectEntity>>(named("projectDataProvider")) { ProjectCsvImpl(get(named("projects"))) }
+    single<RemoteDataSource<ProjectEntity>>(named("projectDataProviderMongo")) { ProjectMongoDBImpl(get()) }
+    single<RemoteDataSource<StateEntity>>(named("stateDataProvider")) { StateCsvImpl(get(named("states"))) }
+    single<RemoteDataSource<StateEntity>>(named("stateDataProviderMongo")) { StateMongoDBImpl(get()) }
+    single<RemoteDataSource<TaskEntity>>(named("taskDataProvider")) { TaskCsvImpl(get(named("tasks"))) }
+    single<RemoteDataSource<TaskEntity>>(named("taskDataProviderMongo")) { TaskMongoDBImpl(get()) }
+    single<RemoteDataSource<UserEntity>>(named("userDataProvider")) { UserCsvImpl(get(named("users"))) }
+    single<RemoteDataSource<UserEntity>>(named("userDataProviderMongo")) { UsersMongoImpl(get()) }
+    single<RemoteDataSource<AuditLogEntity>>(named("auditDataProvider")) { AuditLogCsvImpl(get(named("auditLogs"))) }
+    single<RemoteDataSource<AuditLogEntity>>(named("auditDataProviderMongo")) { AuditLogMongoDbImpl(get()) }
     single<AuthProvider> { AuthProviderImpl(get(named("auth"))) }
     single<AuthProvider>(named("authProviderMongo")) { AuthMongoImpl(get()) }
 

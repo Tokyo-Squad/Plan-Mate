@@ -1,7 +1,7 @@
 package org.example.data.repository
 
 import org.example.data.AuthProvider
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.UserEntity
 import org.example.logic.repository.AuthenticationRepository
 import org.example.logic.repository.UserRepository
@@ -11,7 +11,7 @@ import org.example.utils.hasher.PasswordHasher
 class AuthenticationRepositoryImpl(
     private val authenticationProvider: AuthProvider,
     private val userRepository: UserRepository,
-    private val dataProvider: DataProvider<UserEntity>,
+    private val remoteDataSource: RemoteDataSource<UserEntity>,
     private val passwordHasher: PasswordHasher
 ) : AuthenticationRepository {
 
@@ -29,7 +29,7 @@ class AuthenticationRepositoryImpl(
             userRepository.getUserByUsername(newUser.username)
             throw PlanMateException.ValidationException("A user with that username already exists.")
         } catch (e: PlanMateException.ItemNotFoundException) {
-            dataProvider.add(newUser)
+            remoteDataSource.add(newUser)
         }
     }
 

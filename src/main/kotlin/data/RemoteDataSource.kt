@@ -1,8 +1,8 @@
 package org.example.data
 
-import java.util.*
+import java.util.UUID
 
-interface DataProvider<Entity> {
+interface RemoteDataSource<Entity> {
     suspend fun add(item: Entity)
     suspend fun get(): List<Entity>
     suspend fun getById(id: UUID): Entity?

@@ -1,7 +1,8 @@
 package org.example.data.local.csvfile
 
 import kotlinx.datetime.LocalDateTime
-import org.example.data.DataProvider
+import org.example.data.LocalDataSource
+import org.example.data.RemoteDataSource
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
@@ -12,7 +13,7 @@ import java.util.*
 
 class AuditLogCsvImpl(
     fileName: String
-) : DataProvider<AuditLogEntity> {
+) : LocalDataSource<AuditLogEntity> {
 
     private val file: File = File(fileName)
 
@@ -78,9 +79,9 @@ class AuditLogCsvImpl(
     }
 
     private fun readAndParseFile(): List<AuditLogEntity> {
-           return file.readLines()
-                .filter { it.isNotBlank() }
-                .map { fromCSVLine(it) }
+        return file.readLines()
+            .filter { it.isNotBlank() }
+            .map { fromCSVLine(it) }
     }
 
     private fun saveToCsv(data: List<AuditLogEntity>) {

@@ -1,7 +1,8 @@
 package org.example.data.local.csvfile
 
 import kotlinx.datetime.LocalDateTime
-import org.example.data.DataProvider
+import org.example.data.LocalDataSource
+import org.example.data.RemoteDataSource
 import org.example.entity.ProjectEntity
 import org.example.utils.PlanMateException
 import java.io.File
@@ -10,7 +11,7 @@ import java.util.*
 
 class ProjectCsvImpl(
     fileName: String
-) : DataProvider<ProjectEntity> {
+) : LocalDataSource<ProjectEntity> {
 
     private val file: File = File(fileName)
 
@@ -81,7 +82,6 @@ class ProjectCsvImpl(
     }
 
 
-
     private fun saveToCsv(data: List<ProjectEntity>) {
         try {
             val content = data.joinToString("\n") { toCSVLine(it) }
@@ -104,6 +104,7 @@ class ProjectCsvImpl(
             throw PlanMateException.InvalidFormatException("Malformed CSV line: $line. ${e.message}")
         }
     }
+
     private fun toCSVLine(entity: ProjectEntity): String {
         return "${entity.id},${entity.name},${entity.createdByAdminId},${entity.createdAt}"
     }

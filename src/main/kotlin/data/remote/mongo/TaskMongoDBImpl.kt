@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.toLocalDateTime
 import org.bson.Document
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.TaskEntity
 import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
 import java.util.*
 
-class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : DataProvider<TaskEntity> {
+class TaskMongoDBImpl(private val mongoClient: MongoDBClient) : RemoteDataSource<TaskEntity> {
     private val collection: MongoCollection<Document> by lazy {
         mongoClient.getDatabase().getCollection("tasks")
     }

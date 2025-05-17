@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.utils.MongoExceptionHandler
@@ -15,7 +15,7 @@ import java.util.*
 
 class UsersMongoImpl(
     mongoDBClient: MongoDBClient
-) : DataProvider<UserEntity> {
+) : RemoteDataSource<UserEntity> {
     private val usersCollection = mongoDBClient.getDatabase().getCollection<Document>("users")
 
     override suspend fun add(item: UserEntity) {
