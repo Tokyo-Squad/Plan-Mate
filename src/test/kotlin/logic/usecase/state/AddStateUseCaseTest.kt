@@ -6,11 +6,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.example.data.util.exception.FileException
 import org.example.logic.repository.StateRepository
 import org.example.logic.usecase.state.AddStateUseCase
-import org.example.utils.PlanMateException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 
 
 class AddStateUseCaseTest {
@@ -25,25 +26,21 @@ class AddStateUseCaseTest {
     }
 
     @Test
-    fun `invoke returns state ID when state is successfully added`() = runTest {
+    fun `invoke state is successfully added when addition succeeds`() = runTest {
         // Given
         val state = fake.createState()
-        val expectedId = state.id.toString()
-        coEvery { repo.addState(state) } returns expectedId
+        coEvery { repo.addState(state) } returns Unit
 
-        // When
-        val result = useCase(state)
-
-        // Then
-        assertThat(result).isEqualTo(expectedId)
-        coVerify(exactly = 1) { repo.addState(state) }
+        // Then & When
+        assertDoesNotThrow { useCase(state) }
+        coVerify(exactly = 1) { repo.addState(any()) }
     }
 
     @Test
     fun `invoke throws when repository throws FileWriteException`() = runTest {
         // Given
         val state = fake.createState()
-        val ex = PlanMateException.FileWriteException("disk full")
+        val ex = FileException.FileWriteException("disk full")
         coEvery { repo.addState(state) } throws ex
 
         // When / Then

@@ -27,10 +27,10 @@ class DeleteStateUseCaseTest {
     }
 
     @Test
-    fun `invoke returns true when deletion succeeds`() = runTest {
+    fun `invoke successfully when deletion succeeds`() = runTest {
         // Given
         val state = fake.createState()
-        coEvery { repo.deleteState(state.id) }
+        coEvery { repo.deleteState(state.id) } returns Unit
 
         // When & Then
         assertDoesNotThrow{useCase(state)}
