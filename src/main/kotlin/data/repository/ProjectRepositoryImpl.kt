@@ -3,7 +3,7 @@ package org.example.data.repository
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toLocalDateTime
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.AuditAction
 import org.example.entity.AuditLogEntity
 import org.example.entity.AuditedEntityType
@@ -12,15 +12,15 @@ import org.example.logic.repository.ProjectRepository
 import java.util.*
 
 class ProjectRepositoryImpl(
-    private val projectDataProvider: DataProvider<ProjectEntity>,
-    private val auditDataProvider: DataProvider<AuditLogEntity>
+    private val projectRemoteDataSource: RemoteDataSource<ProjectEntity>,
+    private val auditRemoteDataSource: RemoteDataSource<AuditLogEntity>
 ) : ProjectRepository {
 
     override suspend fun addProject(project: ProjectEntity): ProjectEntity {
         require(project.name.isNotBlank()) { "Project name cannot be blank" }
 
-        projectDataProvider.add(project)
-        auditDataProvider.add(
+        projectRemoteDataSource.add(project)
+        auditRemoteDataSource.add(
             AuditLogEntity(
                 userId = project.createdByAdminId,
                 entityType = AuditedEntityType.PROJECT,
@@ -34,9 +34,9 @@ class ProjectRepositoryImpl(
     }
 
     override suspend fun updateProject(project: ProjectEntity, currentUserId: UUID): ProjectEntity {
-        projectDataProvider.update(project)
+        projectRemoteDataSource.update(project)
 
-        auditDataProvider.add(
+        auditRemoteDataSource.add(
             AuditLogEntity(
                 userId = currentUserId,
                 entityType = AuditedEntityType.PROJECT,
@@ -50,11 +50,11 @@ class ProjectRepositoryImpl(
     }
 
     override suspend fun deleteProject(projectId: UUID, currentUserId: UUID) {
-        val project = projectDataProvider.getById(projectId)
+        val project = projectRemoteDataSource.getById(projectId)
             ?: throw NoSuchElementException("Project not found")
-        projectDataProvider.delete(projectId)
+        projectRemoteDataSource.delete(projectId)
 
-        auditDataProvider.add(
+        auditRemoteDataSource.add(
             AuditLogEntity(
                 userId = currentUserId,
                 entityType = AuditedEntityType.PROJECT,
@@ -66,10 +66,10 @@ class ProjectRepositoryImpl(
         )
     }
 
-    override suspend fun getAllProjects(): List<ProjectEntity> = projectDataProvider.get()
+    override suspend fun getAllProjects(): List<ProjectEntity> = projectRemoteDataSource.get()
 
     override suspend fun getProjectById(projectId: UUID): ProjectEntity {
-        return projectDataProvider.getById(projectId)
+        return projectRemoteDataSource.getById(projectId)
             ?: throw NoSuchElementException("Project not found")
     }
 }

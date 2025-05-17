@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
-import org.example.data.DataProvider
+import org.example.data.RemoteDataSource
 import org.example.entity.StateEntity
 import org.example.utils.MongoExceptionHandler
 import org.example.utils.PlanMateException
@@ -14,7 +14,7 @@ import java.util.*
 
 class StateMongoDBImpl(
     mongoClient: MongoDBClient
-) : DataProvider<StateEntity> {
+) : RemoteDataSource<StateEntity> {
 
     private val collection = mongoClient.getDatabase().getCollection<Document>("states")
 

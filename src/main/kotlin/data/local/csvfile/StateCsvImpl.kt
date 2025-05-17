@@ -1,6 +1,7 @@
 package org.example.data.local.csvfile
 
-import org.example.data.DataProvider
+import org.example.data.LocalDataSource
+import org.example.data.RemoteDataSource
 import org.example.entity.StateEntity
 import org.example.utils.PlanMateException
 import java.io.File
@@ -9,7 +10,7 @@ import java.util.*
 
 class StateCsvImpl(
     fileName: String
-) : DataProvider<StateEntity> {
+) : LocalDataSource<StateEntity> {
 
     private val file: File = File(fileName)
 
@@ -87,6 +88,7 @@ class StateCsvImpl(
             throw PlanMateException.FileWriteException("Error writing to file '${file.name}': ${e.message}")
         }
     }
+
     private fun fromCSVLine(line: String): StateEntity {
         try {
             val parts = line.split(",")

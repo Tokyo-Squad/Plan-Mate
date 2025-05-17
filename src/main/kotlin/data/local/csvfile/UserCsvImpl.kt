@@ -1,6 +1,7 @@
 package org.example.data.local.csvfile
 
-import org.example.data.DataProvider
+import org.example.data.LocalDataSource
+import org.example.data.RemoteDataSource
 import org.example.entity.UserEntity
 import org.example.entity.UserType
 import org.example.utils.PlanMateException
@@ -11,7 +12,7 @@ import java.util.*
 
 class UserCsvImpl(
     fileName: String
-) : DataProvider<UserEntity> {
+) : LocalDataSource<UserEntity> {
     private val file: File = File(fileName)
 
     override suspend fun add(item: UserEntity) {
@@ -60,6 +61,7 @@ class UserCsvImpl(
             throw PlanMateException.FileWriteException("Error deleting user: ${e.message}")
         }
     }
+
     private fun loadFromCsv(): List<UserEntity> {
         ensureFileExists()
         return readAndParseFile()
@@ -73,6 +75,7 @@ class UserCsvImpl(
             throw PlanMateException.FileWriteException("Error creating file '${file.name}': ${e.message}")
         }
     }
+
     private fun readAndParseFile(): List<UserEntity> {
         return file.readLines()
             .filter { it.isNotBlank() }
